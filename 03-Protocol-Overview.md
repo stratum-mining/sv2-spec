@@ -304,6 +304,7 @@ Extensions MUST require version negotiation with the recipient of the message to
 This prevents the needlessly wasted bandwidth and potentially serious performance degradation of extension messages when the recipient does not support them.
 See ChannelEndpointChanged message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
 
+
 ## 3.6 Error Codes
 The protocol uses string error codes.
 The list of error codes can differ between implementations, and thus implementations MUST NOT take any automated action(s) on the basis of an error code.
@@ -320,3 +321,80 @@ Individual error codes are also specified along with their respective error mess
 - `unsupported-protocol`
 - `protocol-version-mismatch`
 
+
+## 3.7 Common Protocol Messages
+The following protocol messages are common across all of the protocols described in this BIP.
+
+
+### 3.7.1 SetupConnection (Client -> Server)
+Initiates the connection.
+This MUST be the first message sent by the client on the newly opened connection.
+Server MUST respond with either a `SetupConnection.Success` or `SetupConnection.Error` message.
+Clients that are not configured to provide telemetry data to the upstream node SHOULD set `device_id` to 0-length strings.
+However, they MUST always set vendor to a string describing the manufacturer/developer and firmware version and SHOULD always set `hardware_version` to a string describing, at least, the particular hardware/software package in use.
+
+```
++------------------+-----------+----------------------------------------------------------------------------------------+
+| Field Name       | Data Type | Description                                                                            |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| protocol         | U8        | 0 = Mining Protocol                                                                    |
+|                  |           | 1 = Job Negotiaion Protocol                                                            |
+|                  |           | 2 = Template Distribution Protocol                                                     |
+|                  |           | 3 = Job Distribution Protocol                                                          |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| min_version      | U16       | The minimum protocol version the client supports (currently must be 2)                 |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| max_version      | U16       | The maximum protocol version the client supports (currently must be 2)                 |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| flags            | U32       | Flags indicating optional protocol features the client supports. Each protocol from    |
+|                  |           | `protocol` field as its own values/flags.                                              |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| endpoint_host    | U32       | ASCII text indicating the hostname or IP address                                       |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| endpoint_port    | U16       | Connecting port value                                                                  |
++------------------+-----------+----------------------------------------------------------------------------------------+
+|                                                   Device Information                                                  |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| vendor           | STR0_255  | E.g. "Bitmain"                                                                         |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| hardware_version | STR0_255  | E.g. "S9i 13.5"                                                                        |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| firmware         | STR0_255  | E.g. "braiins-os-2018-09-22-1-hash"                                                    |
++------------------+-----------+----------------------------------------------------------------------------------------+
+| device_id        | STR0_255  | Unique identifier of the device as defined by the vendor                               |
++------------------+-----------+----------------------------------------------------------------------------------------+
+```
+
+
+### 3.7.2 SetupConnection.Success (Server -> Client)
+Response to SetupConnection message if the server accepts the connection.
+The client is required to verify the set of feature flags that the server supports and act accordingly.
+
+```
++------------+-----------+----------------------------------------------------------------------------------------+
+| Field Name | Data Type | Description                                                                            |
++------------+-----------+----------------------------------------------------------------------------------------+
+| flags      | U32       | Flags indicating features causing an error                                             |
++------------+-----------+----------------------------------------------------------------------------------------+
+| error_code | STR0_255  | Human-readable error code(s), see Error Codes section below                            |
++------------+-----------+----------------------------------------------------------------------------------------+
+```
+
+Possible error codes:
+
+- `unsupported-feature-flags`
+- `unsupported-protocol`
+- `protocol-version-mismatch`
+
+
+### 3.7.3 ChannelEndpointChanged (Server -> Client)
+When a channel’s upstream or downstream endpoint changes and that channel had previously sent messages with **`channel_msg`** bitset of unknown `extension_type`, the intermediate proxy MUST send a **`ChannelEndpointChanged`** message.
+Upon receipt thereof, any extension state (including version negotiation and the presence of support for a given extension) MUST be reset and version/presence negotiation must begin again.
+
+```
++------------+-----------+----------------------------------------------------------------------------------------+
+| Field Name | Data Type | Description                                                                            |
++------------+-----------+----------------------------------------------------------------------------------------+
+| channel_id | U32       | The channel which has changed enpoint                                                  |
++------------+-----------+----------------------------------------------------------------------------------------+
+```

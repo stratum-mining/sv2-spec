@@ -17,6 +17,10 @@ This repository contains the Stratum V2 protocol specification.
   - [3.4 Reconnecting Downstream Nodes](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#34-reconnecting-downstream-nodes)
   - [3.5 Protocol Extensions](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#35-protocol-extensions)
   - [3.6 Error Codes](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#36-error-codes)
+  - [3.7 Common Protocol Messages](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#37-common-protocol-messages)
+    - [3.7.1 SetupConnection (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#371-setupconnection-client---server)
+    - [3.7.2 SetupConnection.Success (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#372-setupconnectionsuccess-server---client)
+    - [3.7.3 ChannelEndpointChanged (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#373-channelendpointchanged-server---client)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
