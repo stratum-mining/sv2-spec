@@ -21,6 +21,13 @@ This repository contains the Stratum V2 protocol specification.
     - [3.7.1 SetupConnection (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#371-setupconnection-client---server)
     - [3.7.2 SetupConnection.Success (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#372-setupconnectionsuccess-server---client)
     - [3.7.3 ChannelEndpointChanged (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#373-channelendpointchanged-server---client)
+- [4. Mining Protocol](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki)
+  - [4.1 Channels](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/04-Mining-Protocol.md#411-standard-channels)
+    - [4.1.1 Standard Channels](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/04-Mining-Protocol.md#411-standard-channels)
+    - [4.1.2 Extended Channels](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/04-Mining-Protocol.md#412-extended-channels)
+    - [4.1.3 Group Channels](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/04-Mining-Protocol.md#413-group-channels)
+    - [4.1.4 Future Jobs](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/04-Mining-Protocol.md#414-future-jobs)
+  - [4.2 Hashing Space Distribution](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/04-Mining-Protocol.md#42-hashing-space-distribution)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
