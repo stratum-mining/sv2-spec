@@ -86,3 +86,7 @@ Unique jobs can be generated regularly by:
 - Using unique work from a work provider, e.g. a previous work update (note that this is likely more difficult to implement, especially in light of the requirement that transaction selection/ordering not be used explicitly for additional hash space distribution).
 
 This protocol explicitly expects that upstream server software is able to manage the size of the hashing space correctly for its clients and can provide new jobs quickly enough.
+
+
+## 4.3 Mining Protocol Messages
+![4.3.1 Mining Protocol Messages: Initialization](./img/4.3-Mining-Protocol-Messages-Initialization.png)
