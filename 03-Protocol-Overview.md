@@ -235,7 +235,7 @@ It contains serialized:
 +-----------------+-----------+----------------------------------------------------------------------------------------+
 ```
 
-### 3.3.5 Certificate format
+### 3.3.5 Certificate Format
 Stratum server certificates have the following layout.
 The signature is  constructed over the fields marked for signing after serialization using Stratum protocol binary serialization format.
 
@@ -255,7 +255,7 @@ The signature is  constructed over the fields marked for signing after serializa
 +----------------------+-----------+-----------------------------------------------------------------------------------+
 ```
 
-### 3.3.6 URL scheme and Pool Authority Key
+### 3.3.6 URL Scheme and Pool Authority Key
 Downstream nodes that want to use the above outlined security scheme need to have configured the **Pool Authority Key** of the pool that they intend to connect to.
 The key can be embedded into the mining URL as part of the path.
 E.g.:
