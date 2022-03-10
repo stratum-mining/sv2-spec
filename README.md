@@ -32,6 +32,12 @@ This repository contains the Stratum V2 protocol specification.
     - [4.3.1 SetupConnection Flags for Mining Protocol](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#431-setupconnection-flags-for-mining-protocol)
     - [4.3.2 OpenStandardMiningChannel (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#432-openstandardminingchannel-client---server)
     - [4.3.3 OpenStandardMiningChannel.Success (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#433-openstandardminingchannelsuccess-server---client)
+    - [4.3.4 OpenExtendedMiningChannel (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#434-openextendedminingchannel-client---server)
+    - [4.3.5 OpenExtendedMiningChannel.Success (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#435-openextendedminingchannelsuccess-server---client)
+    - [4.3.6 OpenMiningChannel.Error (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#436-openminingchannelerror-server---client)
+    - [4.3.7 UpdateChannel (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#437-updatechannel-client---server)
+    - [4.3.8 UpdateChannel.Error (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#438-updatechannelerror-server---client)
+    - [4.3.9 CloseChannel (Client -> Server, Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#439-closechannel-client---server-server---client)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  

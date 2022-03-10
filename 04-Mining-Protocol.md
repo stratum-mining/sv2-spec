@@ -140,25 +140,25 @@ The upstream node either passes opening the channel further or has enough local 
 Clients must also communicate information about their hashing power in order to receive well-calibrated job assignments.
 
 ```
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| Field Name        | Data Type | Description                                                                            |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| request_id        | U32       | Client-specified identifier for matching responses from upstream server. The value     |
-|                   |           | MUST be connection-wide unique and is not interpreted by the server.                   |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| user_identity     | STR0_255  | Unconstrained sequence of bytes. Whatever is needed by upstream node to                |
-|                   |           | identify/authenticate the client, e.g. "braiinstest.worker1". Additional restrictions  |
-|                   |           | can be imposed by the upstream node (e.g. a pool). It is highly recommended that UTF-8 |
-|                   |           | encoding is used.                                                                      |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| nominal_hash_rate | F32       | [h/s] Expected hash rate of the device (or cumulative hashrate on the channel if       |
-|                   |           | multiple devices are connected downstream) in h/s. Depending on server's target        |
-|                   |           | setting policy, this value can be used for setting a reasonable target for the         |
-|                   |           | channel. Proxy MUST send 0.0f when there are no mining devices connected yet.          |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| max_target        | U256      | Maximum target which can be accepted by the connected device or devices. Server MUST   |
-|                   |           | accept the target or respond by sending OpenMiningChannel.Error message.               |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| Field Name        | Data Type | Description                                                                          |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| request_id        | U32       | Client-specified identifier for matching responses from upstream server. The value   |
+|                   |           | MUST be connection-wide unique and is not interpreted by the server.                 |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| user_identity     | STR0_255  | Unconstrained sequence of bytes. Whatever is needed by upstream node to              |
+|                   |           | identify/authenticate the client, e.g. "braiinstest.worker1". Additional             |
+|                   |           | restrictions can be imposed by the upstream node (e.g. a pool). It is highly         |
+|                   |           | recommended that UTF-8 encoding is used.                                             |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| nominal_hash_rate | F32       | [h/s] Expected hash rate of the device (or cumulative hashrate on the channel if     |
+|                   |           | multiple devices are connected downstream) in h/s. Depending on server's target      |
+|                   |           | setting policy, this value can be used for setting a reasonable target for the       |
+|                   |           | channel. Proxy MUST send 0.0f when there are no mining devices connected yet.        |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| max_target        | U256      | Maximum target which can be accepted by the connected device or devices. Server MUST |
+|                   |           | accept the target or respond by sending OpenMiningChannel.Error message.             |
++-------------------+-----------+--------------------------------------------------------------------------------------+
 ```
 
 
@@ -166,21 +166,138 @@ Clients must also communicate information about their hashing power in order to 
 Sent as a response for opening a standard channel, if successful.
 
 ```
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| Field Name        | Data Type | Description                                                                            |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| request_id        | U32       | Client-specified request ID from OpenStandardMiningChannel message, so that the client |
-|                   |           | can pair responses with open channel requests.                                         |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the         |
-|                   |           | connection. E.g. it is used for broadcasting new jobs by NewExtendedMiningJob.         |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| target            | U256      | Initial target for the mining channel.                                                 |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| extranonce_prefix | U32       | Bytes used as implicit first part of extranonce for the scenario when extended job is  |
-|                   |           | served by the upstream node for a set of standard channels that belong to the same     |
-|                   |           | group.                                                                                 |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
-| group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.     |
-+-------------------+-----------+----------------------------------------------------------------------------------------+
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| Field Name        | Data Type | Description                                                                          |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| request_id        | U32       | Client-specified request ID from OpenStandardMiningChannel message, so that the      |
+|                   |           | client can pair responses with open channel requests.                                |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the       |
+|                   |           | connection. E.g. it is used for broadcasting new jobs by NewExtendedMiningJob.       |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| target            | U256      | Initial target for the mining channel.                                               |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| extranonce_prefix | U32       | Bytes used as implicit first part of extranonce for the scenario when extended job   |
+|                   |           | is served by the upstream node for a set of standard channels that belong to the     |
+|                   |           | same group.                                                                          |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.   |
++-------------------+-----------+--------------------------------------------------------------------------------------+
 ```
+
+
+### 4.3.4 OpenExtendedMiningChannel (Client -> Server)
+Similar to [`4.3.2 OpenStandardMiningChannel`](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#432-openstandardminingchannel-client---server), but requests to open an extended channel instead of standard channel.
+
+```
++---------------------+-----------+------------------------------------------------------------------------------------+
+| Field Name          | Data Type | Description                                                                        |
++---------------------+-----------+------------------------------------------------------------------------------------+
+|                                     <All fields from OpenStandardMiningChannel>                                      |
++---------------------+-----------+------------------------------------------------------------------------------------+
+| min_extranonce_size | U16       | Minimum size of extranonce needed by the device/node.                              |
++---------------------+-----------+------------------------------------------------------------------------------------+
+```
+
+
+### 4.3.5 OpenExtendedMiningChannel.Success (Server -> Client)
+Sent as a response for opening an extended channel.
+
+```
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| Field Name        | Data Type | Description                                                                          |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| request_id        | U32       | Client-specified request ID from OpenExtendedMiningChannel message, so that the      |
+|                   |           | client can pair responses with open channel requests.                                |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the       |
+|                   |           | connection. E.g. it is used for broadcasting new jobs by NewExtendedMiningJob.       |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| target            | U256      | Initial target for the mining channel.                                               |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| extranonce_size   | U16       | Extranonce size (in bytes) set for the channel.                                      |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| extranonce_prefix | U32       | Bytes used as implicit first part of extranonce for the scenario when extended job   |
+|                   |           | is served by the upstream node for a set of standard channels that belong to the     |
+|                   |           | same group.                                                                          |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+```
+
+
+### 4.3.6 OpenMiningChannel.Error (Server -> Client)
+```
++------------+-----------+---------------------------------------------------------------------------------------------+
+| Field Name | Data Type | Description                                                                                 |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| request_id | U32       | Client-specified request ID from OpenMiningChannel message                                  |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| error_code | STR0_32   | Human-readable error code(s), see Error Codes section below                                 |
++------------+-----------+---------------------------------------------------------------------------------------------+
+```
+
+Possible error codes:
+- `unknown-user`
+- `max-target-out-of-range`
+
+
+### 4.3.7 UpdateChannel (Client -> Server)
+Client notifies the server about changes on the specified channel.
+If a client performs device/connection aggregation (i.e. it is a proxy), it MUST send this message when downstream channels change.
+This update can be debounced so that it is not sent more often than once in a second (for a very busy proxy).
+
+```
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| Field Name        | Data Type | Description                                                                          |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the       |
+|                   |           | connection. E.g. it is used for broadcasting new jobs by NewExtendedMiningJob.       |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| nominal_hash_rate | F32       | [h/s] Expected hash rate of the device (or cumulative hashrate on the channel if     |
+|                   |           | multiple devices are connected downstream) in h/s. Depending on server's target      |
+|                   |           | setting policy, this value can be used for setting a reasonable target for the       |
+|                   |           | channel. Proxy MUST send 0.0f when there are no mining devices connected yet.        |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| maximum_target    | U256      | Maximum target is changed by server by sending SetTarget. This field is understood   |
+|                   |           | as device's request. There can be some delay between UpdateChannel and corresponding |
+|                   |           | SetTarget messages, based on new job readiness on the server.                        |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+```
+
+When `maximum_target` is smaller than currently used maximum target for the channel, upstream node MUST reflect the client’s request (and send appropriate `SetTarget` message).
+
+
+### 4.3.8 UpdateChannel.Error (Server -> Client)
+Sent only when `UpdateChannel` message is invalid. When it is accepted by the server, no response is sent back.
+
+```
++------------+-----------+---------------------------------------------------------------------------------------------+
+| Field Name | Data Type | Description                                                                                 |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| channel_id | U32       | Channel identification                                                                      |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| error_code | STR0_32   | Human-readable error code(s), see Error Codes section below                                 |
++------------+-----------+---------------------------------------------------------------------------------------------+
+```
+
+Possible error codes:
+- `max-target-out-of-range`
+- `invalid-channel-id`
+
+
+### 4.3.9 CloseChannel (Client -> Server, Server -> Client)
+Client sends this message when it ends its operation.
+The server MUST stop sending messages for the channel.
+A proxy MUST send this message on behalf of all opened channels from a downstream connection in case of downstream connection closure.
+
+```
++-------------+-----------+--------------------------------------------------------------------------------------------+
+| Field Name  | Data Type | Description                                                                                |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+| channel_id  | U32       | Channel identification                                                                     |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+| reason_code | STR0_32   | Reason for closing the channel                                                             |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+```
+
+If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it MUST send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
+In general, proxy servers MUST keep the upstream node notified about the real state of the downstream channels.
