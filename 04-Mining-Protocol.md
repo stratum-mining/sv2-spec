@@ -151,7 +151,7 @@ Clients must also communicate information about their hashing power in order to 
 |                   |           | restrictions can be imposed by the upstream node (e.g. a pool). It is highly         |
 |                   |           | recommended that UTF-8 encoding is used.                                             |
 +-------------------+-----------+--------------------------------------------------------------------------------------+
-| nominal_hash_rate | F32       | [h/s] Expected hash rate of the device (or cumulative hashrate on the channel if     |
+| nominal_hash_rate | F32       | [h/s] Expected hashrate of the device (or cumulative hashrate on the channel if     |
 |                   |           | multiple devices are connected downstream) in h/s. Depending on server's target      |
 |                   |           | setting policy, this value can be used for setting a reasonable target for the       |
 |                   |           | channel. Proxy MUST send 0.0f when there are no mining devices connected yet.        |
@@ -252,7 +252,7 @@ This update can be debounced so that it is not sent more often than once in a se
 | channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the       |
 |                   |           | connection. E.g. it is used for broadcasting new jobs by NewExtendedMiningJob.       |
 +-------------------+-----------+--------------------------------------------------------------------------------------+
-| nominal_hash_rate | F32       | [h/s] Expected hash rate of the device (or cumulative hashrate on the channel if     |
+| nominal_hash_rate | F32       | [h/s] Expected hashrate of the device (or cumulative hashrate on the channel if     |
 |                   |           | multiple devices are connected downstream) in h/s. Depending on server's target      |
 |                   |           | setting policy, this value can be used for setting a reasonable target for the       |
 |                   |           | channel. Proxy MUST send 0.0f when there are no mining devices connected yet.        |
@@ -301,3 +301,380 @@ A proxy MUST send this message on behalf of all opened channels from a downstrea
 
 If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it MUST send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
 In general, proxy servers MUST keep the upstream node notified about the real state of the downstream channels.
+
+
+### 4.3.10 SetExtranoncePrefix (Server -> Client)
+Changes downstream node’s extranonce prefix.
+It is applicable for all jobs sent after this message on a given channel (both jobs provided by the upstream or jobs introduced by `SetCustomMiningJob` message).
+This message is applicable only for explicitly opened extended channels or standard channels (not group channels).
+
+```
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| Field Name        | Data Type | Description                                                                          |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| channel_id        | U32       | Extended or standard channel identifier                                              |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| extranonce_prefix | B0_32     | Bytes used as implicit first part of extranonce                                      |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+```
+
+
+### 4.3.11 SubmitSharesStandard (Client -> Server)
+Client sends result of its hashing work to the server.  
+
+```
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| Field Name      | Data Type | Description                                                                            |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| channel_id      | U32       | Channel identification                                                                 |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| sequence_number | U32       | Unique sequential identifier of the submit within the channel                          |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| job_id          | U32       | Identifier of the job as provided by NewMiningJob or NewExtendedMiningJob message      |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| nonce           | U32       | Nonce leading to the hash being submitted                                              |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| ntime           | U32       | The nTime field in the block header. This MUST be greater than or equal to the         |
+|                 |           | header_timestamp field in the latest SetNewPrevHash message and lower than or equal to |
+|                 |           | that value plus the number of seconds since the receipt of that message.               |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| version         | U32       | Full nVersion field                                                                    |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+```
+
+
+### 4.3.12 SubmitSharesExtended (Client -> Server)
+Only relevant for extended channels.
+The message is the same as `SubmitShares`, with the following additional field:
+
+```
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| Field Name        | Data Type | Description                                                                          |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+|                                        <SubmitSharesStandard message fields>                                         |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+| extranonce_prefix | U32       | Bytes used as implicit first part of extranonce for the scenario when extended job   |
+|                   |           | is served by the upstream node for a set of standard channels that belong to the     |
+|                   |           | same group.                                                                          |
++-------------------+-----------+--------------------------------------------------------------------------------------+
+```
+
+
+### 4.3.13 SubmitShares.Success (Server -> Client)
+Response to `SubmitShares` or `SubmitSharesExtended`, accepting results from the miner.
+Because it is a common case that shares submission is successful, this response can be provided for multiple `SubmitShare` messages aggregated together.
+
+```
++----------------------------+-----------+-----------------------------------------------------------------------------+
+| Field Name                 | Data Type | Description                                                                 |
++----------------------------+-----------+-----------------------------------------------------------------------------+
+| channel_id                 | U32       | Channel identification                                                      |
++----------------------------+-----------+-----------------------------------------------------------------------------+
+| last_sequence_number       | U32       | Most recent sequence number with a correct result                           |
++----------------------------+-----------+-----------------------------------------------------------------------------+
+| new_submits_accepted_count | U32       | Count of new submits acknowledged within this batch                         |
++----------------------------+-----------+-----------------------------------------------------------------------------+
+| new_shares_sum             | U64       | Count of new submits acknowledged within this batch                         |
++----------------------------+-----------+-----------------------------------------------------------------------------+
+```
+
+The server does not have to double check that the sequence numbers sent by a client are actually increasing.
+It can simply use the last one received when sending a response.
+It is the client’s responsibility to keep the sequence numbers correct/useful.
+
+
+### 4.3.14 SubmitShares.Error (Server -> Client)
+An error is immediately submitted for every incorrect submit attempt.
+In case the server is not able to immediately validate the submission, the error is sent as soon as the result is known.
+This delayed validation can occur when a miner gets faster updates about a new prevhash than the server does (see `NewPrevHash` message for details).
+
+```
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| Field Name      | Data Type | Description                                                                            |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| channel_id      | U32       | Channel identification                                                                 |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| sequence_number | U32       | Submission sequence number for which this error is returned                            |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| error_code      | STR0_32   | Human-readable error code(s), see Error Codes section below                            |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+```
+
+Possible error codes:
+- `invalid-channel-id`
+- `stale-share`
+- `difficulty-too-low`
+
+
+### 4.3.15 NewMiningJob (Server -> Client)
+The server provides an updated mining job to the client through a standard channel.
+If the `future_job` field is set to False, the client MUST start to mine on the new job as soon as possible after receiving this message.
+
+```
++-------------+-----------+--------------------------------------------------------------------------------------------+
+| Field Name  | Data Type | Description                                                                                |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+| channel_id  | U32       | Channel identifier, this must be a standard channel                                        |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+| job_id      | U32       | Identifier of the job as provided by NewMiningJob or NewExtendedMiningJob message          |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+| future_job  | BOOL      | True if the job is intended for a future SetNewPrevHash message sent on this channel. If   |
+|             |           | False, the job relates to the last sent SetNewPrevHash message on the channel and the      |
+|             |           | miner should start to work on the job immediately.                                         |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+|                                              <Bitcoin specific part>                                                 |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+| version     | U32       | Valid version field that reflects the current network consensus. The general purpose bits  |
+|             |           | (as specified in BIP320) can be freely manipulated by the downstream node. The downstream  |
+|             |           | node MUST NOT rely on the upstream node to set the BIP320 bits to any particular value.    |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+| merkle_root | U32       | Merkle root field as used in the bitcoin block header                                      |
++-------------+-----------+--------------------------------------------------------------------------------------------+
+```
+
+
+### 4.3.16 NewExtendedMiningJob (Server -> Client)
+(Extended and group channels only)
+
+For an **extended channel**:
+The whole search space of the job is owned by the specified channel.
+If the `future_job` field is set to False, the client MUST start to mine on the new job as soon as possible after receiving this message.
+
+For a **group channel**:
+This is a broadcast variant of `NewMiningJob` message with the `merkle_root` field replaced by `merkle_path` and coinbase transaction prefix and suffix, for further traffic optimization.
+The Merkle root is then defined deterministically for each channel by the common `merkle_path` and unique `extranonce_prefix` serialized into the coinbase.
+The full coinbase is then constructed as follows: `coinbase_tx_prefix + extranonce_prefix + coinbase_tx_suffix`.
+
+The proxy MAY transform this multicast variant for downstream standard channels into `NewMiningJob` messages by computing the derived Merkle root for them.
+A proxy MUST translate the message for all downstream channels belonging to the group which don’t signal that they accept extended mining jobs in the `SetupConnection` message (intended and expected behavior for end mining devices).
+
+```
++-------------------------+----------------+---------------------------------------------------------------------------+
+| Field Name              | Data Type      | Description                                                               |
++-------------------------+----------------+---------------------------------------------------------------------------+
+| channel_id              | U32            | For a group channel, the message is broadcasted to all standard channels  |
+|                         |                | belonging to the group. Otherwise, it is addressed to the specified       |
+|                         |                | extended channel.                                                         |
++-------------------------+----------------+---------------------------------------------------------------------------+
+| job_id                  | U32            | Server’s identification of the mining job                                 |
++-------------------------+----------------+---------------------------------------------------------------------------+
+| future_job              | BOOL           | True if the job is intended for a future SetNewPrevHash message sent on   |
+|                         |                | this channel. If False, the job relates to the last sent SetNewPrevHash   |
+|                         |                | message on the channel and the miner should start to work on the job      |
+|                         |                | immediately.                                                              |
++-------------------------+----------------+---------------------------------------------------------------------------+
+| version                 | U32            | Valid version field that reflects the current network consensus           |
++-------------------------+----------------+---------------------------------------------------------------------------+
+| version_rolling_allowed | BOOL           | If set to True, the general purpose bits of version (as specified in      |
+|                         |                | BIP320) can be freely manipulated by the downstream node. The downstream  |
+|                         |                | node MUST NOT rely on the upstream node to set the BIP320 bits to any     |
+|                         |                | particular value. If set to False, the downstream node MUST use version   |
+|                         |                | as it is defined by this message.                                         |
++-------------------------+----------------+---------------------------------------------------------------------------+
+| merkle_path             | SEQ0_255[U256] | Valid version field that reflects the current network consensus           |
++-------------------------+----------------+---------------------------------------------------------------------------+
+| coinbase_tx_prefix      | B0_64K         | Prefix part of the coinbase transaction*                                  |
++-------------------------+----------------+---------------------------------------------------------------------------+
+| coinbase_tx_suffix      | B0_64K         | Suffix part of the coinbase transaction                                   |
++-------------------------+----------------+---------------------------------------------------------------------------+
+```
+\*The full coinbase is constructed by inserting one of the following:
+
+- For a **standard channel**: `extranonce_prefix`
+- For an **extended channel**: `extranonce_prefix + extranonce (=N bytes)`, where `N` is the negotiated extranonce space for the channel (`OpenMiningChannel.Success.extranonce_size`)
+
+### 4.3.17 SetNewPrevHash (Server -> Client, broadcast)
+Prevhash is distributed whenever a new block is detected in the network by an upstream node.
+This message MAY be shared by all downstream nodes (sent only once to each channel group).
+Clients MUST immediately start to mine on the provided prevhash.
+When a client receives this message, only the job referenced by Job ID is valid.
+The remaining jobs already queued by the client have to be made invalid. 
+
+Note: There is no need for block height in this message.
+
+```
++------------+----------------+----------------------------------------------------------------------------------------+
+| Field Name | Data Type      | Description                                                                            |
++------------+----------------+----------------------------------------------------------------------------------------+
+| channel_id | U32            | Group channel or channel that this prevhash is valid for                               |
++------------+----------------+----------------------------------------------------------------------------------------+
+| job_id     | U32            | ID of a job that is to be used for mining with this prevhash. A pool may have provided |
+|            |                | multiple jobs for the next block height (e.g. an empty block or a block with           |
+|            |                | transactions that are complementary to the set of transactions present in the current  |
+|            |                | block template).                                                                       |
++------------+----------------+----------------------------------------------------------------------------------------+
+| prev_hash  | U256           | Previous block’s hash, block header field                                              |
++------------+----------------+----------------------------------------------------------------------------------------+
+| min_ntime  | U32            | Smallest nTime value available for hashing                                             |
++------------+----------------+----------------------------------------------------------------------------------------+
+| nbits      | U32            | Block header field                                                                     |
++------------+----------------+----------------------------------------------------------------------------------------+
+```
+
+
+### 4.3.18 SetCustomMiningJob (Client -> Server)
+Can be sent only on extended channel.
+`SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully negotiated).
+
+The downstream node has a custom job negotiated by a trusted external Job Negotiator.
+The `mining_job_token` provides the information for the pool to authorize the custom job that has been or will be negotiated between the Job Negotiator and Pool.
+
+```
++-----------------------------+------------------+---------------------------------------------------------------------+
+| Field Name                  | Data Type        | Description                                                         |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| channel_id                  | U32              | Extended channel identifier                                         |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| request_id                  | U32              | Client-specified identifier for pairing responses                   |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| mining_job_token            | B0_255           | Token provided by the pool which uniquely identifies the job that   |
+|                             |                  | the Job Negotiator has negotiated with the pool. See the Job        |
+|                             |                  | Negotiation Protocol for more details.                              |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| version                     | U32              | Valid version field that reflects the current network consensus.    |
+|                             |                  | The general purpose bits (as specified in BIP320) can be freely     |
+|                             |                  | manipulated by the downstream node.                                 |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| prev_hash                   | U256             | Previous block’s hash, found in the block header field              |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| min_ntime                   | U32              | Smallest nTime value available for hashing                          |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| nbits                       | U32              | Block header field                                                  |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| coinbase_tx_version         | U32              | The coinbase transaction nVersion field                             |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| coinbase_prefix             | B0_255           | Up to 8 bytes (not including the length byte) which are to be       |
+|                             |                  | placed at the beginning of the coinbase field in the coinbase       |
+|                             |                  | transaction.                                                        |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| coinbase_tx_input_nSequence | U32              | The coinbase transaction input's nSequence field                    |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| coinbase_tx_value_remaining | U64              | The value, in satoshis, available for spending in coinbase outputs  |
+|                             |                  | added by the client. Includes both transaction fees and block       |
+|                             |                  | subsidy.                                                            |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| coinbase_tx_outputs         | SEQ0_64K[B0_64K] | Bitcoin transaction outputs to be included as the last outputs in   |
+|                             |                  | the coinbase transaction                                            |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| coinbase_tx_locktime        | U32              | The locktime field in the coinbase transaction                      |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| merkle_path                 | SEQ0_255[U256]   | Merkle path hashes ordered from deepest                             |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| extranonce_size             | U16              | Size of extranonce in bytes that will be provided by the downstream |
+|                             |                  | node                                                                |
++-----------------------------+------------------+---------------------------------------------------------------------+
+| future_job                  | BOOL             | TBD: Can be custom job ever future?                                 |
++-----------------------------+------------------+---------------------------------------------------------------------+
+```
+
+
+### 4.3.19 SetCustomMiningJob.Success (Server -> Client)
+Response from the server when it accepts the custom mining job.
+Client can start to mine on the job immediately (by using the `job_id` provided within this response).
+
+```
++-----------------------------+-----------+----------------------------------------------------------------------------+
+| Field Name                  | Data Type | Description                                                                |
++-----------------------------+-----------+----------------------------------------------------------------------------+
+| channel_id                  | U32       | Extended channel identifier                                                |
++-----------------------------+-----------+----------------------------------------------------------------------------+
+| request_id                  | U32       | Client-specified identifier for pairing responses. Value from the request  |
+|                             |           | MUST be provided by upstream in the response message.                      |
++-----------------------------+-----------+----------------------------------------------------------------------------+
+| job_id                      | U32       | Server’s identification of the mining job                                  |
++-----------------------------+-----------+----------------------------------------------------------------------------+
+| coinbase_tx_prefix          | B0_64K    | Prefix part of the coinbase transaction*                                   |
++-----------------------------+-----------+----------------------------------------------------------------------------+
+| coinbase_tx_suffix          | B0_64K    | Suffix part of the coinbase transaction                                    |
++-----------------------------+-----------+----------------------------------------------------------------------------+
+```
+\*The full coinbase is constructed by inserting one of the following:
+
+- For a **standard channel**: `extranonce_prefix`
+- For an **extended channel**: `extranonce_prefix + extranonce (=N bytes)`, where `N` is the negotiated extranonce space for the channel (`OpenMiningChannel.Success.extranonce_size`)
+
+### 4.3.20 SetCustomMiningJob.Error (Server -> Client)
+```
++------------+-----------+---------------------------------------------------------------------------------------------+
+| Field Name | Data Type | Description                                                                                 |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| channel_id | U32       | Extended channel identifier                                                                 |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| request_id | U32       | Client-specified identifier for pairing responses. Value from the request MUST be provided  |
+|            |           | by upstream in the response message.                                                        |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| error_code | STR0_32   | Human-readable error code(s) for why the custom job has been rejected, see Error Codes      |
+|            |           | section below                                                                               |
++------------+-----------+---------------------------------------------------------------------------------------------+
+```
+
+Possible errors:
+- `invalid-channel-id`
+- `invalid-mining-job-token`
+- `invalid-job-param-value-{}` - `{}` is replaced by a particular field name from `SetCustomMiningJob` message
+
+
+### 4.3.21 SetTarget (Server -> Client)
+The server controls the submission rate by adjusting the difficulty target on a specified channel.
+All submits leading to hashes higher than the specified target will be rejected by the server.
+
+Maximum target is valid until the next `SetTarget` message is sent and is applicable for all jobs received on the channel in the future or already received with flag `future_job=True`.
+The message is not applicable for already received jobs with `future_job=False`, as their maximum target remains stable.
+
+```
++----------------+-----------+-----------------------------------------------------------------------------------------+
+| Field Name     | Data Type | Description                                                                             |
++----------------+-----------+-----------------------------------------------------------------------------------------+
+| channel_id     | U32       | Channel identifier                                                                      |
++----------------+-----------+-----------------------------------------------------------------------------------------+
+| maximum_target | U256      | Maximum value of produced hash that will be accepted by a server to accept shares       |
++----------------+-----------+-----------------------------------------------------------------------------------------+
+```
+
+When `SetTarget` is sent to a group channel, the maximum target is applicable to all channels in the group.
+
+
+### 4.3.22 Reconnect (Server -> Client)
+This message allows clients to be redirected to a new upstream node. 
+
+```
++------------+-----------+---------------------------------------------------------------------------------------------+
+| Field Name | Data Type | Description                                                                                 |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| new_host   | STR0_255  | When empty, downstream node attempts to reconnect to its present host                       |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| new_port   | U16       | When 0, downstream node attempts to reconnect to its present port                           |
++------------+-----------+---------------------------------------------------------------------------------------------+
+```
+
+This message is connection-related so that it should not be propagated downstream by intermediate proxies.
+Upon receiving the message, the client re-initiates the Noise handshake and uses the pool’s authority public key to verify that the certificate presented by the new server has a valid signature.
+
+For security reasons, it is not possible to reconnect to a server with a certificate signed by a different pool authority key.
+The message intentionally does not contain a pool public key and thus cannot be used to reconnect to a different pool.
+This ensures that an attacker will not be able to redirect hashrate to an arbitrary server should the pool server get compromised and instructed to send reconnects to a new location.
+
+
+### 4.3.23 SetGroupChannel (Server -> Client)
+Every standard channel is a member of a group of standard channels, addressed by the upstream server's provided identifier.
+The group channel is used mainly for efficient job distribution to multiple standard channels at once.
+
+If we want to allow different jobs to be served to different standard channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob`, we need a more fine-grained grouping for standard channels.
+
+This message associates a set of standard channels with a group channel.
+A channel (identified by particular ID) becomes a group channel when it is used by this message as `group_channel_id`.
+The server MUST ensure that a group channel has a unique channel ID within one connection. Channel reinterpretation is not allowed.
+
+This message can be sent only to connections that don’t have `REQUIRES_STANDARD_JOBS` flag in `SetupConnection`.
+
+
+```
++------------------+---------------+-----------------------------------------------------------------------------------+
+| Field Name       | Data Type     | Description                                                                       |
++------------------+---------------+-----------------------------------------------------------------------------------+
+| group_channel_id | U32           | Identifier of the group where the standard channel belongs                        |
++------------------+---------------+-----------------------------------------------------------------------------------+
+| channel_ids      | SEQ0_64K[U32] | A sequence of opened standard channel IDs, for which the group channel is being   |
+|                  |               | redefined                                                                         |
++------------------+---------------+-----------------------------------------------------------------------------------+
+```

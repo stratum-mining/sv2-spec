@@ -38,6 +38,20 @@ This repository contains the Stratum V2 protocol specification.
     - [4.3.7 UpdateChannel (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#437-updatechannel-client---server)
     - [4.3.8 UpdateChannel.Error (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#438-updatechannelerror-server---client)
     - [4.3.9 CloseChannel (Client -> Server, Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#439-closechannel-client---server-server---client)
+    - [4.3.10 SetExtranoncePrefix (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4310-setextranonceprefix-server---client)
+    - [4.3.11 SubmitSharesStandard (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4311-submitsharesstandard-client---server)
+    - [4.3.12 SubmitSharesExtended (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4312-submitsharesextended-client---server)
+    - [4.3.13 SubmitShares.Success (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4313-submitsharessuccess-server---client)
+    - [4.3.14 SubmitShares.Error (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4314-submitshareserror-server---client)
+    - [4.3.15 NewMiningJob (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4315-newminingjob-server---client)
+    - [4.3.16 NewExtendedMiningJob (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4316-newextendedminingjob-server---client)
+    - [4.3.17 SetNewPrevHash (Server -> Client, broadcast)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4317-setnewprevhash-server---client-broadcast)
+    - [4.3.18 SetCustomMiningJob (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4318-setcustomminingjob-client---server)
+    - [4.3.19 SetCustomMiningJob.Success (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4319-setcustomminingjobsuccess-server---client)
+    - [4.3.20 SetCustomMiningJob.Error (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4320-setcustomminingjoberror-server---client)
+    - [4.3.21 SetTarget (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4321-settarget-server---client)
+    - [4.3.22 Reconnect (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4322-reconnect-server---client)
+    - [4.3.23 SetGroupChannel (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4323-setgroupchannel-server---client)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
