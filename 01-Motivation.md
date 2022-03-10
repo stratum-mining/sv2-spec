@@ -1,4 +1,4 @@
-# Motivation
+# 1. Motivation
 Stratum protocol v1 is JSON-based and lacks cryptographic authentication, making it slower, heavier, and less secure than it can be considering the alternatives available today.
 Given the cryptocurrency mining industry’s continued maturation and growth, it’s necessary to address v1’s deficiencies and move to a more efficient solution with a precise definition.
 

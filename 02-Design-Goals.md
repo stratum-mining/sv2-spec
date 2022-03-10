@@ -1,4 +1,4 @@
-# Design Goals
+# 2. Design Goals
 As there are numerous changes from the original Stratum v1 to v2, it may be helpful to briefly review some high-level design goals before getting into more detailed technical specifications:
 
 - Develop a binary protocol with a precise definition.
