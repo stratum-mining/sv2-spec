@@ -89,4 +89,8 @@ This protocol explicitly expects that upstream server software is able to manage
 
 
 ## 4.3 Mining Protocol Messages
-![4.3.1 Mining Protocol Messages: Initialization](./img/4.3-Mining-Protocol-Messages-Initialization.png)
+![4.3.a Mining Protocol Messages: Initialization](./img/4.3.a-Mining-Protocol-Messages-Initialization.png)  
+Figure 4.3.a Mining Protocol Messages: Initialization
+
+![4.3.b Mining Protocol Messages: Mining on Standard Channel](./img/4.3.b-Mining-Protocol-Messages-Mining-on-Standard-Channel.png)  
+Figure 4.3.b Mining Protocol Messages: Mining on Standard Channel
