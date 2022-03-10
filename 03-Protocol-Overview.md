@@ -105,9 +105,9 @@ Multibyte data types are always serialized as little-endian.
 | BYTES         | LENGTH                          | Arbitrary sequence of LENGTH bytes. See description for how to     |
 |               |                                 | calculate LENGTH.                                                  |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| PUBKEY        | 32                              | Ed25519 public key                                                 |
+| PUBKEY        | 32                              | ED25519 public key                                                 |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| SIGNATURE     | 2 + LENGTH                      | Ed25519 signature                                                  |
+| SIGNATURE     | 2 + LENGTH                      | ED25519 signature                                                  |
 | (alias for    |                                 |                                                                    |
 |  BO_64K)      |                                 |                                                                    |
 +---------------+---------------------------------+--------------------------------------------------------------------+
@@ -169,5 +169,101 @@ Thus, the cryptographic session state is independent of V2 messaging conventions
 At the same time, this specification proposes optional use of a particular handshake protocol based on the **[Noise Protocol framework](https://noiseprotocol.org/noise.html)**.
 The client and server establish secure communication using Diffie-Hellman (DH) key agreement, as described in greater detail in the Authenticated Key Agreement Handshake section below.
 
-Using the handshake protocol to establish secured communication is optional on the local network (e.g. local mining devices talking to a local mining proxy).
-However, it is mandatory for remote access to the upstream nodes, whether they be pool mining services, job negotiating services or template distributors.
+Using the handshake protocol to establish secured communication is **optional** on the local network (e.g. local mining devices talking to a local mining proxy).
+However, it is **mandatory** for remote access to the upstream nodes, whether they be pool mining services, job negotiating services or template distributors.
+
+### 3.3.1 Motivation for Authenticated Encryption with Associated Data
+Data transferred by the mining protocol MUST not provide adversary information that they can use to estimate the performance of any particular miner.
+Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username.
+This is unacceptable privacy leakage that needs to be addressed.
+
+### 3.3.2 Motivation for Using the Noise Protocol Framework
+The reasons why Noise Protocol Framework has been chosen are listed below:
+
+- The Framework pushes to use new, modern cryptography.
+- The Framework provides a formalism to describe the handshake protocol that can be verified.
+- There is no legacy overhead.
+- It is difficult to get wrong.
+- Noise Explorer provides code generators for popular programming languages (e.g. Go, Rust).
+- We can specify no flexibility (i.e. fewer degrees of freedom), helping ensure standardization of the supported ciphersuite(s).
+- A custom certificate scheme is now possible (no need to use x509 certificates).
+
+### 3.3.3 Authenticated Key Agreement Handshake
+The handshake chosen for the authenticated key exchange is **`Noise_NX`** as it provides authentication of the server side and does not require authentication of the initiator (client).
+Server authentication is achieved implicitly via a series of Elliptic-Curve Diffie-Hellman (ECDH) operations followed by a MAC check.
+
+The authenticated key agreement (`Noise_NX`) is performed in two distinct steps (acts).
+The protocol allows for secure authentication.
+During each act of the handshake the following occurs: some (possibly encrypted) keying material is sent to the other party; an ECDH is performed, based on exactly which act is being executed, with the result mixed into the current set of encryption keys (`ck` the chaining key and `k` the encryption key); and an AEAD payload with a zero-length cipher text is sent.
+As this payload has no length, only a MAC is sent across.
+The mixing of ECDH outputs into a hash digest forms an incremental DoubleDH handshake.
+
+Using the language of the Noise Protocol, **`e`** and **`s`** (both public keys with `**e**` being the **ephemeral key** and `**s**` being the **static key**) indicate possibly encrypted keying material, and **`es`**, **`ee`**, and **`se`** each indicate an ECDH operation between two keys.
+The handshake is laid out as follows:
+
+```
+   Noise_NX(s, rs):
+      
+       -> e
+       <- e, ee, s, es, SIGNATURE_NOISE_MESSAGE
+```
+
+The second handshake message is followed by a `SIGNATURE_NOISE_MESSAGE`.
+Using this additional message allows us to authenticate the stratum server to the downstream node.
+The certificate implements a simple 2 level public key infrastructure. 
+The main idea is that each stratum server is equipped with a certificate (that confirms its identity by providing signature of its "static public key" aka "**`s`**").
+The certificate has time limited validity and is signed by the central pool authority.
+
+### 3.3.4 Signature Noise Message
+This message uses the same serialization format as other stratum messages.
+It contains serialized:
+
+- Server Certificate header (`version`, `valid_from` and `not_not_valid_after` fields)
+- ED25519 signature that can be verified by the Pool Authority Public key and the client can reconstruct the full Certificate from its "`s`" and this header and authenticate the server. 
+
+```
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| Field Name      | Data Type | Description                                                                            |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| version         | U16       | Version of the certificate format                                                      |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| valid_from      | U32       | Validity start time (unix timestamp)                                                   |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| not_valid_after | U32       | Signature is invalid after this point in time (unix timestamp)                         |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+| signature       | SIGNATURE | ED25519 signature                                                                      |
++-----------------+-----------+----------------------------------------------------------------------------------------+
+```
+
+### 3.3.5 Certificate format
+Stratum server certificates have the following layout.
+The signature is  constructed over the fields marked for signing after serialization using Stratum protocol binary serialization format.
+
+```
++----------------------+-----------+--------------------------------------------------------------------+--------------+
+| Field Name           | Data Type | Description                                                        | Signed Feild |
++----------------------+-----------+--------------------------------------------------------------------+--------------+
+| version              | U16       | Version of the certificate format                                  | YES          |
++----------------------+-----------+--------------------------------------------------------------------+--------------+
+| valid_from           | U32       | Validity start time (unix timestamp)                               | YES          |
++----------------------+-----------+--------------------------------------------------------------------+--------------+
+| not_valid_after      | U32       | Signature is invalid after this pont in time (unix timestamp)      | YES          |
++----------------------+-----------+--------------------------------------------------------------------+--------------+
+| authority_public_key | PUBKEY    | Public key used for verfication of the signature                   |              |
++----------------------+-----------+--------------------------------------------------------------------+--------------+
+| signature            | SIGNATURE | ED25519                                                            |              |
++----------------------+-----------+-----------------------------------------------------------------------------------+
+```
+
+### 3.3.6 URL scheme and Pool Authority Key
+Downstream nodes that want to use the above outlined security scheme need to have configured the **Pool Authority Key** of the pool that they intend to connect to.
+The key can be embedded into the mining URL as part of the path.
+E.g.:
+
+```
+stratum2+tcp://thepool.com/u95GEReVMjK6k5YqiSFNqqTnKU4ypU2Wm8awa6tmbmDmk1bWt
+```
+
+The "**`u95GEReVMjK6k5YqiSFNqqTnKU4ypU2Wm8awa6tmbmDmk1bWt`**" is the public key in [base58-check](https://en.bitcoin.it/wiki/Base58Check_encoding) encoding.
+It is provided by the target pool and communicated to its users via a trusted channel.
+At least, it can be published on the pool's public website.
