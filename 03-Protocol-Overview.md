@@ -60,6 +60,7 @@ In specific use cases, it may make sense to operate the protocol over a connecti
 However, that is outside of the scope of this document.
 The minimum requirement of the transport layer is to guarantee ordered delivery of the protocol messages.
 
+
 ## 3.1 Data Types Mapping
 Message definitions use common data types described here for convenience.
 Multibyte data types are always serialized as little-endian.
@@ -123,6 +124,7 @@ Multibyte data types are always serialized as little-endian.
 +---------------+---------------------------------+--------------------------------------------------------------------+
 ```
 
+
 ## 3.2 Framing
 The protocol is binary, with fixed message framing.
 Each message begins with the extension type, message type, and message length (six bytes in total), followed by a variable length message.
@@ -160,6 +162,7 @@ The message framing is outlined below:
 
 ```
 
+
 ## 3.3 Protocol Security
 Stratum V2 employs a type of encryption scheme called AEAD (authenticated encryption with associated data) to address the security aspects of all communication that occurs between clients and servers.
 This provides both confidentiality and integrity for the ciphertexts (i.e. encrypted data) being transferred, as well as providing integrity for associated data which is not encrypted.
@@ -172,10 +175,12 @@ The client and server establish secure communication using Diffie-Hellman (DH) k
 Using the handshake protocol to establish secured communication is **optional** on the local network (e.g. local mining devices talking to a local mining proxy).
 However, it is **mandatory** for remote access to the upstream nodes, whether they be pool mining services, job negotiating services or template distributors.
 
+
 ### 3.3.1 Motivation for Authenticated Encryption with Associated Data
 Data transferred by the mining protocol MUST not provide adversary information that they can use to estimate the performance of any particular miner.
 Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username.
 This is unacceptable privacy leakage that needs to be addressed.
+
 
 ### 3.3.2 Motivation for Using the Noise Protocol Framework
 The reasons why Noise Protocol Framework has been chosen are listed below:
@@ -187,6 +192,7 @@ The reasons why Noise Protocol Framework has been chosen are listed below:
 - Noise Explorer provides code generators for popular programming languages (e.g. Go, Rust).
 - We can specify no flexibility (i.e. fewer degrees of freedom), helping ensure standardization of the supported ciphersuite(s).
 - A custom certificate scheme is now possible (no need to use x509 certificates).
+
 
 ### 3.3.3 Authenticated Key Agreement Handshake
 The handshake chosen for the authenticated key exchange is **`Noise_NX`** as it provides authentication of the server side and does not require authentication of the initiator (client).
@@ -214,6 +220,7 @@ The certificate implements a simple 2 level public key infrastructure.
 The main idea is that each stratum server is equipped with a certificate (that confirms its identity by providing signature of its "static public key" aka "**`s`**").
 The certificate has time limited validity and is signed by the central pool authority.
 
+
 ### 3.3.4 Signature Noise Message
 This message uses the same serialization format as other stratum messages.
 It contains serialized:
@@ -235,6 +242,7 @@ It contains serialized:
 +-----------------+-----------+----------------------------------------------------------------------------------------+
 ```
 
+
 ### 3.3.5 Certificate Format
 Stratum server certificates have the following layout.
 The signature is  constructed over the fields marked for signing after serialization using Stratum protocol binary serialization format.
@@ -255,6 +263,7 @@ The signature is  constructed over the fields marked for signing after serializa
 +----------------------+-----------+-----------------------------------------------------------------------------------+
 ```
 
+
 ### 3.3.6 URL Scheme and Pool Authority Key
 Downstream nodes that want to use the above outlined security scheme need to have configured the **Pool Authority Key** of the pool that they intend to connect to.
 The key can be embedded into the mining URL as part of the path.
@@ -267,3 +276,47 @@ stratum2+tcp://thepool.com/u95GEReVMjK6k5YqiSFNqqTnKU4ypU2Wm8awa6tmbmDmk1bWt
 The "**`u95GEReVMjK6k5YqiSFNqqTnKU4ypU2Wm8awa6tmbmDmk1bWt`**" is the public key in [base58-check](https://en.bitcoin.it/wiki/Base58Check_encoding) encoding.
 It is provided by the target pool and communicated to its users via a trusted channel.
 At least, it can be published on the pool's public website.
+
+
+## 3.4 Reconnecting Downstream Nodes
+An upstream stratum node may occasionally request reconnection of its downstream peers to a different host (e.g. due to maintenance reasons, etc.).
+This request is per upstream connection and affects all open channels towards the upstream stratum node.
+
+After receiving a request to reconnect, the downstream node MUST run the handshake protocol with the new node as long as its previous connection was also running through a secure cryptographic session state.
+
+
+## 3.5 Protocol Extensions
+Protocol extensions may be defined by using a non-0 `extension_type` field in the message header (not including the `channel_msg` bit).
+The value used MUST either be in the range 0x4000 - 0x7fff (inclusive, i.e. have the second-to-most-significant-bit set) denoting an "experimental" extension and not be present in production equipment, or have been allocated for the purpose at [http://stratumprotocol.org](http://stratumprotocol.org).
+While extensions SHOULD have BIPs written describing their full functionality, `extension_type` allocations MAY also be requested for vendor-specific proprietary extensions to be used in production hardware.
+This is done by sending an email with a brief description of the intended use case to the Bitcoin Protocol Development List and extensions@stratumprotocol.org.
+(Note that these contacts may change in the future, please check the latest version of this BIP prior to sending such a request.)
+
+Extensions are left largely undefined in this BIP, however, there are some basic requirements that all extensions must comply with/be aware of.
+For unknown `extension_type`'s, the `channel_msg` bit in the `extension_type` field determines which device the message is intended to be processed on: if set, the channel endpoint (i.e. either an end mining device, or a pool server) is the final recipient of the message, whereas if unset, the final recipient is the endpoint of the connection on which the message is sent.
+Note that in cases where channels are aggregated across multiple devices, the proxy which is aggregating multiple devices into one channel forms the channel’s "endpoint" and processes channel messages.
+Thus, any proxy devices which receive a message with the `channel_msg` bit set and an unknown `extension_type` value MUST forward that message to the downstream/upstream device which corresponds with the `channel_id` specified in the first four bytes of the message payload.
+Any `channel_id` mapping/conversion required for other channel messages MUST be done on the `channel_id` in the first four bytes of the message payload, but the message MUST NOT be otherwise modified.
+If a device is aware of the semantics of a given extension type, it MUST process messages for that extension in accordance with the specification for that extension.
+
+Messages with an unknown `extension_type` which are to be processed locally (as defined above) MUST be discarded and ignored.
+Extensions MUST require version negotiation with the recipient of the message to check that the extension is supported before sending non-version-negotiation messages for it.
+This prevents the needlessly wasted bandwidth and potentially serious performance degradation of extension messages when the recipient does not support them.
+See ChannelEndpointChanged message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
+
+## 3.6 Error Codes
+The protocol uses string error codes.
+The list of error codes can differ between implementations, and thus implementations MUST NOT take any automated action(s) on the basis of an error code.
+Implementations/pools SHOULD provide documentation on the meaning of error codes and error codes SHOULD use printable ASCII where possible.
+Furthermore, error codes MUST NOT include control characters. 
+
+To make interoperability simpler, the following error codes are provided which implementations SHOULD consider using for the given scenarios.
+Individual error codes are also specified along with their respective error messages.
+
+- `unknown-user`
+- `too-low-difficulty`
+- `stale-share`
+- `unsupported-feature-flags`
+- `unsupported-protocol`
+- `protocol-version-mismatch`
+

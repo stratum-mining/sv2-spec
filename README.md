@@ -14,6 +14,9 @@ This repository contains the Stratum V2 protocol specification.
     - [3.3.4 Signature Noise Message](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#334-signature-noise-message)
     - [3.3.5 Certificate Format](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#335-certificate-format)
     - [3.3.6 URL Scheme and Pool Authority Key](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#336-url-scheme-and-pool-authority-key)
+  - [3.4 Reconnecting Downstream Nodes](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#34-reconnecting-downstream-nodes)
+  - [3.5 Protocol Extensions](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#35-protocol-extensions)
+  - [3.6 Error Codes](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md#36-error-codes)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
