@@ -6,6 +6,7 @@ This repository contains the Stratum V2 protocol specification.
 - [Design Goals](https://github.com/stratum-mining/sv2-spec/blob/main/02-Design-Goals.md)
 - [Protocol Overview](https://github.com/stratum-mining/sv2-spec/blob/main/03-Protocol-Overview.md)
 - [Data Types Mapping](https://github.com/stratum-mining/sv2-spec/blob/main/04-Data-Types-Mapping.md)
+- [Framing](https://github.com/stratum-mining/sv2-spec/blob/main/05-Framing.md)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
