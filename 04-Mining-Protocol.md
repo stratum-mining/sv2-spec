@@ -94,3 +94,93 @@ Figure 4.3.a Mining Protocol Messages: Initialization
 
 ![4.3.b Mining Protocol Messages: Mining on Standard Channel](./img/4.3.b-Mining-Protocol-Messages-Mining-on-Standard-Channel.png)  
 Figure 4.3.b Mining Protocol Messages: Mining on Standard Channel
+
+### 4.3.1 SetupConnection Flags for Mining Protocol
+Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
+
+```
++--------------------------+-----+-------------------------------------------------------------------------------------+
+| Field Name               | Bit | Description                                                                         |
++--------------------------+-----+-------------------------------------------------------------------------------------+
+| REQUIRES_VERSION_ROLLING | 0   | The downstream node requires standard jobs. It does not understand group channels - |
+|                          |     | it is unable to process extended jobs sent to standard channels through a group     |
+|                          |     | channel.                                                                            |
++--------------------------+-----+-------------------------------------------------------------------------------------+
+| REQUIRES_WORK_SELECTION  | 1   | If set to 1, the client notifies the server that it will send SetCustomMiningJob on |
+|                          |     | this connection.                                                                    |
++--------------------------+-----+-------------------------------------------------------------------------------------+
+| REQUIRES_VERSION_ROLLING | 2   | The client requires version rolling for efficiency or correct operation and the     |
+|                          |     | server MUST NOT send jobs which do not allow version rolling.                       |
++--------------------------+-----+-------------------------------------------------------------------------------------+
+```
+
+Flags usable in `SetupConnection.Success.flags`:
+```
++----------------------------+-----+-----------------------------------------------------------------------------------+
+| Field Name                 | Bit | Description                                                                       |
++----------------------------+-----+-----------------------------------------------------------------------------------+
+| REQUIRES_FIXED_VERSION     | 0   | Upstream node will not accept any changes to the version field. Note that if      |
+|                            |     | REQUIRES_VERSION_ROLLING was set in the SetupConnection::flags field, this bit    |
+|                            |     | MUST NOT be set. Further, if this bit is set, extended jobs MUST NOT indicate     |
+|                            |     | support for version rolling.                                                      |
++----------------------------+-----+-----------------------------------------------------------------------------------+
+| REQUIRES_EXTENDED_CHANNELS | 1   | Upstream node will not accept opening of a standard channel.                      |
++----------------------------+-----+-----------------------------------------------------------------------------------+
+```
+
+
+### 4.3.2 OpenStandardMiningChannel (Client -> Server)
+This message requests to open a standard channel to the upstream node.
+
+After receiving a `SetupConnection.Success` message, the client SHOULD respond by opening channels on the connection.
+If no channels are opened within a reasonable period the server SHOULD close the connection for inactivity.
+
+Every client SHOULD start its communication with an upstream node by opening a channel, which is necessary for almost all later communication.
+The upstream node either passes opening the channel further or has enough local information to handle channel opening on its own (this is mainly intended for v1 proxies).
+Clients must also communicate information about their hashing power in order to receive well-calibrated job assignments.
+
+```
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| Field Name        | Data Type | Description                                                                            |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| request_id        | U32       | Client-specified identifier for matching responses from upstream server. The value     |
+|                   |           | MUST be connection-wide unique and is not interpreted by the server.                   |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| user_identity     | STR0_255  | Unconstrained sequence of bytes. Whatever is needed by upstream node to                |
+|                   |           | identify/authenticate the client, e.g. "braiinstest.worker1". Additional restrictions  |
+|                   |           | can be imposed by the upstream node (e.g. a pool). It is highly recommended that UTF-8 |
+|                   |           | encoding is used.                                                                      |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| nominal_hash_rate | F32       | [h/s] Expected hash rate of the device (or cumulative hashrate on the channel if       |
+|                   |           | multiple devices are connected downstream) in h/s. Depending on server's target        |
+|                   |           | setting policy, this value can be used for setting a reasonable target for the         |
+|                   |           | channel. Proxy MUST send 0.0f when there are no mining devices connected yet.          |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| max_target        | U256      | Maximum target which can be accepted by the connected device or devices. Server MUST   |
+|                   |           | accept the target or respond by sending OpenMiningChannel.Error message.               |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+```
+
+
+### 4.3.3 OpenStandardMiningChannel.Success (Server -> Client)
+Sent as a response for opening a standard channel, if successful.
+
+```
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| Field Name        | Data Type | Description                                                                            |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| request_id        | U32       | Client-specified request ID from OpenStandardMiningChannel message, so that the client |
+|                   |           | can pair responses with open channel requests.                                         |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the         |
+|                   |           | connection. E.g. it is used for broadcasting new jobs by NewExtendedMiningJob.         |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| target            | U256      | Initial target for the mining channel.                                                 |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| extranonce_prefix | U32       | Bytes used as implicit first part of extranonce for the scenario when extended job is  |
+|                   |           | served by the upstream node for a set of standard channels that belong to the same     |
+|                   |           | group.                                                                                 |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+| group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.     |
++-------------------+-----------+----------------------------------------------------------------------------------------+
+```

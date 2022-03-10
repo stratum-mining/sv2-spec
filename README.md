@@ -29,6 +29,9 @@ This repository contains the Stratum V2 protocol specification.
     - [4.1.4 Future Jobs](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#414-future-jobs)
   - [4.2 Hashing Space Distribution](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#42-hashing-space-distribution)
   - [4.3 Mining Protocol Messages](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#43-mining-protocol-messages)
+    - [4.3.1 SetupConnection Flags for Mining Protocol](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#431-setupconnection-flags-for-mining-protocol)
+    - [4.3.2 OpenStandardMiningChannel (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#432-openstandardminingchannel-client---server)
+    - [4.3.3 OpenStandardMiningChannel.Success (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#433-openstandardminingchannelsuccess-server---client)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
