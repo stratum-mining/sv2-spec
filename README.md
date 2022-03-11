@@ -74,6 +74,21 @@ This repository contains the Stratum V2 protocol specification.
   - [6.7 SubmitSolution (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/06-Template-Distribution-Protocol.md#67-submitsolution-client---server)
 - [7. Message Types](https://github.com/stratum-mining/sv2-spec/blob/main/07-Message-Types.md#7-message-types)
 - [8. Extensions](https://github.com/stratum-mining/sv2-spec/blob/main/08-Extensions.md#8-extensions)
+- [9. Discussion](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#9-discussion)
+  - [9.1 Speculative Mining Jobs](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#91-speculative-mining-jobs)
+  - [9.2 Rolling `nTime`](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#92-rolling-ntime)
+    - [9.2.1 Hardware nTime rolling](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#921-hardware-ntime-rolling)
+  - [9.3 Notes](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#93-notes)
+  - [9.4 Usage Scenarios](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#94-usage-scenarios)
+    - [9.4.1 End Device (v2 ST)](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#941-end-device-v2-st)
+    - [9.4.2 Transparent Proxy (v2 any -> v2 any)](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#942-transparent-proxy-v2-any---v2-any)
+    - [9.4.3 Difficulty Aggregating Proxy (v2 any -> v2 EX)](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#943-difficulty-aggregating-proxy-v2-any---v2-ex)
+    - [9.4.4 Proxy (v1 -> v2)](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#944-proxy-v1---v2)
+    - [9.4.5 Proxy (v2 -> v1)](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#945-proxy-v2---v1)
+  - [9.5. FAQ](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#95-faq)
+    - [9.5.1 Why is the protocol binary?](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#951-why-is-the-protocol-binary)
+  - [9.6 Terminology](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#96-terminology)
+  - [9.7 Open Questions / Issues](https://github.com/stratum-mining/sv2-spec/blob/main/09-Discussion.md#97-open-questions--issues)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
