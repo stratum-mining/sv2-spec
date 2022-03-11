@@ -52,6 +52,18 @@ This repository contains the Stratum V2 protocol specification.
     - [4.3.21 SetTarget (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4321-settarget-server---client)
     - [4.3.22 Reconnect (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4322-reconnect-server---client)
     - [4.3.23 SetGroupChannel (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/04-Mining-Protocol.md#4323-setgroupchannel-server---client)
+- [5. Job Negotiation Protocol](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#5-job-negotiation-protocol)
+  - [5.1 Job Negotiation Protocol Messages](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#51-job-negotiation-protocol-messages)
+    - [5.1.1 SetupConnection Flags for Job Negotiation Protocol](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#511-setupconnection-flags-for-job-negotiation-protocol)
+    - [5.1.2 AllocateMiningJobToken(Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#512-allocateminingjobtokenclient---server)
+    - [5.1.3 AllocateMiningJobToken.Success(Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#513-allocateminingjobtokensuccessserver---client)
+    - [5.1.4 CommitMiningJob (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#514-commitminingjob-client---server)
+    - [5.1.5 CommitMiningJob.Success (Server -> Client)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#515-commitminingjobsuccess-server---client)
+    - [5.1.6 CommitMiningJob.Error (Server->Client)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#516-commitminingjoberror-server-client)
+    - [5.1.7 IdentifyTransactions (Server->Client)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#517-identifytransactions-server-client)
+    - [5.1.8 IdentifyTransactions.Success (Client->Server)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#518-identifytransactionssuccess-client-server)
+    - [5.1.9 ProvideMissingTransactions (Server->Client)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#519-providemissingtransactions-server-client)
+    - [5.1.10 ProvideMissingTransactions.Success (Client->Server)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#5110-providemissingtransactionssuccess-client-server)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
