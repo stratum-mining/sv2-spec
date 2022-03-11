@@ -73,6 +73,7 @@ This repository contains the Stratum V2 protocol specification.
   - [6.6 RequestTransactionData.Error (Server->Client)](https://github.com/stratum-mining/sv2-spec/blob/main/06-Template-Distribution-Protocol.md#66-requesttransactiondataerror-server-client)
   - [6.7 SubmitSolution (Client -> Server)](https://github.com/stratum-mining/sv2-spec/blob/main/06-Template-Distribution-Protocol.md#67-submitsolution-client---server)
 - [7. Message Types](https://github.com/stratum-mining/sv2-spec/blob/main/07-Message-Types.md#7-message-types)
+- [8. Extensions](https://github.com/stratum-mining/sv2-spec/blob/main/08-Extensions.md#8-extensions)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
