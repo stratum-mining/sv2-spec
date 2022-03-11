@@ -64,6 +64,14 @@ This repository contains the Stratum V2 protocol specification.
     - [5.1.8 IdentifyTransactions.Success (Client->Server)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#518-identifytransactionssuccess-client-server)
     - [5.1.9 ProvideMissingTransactions (Server->Client)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#519-providemissingtransactions-server-client)
     - [5.1.10 ProvideMissingTransactions.Success (Client->Server)](https://github.com/stratum-mining/sv2-spec/blob/main/05-Job-Negotiation-Protocol.md#5110-providemissingtransactionssuccess-client-server)
+- [6. Template Distribution Protocol](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/06-Template-Distribution-Protocol.md#6-template-distribution-protocol)
+  - [6.1 CoinbaseOutputDataSize (Client -> Server)](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/06-Template-Distribution-Protocol.md#61-coinbaseoutputdatasize-client---server)
+  - [6.2 NewTemplate (Server -> Client)](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/06-Template-Distribution-Protocol.md#62-newtemplate-server---client)
+  - [6.3 SetNewPrevHash (Server -> Client)](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/06-Template-Distribution-Protocol.md#63-setnewprevhash-server---client)
+  - [6.4 RequestTransactionData (Client -> Server)](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/06-Template-Distribution-Protocol.md#64-requesttransactiondata-client---server)
+  - [6.5 RequestTransactionData.Success (Server->Client)](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/06-Template-Distribution-Protocol.md#65-requesttransactiondatasuccess-server-client)
+  - [6.6 RequestTransactionData.Error (Server->Client)](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/06-Template-Distribution-Protocol.md#66-requesttransactiondataerror-server-client)
+  - [6.7 SubmitSolution (Client -> Server)](https://github.com/rrybarczyk/sv2-spec/blob/migrate-spec/06-Template-Distribution-Protocol.md#67-submitsolution-client---server)
 
 ## Authors
 Pavel Moravec <pavel@braiins.com>  
