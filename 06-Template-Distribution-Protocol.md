@@ -10,7 +10,7 @@ Thereafter, the server SHOULD push new block templates to the client whenever th
 Template Providers MUST attempt to broadcast blocks which are mined using work they provided, and thus MUST track the work which they provided to clients.
 
 
-## 6.1 CoinbaseOutputDataSize (Client -> Server)
+## 6.1 `CoinbaseOutputDataSize` (Client -> Server)
 Ultimately, the pool is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size when selecting transactions for inclusion in a block (to not create an invalid, oversized block).
 Thus, this message is used to indicate that some additional space in the block/coinbase transaction be reserved for the pool’s use (while always assuming the pool will use the entirety of available coinbase space).
 
@@ -23,13 +23,13 @@ Further, the Template Provider MUST consider the maximum additional bytes requir
 +-------------------------------------+-----------+--------------------------------------------------------------------+
 | Field Name                          | Data Type | Description                                                        |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
-| coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes  which the pool will add   |
-|                                     |           | in coinbase transaction outputs                                    |
+| coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in |
+|                                     |           | coinbase transaction outputs                                       |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
 ```
 
 
-## 6.2 NewTemplate (Server -> Client)
+## 6.2 `NewTemplate` (Server -> Client)
 The primary template-providing function. Note that the `coinbase_tx_outputs` bytes will appear as is at the end of the coinbase transaction.
 
 ```
@@ -39,7 +39,10 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 | template_id                 | U64            | Server’s identification of the template. Strictly increasing, the     |
 |                             |                | current UNIX time may be used in place of an ID                       |
 +-----------------------------+----------------+-----------------------------------------------------------------------+
-| future_template             | BOOL           | Client-specified identifier for pairing responses                     |
+| future_template             | BOOL           | True if the template is intended for future SetNewPrevHash message    |
+|                             |                | sent on the channel.  If False, the job relates to the last sent      |
+|                             |                | SetNewPrevHash message on the channel and the miner should start to   |
+|                             |                | work on the job immediately.                                          |
 +-----------------------------+----------------+-----------------------------------------------------------------------+
 | version                     | U32            | Valid header version field that reflects the current network          |
 |                             |                | consensus. The general purpose bits (as specified in BIP320) can be   |
@@ -71,7 +74,7 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 ```
 
 
-## 6.3 SetNewPrevHash (Server -> Client)
+## 6.3 `SetNewPrevHash` (Server -> Client)
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
 If a `NewWork` message has previously been sent with the `future_job` flag set, which is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be set to the `job_id` present in that `NewTemplate` message indicating the client MUST begin mining on that template as soon as possible.
 
@@ -97,7 +100,7 @@ TODO: Define how many previous works the client has to track (2? 3?), and requir
 ```
 
 
-## 6.4 RequestTransactionData (Client -> Server)
+## 6.4 `RequestTransactionData` (Client -> Server)
 A request sent by the Job Negotiator to the Template Provider which requests the set of transaction data for all transactions (excluding the coinbase transaction) included in a block, as well as any additional data which may be required by the Pool to validate the work.
 
 ```
@@ -108,7 +111,7 @@ A request sent by the Job Negotiator to the Template Provider which requests the
 +-------------+-----------+--------------------------------------------------------------------------------------------+
 ```
 
-## 6.5 RequestTransactionData.Success (Server->Client)
+## 6.5 `RequestTransactionData.Success` (Server->Client)
 A response to `RequestTransactionData` which contains the set of full transaction data and excess data required for validation.
 For practical purposes, the excess data is usually the SegWit commitment, however the Job Negotiator MUST NOT parse or interpret the excess data in any way.
 Note that the transaction data MUST be treated as opaque blobs and MUST include any SegWit or other data which the Pool may require to verify the transaction.
@@ -127,7 +130,7 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 +------------------+------------------+--------------------------------------------------------------------------------+
 | Field Name       | Data Type        | Description                                                                    |
 +------------------+------------------+--------------------------------------------------------------------------------+
-| template_id      | U64              | template_id referenced in a previous NewTemplate message                       |
+| template_id      | U64              | The template_id corresponding to a NewTemplate/RequestTransactionData message  |
 +------------------+------------------+--------------------------------------------------------------------------------+
 | excess_data      | B0_64K           | Extra data which the Pool may require to validate the work                     |
 +------------------+------------------+--------------------------------------------------------------------------------+
@@ -137,7 +140,7 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 ```
 
 
-## 6.6 RequestTransactionData.Error (Server->Client)
+## 6.6 `RequestTransactionData.Error` (Server->Client)
 
 ```
 +-------------+-----------+--------------------------------------------------------------------------------------------+
@@ -153,7 +156,7 @@ Possible error codes:
 - `template-id-not-found`
 
 
-## 6.7 SubmitSolution (Client -> Server)
+## 6.7 `SubmitSolution` (Client -> Server)
 Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or below `SetNewPrevHash::target`, the client MUST immediately send this message, and the server MUST then immediately construct the corresponding full block and attempt to propagate it to the Bitcoin network.
 
 ```

@@ -84,11 +84,12 @@ Multibyte data types are always serialized as little-endian.
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | U24           | 3                               | Unsigned integer, 24-bit, little-endian (commonly deserialized as  |
 |               |                                 | a 32-bit little-endian integer with a trailing implicit            |
-|               |                                 | most-significant 0-byte).                                          |
+|               |                                 | most-significant 0-byte)                                           |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | U32           | 4                               | Unsigned integer, 32-bit, little-endian                            |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| U256          | 32                              | Unsigned integer, 256-bit, little-endian                           |
+| U256          | 32                              | Unsigned integer, 256-bit, little-endian. Often the raw byte       |
+|               |                                 | output of SHA-256 interpreted as an unsigned integer.              |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | STR0_255      | 1 + LENGTH                      | 1-byte length L, unsigned integer 8-bits, followed by a series of  |
 |               |                                 | L bytes. Allowed range of length is 0 to 255. The string is not    |
@@ -150,9 +151,9 @@ The message framing is outlined below:
 |                |             | Note that for the Job Negotiation and Template Distribution Protocols the channel_msg |
 |                |             | bit is always unset.                                                                  |
 +----------------+-------------+---------------------------------------------------------------------------------------+
-| msg_type       | U8          | Unique identifier of the extension describing this protocol message.                  |
+| msg_type       | U8          | Unique identifier of the extension describing this protocol message                   |
 +----------------+-------------+---------------------------------------------------------------------------------------+
-| msg_length     | U24         | Length of the protocol message, not including this header.                            |
+| msg_length     | U24         | Length of the protocol message, not including this header                             |
 +----------------+-------------+---------------------------------------------------------------------------------------+
 | payload        | BYTES       | Message-specific payload of length msg_length. If the MSB in extension_type           |
 |                |             | (the channel_msg bit) is set the first four bytes are defined as a U32 "channel_id",  |
@@ -217,6 +218,7 @@ The handshake is laid out as follows:
 The second handshake message is followed by a `SIGNATURE_NOISE_MESSAGE`.
 Using this additional message allows us to authenticate the stratum server to the downstream node.
 The certificate implements a simple 2 level public key infrastructure. 
+
 The main idea is that each stratum server is equipped with a certificate (that confirms its identity by providing signature of its "static public key" aka "**`s`**").
 The certificate has time limited validity and is signed by the central pool authority.
 
@@ -257,9 +259,9 @@ The signature is  constructed over the fields marked for signing after serializa
 +----------------------+-----------+--------------------------------------------------------------------+--------------+
 | not_valid_after      | U32       | Signature is invalid after this pont in time (unix timestamp)      | YES          |
 +----------------------+-----------+--------------------------------------------------------------------+--------------+
-| authority_public_key | PUBKEY    | Public key used for verfication of the signature                   |              |
+| authority_public_key | PUBKEY    | Public key used for verfication of the signature                   | NO           |
 +----------------------+-----------+--------------------------------------------------------------------+--------------+
-| signature            | SIGNATURE | ED25519                                                            |              |
+| signature            | SIGNATURE | ED25519                                                            | NO           |
 +----------------------+-----------+-----------------------------------------------------------------------------------+
 ```
 
@@ -287,7 +289,7 @@ After receiving a request to reconnect, the downstream node MUST run the handsha
 
 ## 3.5 Protocol Extensions
 Protocol extensions may be defined by using a non-0 `extension_type` field in the message header (not including the `channel_msg` bit).
-The value used MUST either be in the range 0x4000 - 0x7fff (inclusive, i.e. have the second-to-most-significant-bit set) denoting an "experimental" extension and not be present in production equipment, or have been allocated for the purpose at [http://stratumprotocol.org](http://stratumprotocol.org).
+The value used MUST either be in the range `0x4000` - `0x7fff` (inclusive, i.e. have the second-to-most-significant-bit set) denoting an "experimental" extension and not be present in production equipment, or have been allocated for the purpose at [http://stratumprotocol.org](http://stratumprotocol.org).
 While extensions SHOULD have BIPs written describing their full functionality, `extension_type` allocations MAY also be requested for vendor-specific proprietary extensions to be used in production hardware.
 This is done by sending an email with a brief description of the intended use case to the Bitcoin Protocol Development List and extensions@stratumprotocol.org.
 (Note that these contacts may change in the future, please check the latest version of this BIP prior to sending such a request.)
@@ -300,9 +302,11 @@ Any `channel_id` mapping/conversion required for other channel messages MUST be 
 If a device is aware of the semantics of a given extension type, it MUST process messages for that extension in accordance with the specification for that extension.
 
 Messages with an unknown `extension_type` which are to be processed locally (as defined above) MUST be discarded and ignored.
+
 Extensions MUST require version negotiation with the recipient of the message to check that the extension is supported before sending non-version-negotiation messages for it.
 This prevents the needlessly wasted bandwidth and potentially serious performance degradation of extension messages when the recipient does not support them.
-See ChannelEndpointChanged message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
+
+See `ChannelEndpointChanged` message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
 
 
 ## 3.6 Error Codes
@@ -326,7 +330,7 @@ Individual error codes are also specified along with their respective error mess
 The following protocol messages are common across all of the protocols described in this BIP.
 
 
-### 3.7.1 SetupConnection (Client -> Server)
+### 3.7.1 `SetupConnection` (Client -> Server)
 Initiates the connection.
 This MUST be the first message sent by the client on the newly opened connection.
 Server MUST respond with either a `SetupConnection.Success` or `SetupConnection.Error` message.
@@ -347,7 +351,7 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 | max_version      | U16       | The maximum protocol version the client supports (currently must be 2)                 |
 +------------------+-----------+----------------------------------------------------------------------------------------+
 | flags            | U32       | Flags indicating optional protocol features the client supports. Each protocol from    |
-|                  |           | `protocol` field as its own values/flags.                                              |
+|                  |           | protocol field as its own values/flags.                                                |
 +------------------+-----------+----------------------------------------------------------------------------------------+
 | endpoint_host    | U32       | ASCII text indicating the hostname or IP address                                       |
 +------------------+-----------+----------------------------------------------------------------------------------------+
@@ -366,20 +370,39 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 ```
 
 
-### 3.7.2 SetupConnection.Success (Server -> Client)
-Response to SetupConnection message if the server accepts the connection.
+### 3.7.2 `SetupConnection.Success` (Server -> Client)
+Response to `SetupConnection` message if the server accepts the connection.
 The client is required to verify the set of feature flags that the server supports and act accordingly.
 
 ```
-+------------+-----------+----------------------------------------------------------------------------------------+
-| Field Name | Data Type | Description                                                                            |
-+------------+-----------+----------------------------------------------------------------------------------------+
-| flags      | U32       | Flags indicating features causing an error                                             |
-+------------+-----------+----------------------------------------------------------------------------------------+
-| error_code | STR0_255  | Human-readable error code(s), see Error Codes section below                            |
-+------------+-----------+----------------------------------------------------------------------------------------+
++--------------+-----------+-------------------------------------------------------------------------------------------+
+| Field Name   | Data Type | Description                                                                               |
++--------------+-----------+-------------------------------------------------------------------------------------------+
+| used_version | U16       | Selected version proposed by the connecting node that the upstream node supports. This    |
+|              |           | version will be used on the connection for the rest of its life.                          |
++--------------+-----------+-------------------------------------------------------------------------------------------+
+| flags        | U32       | Flags indicating optional protocol features the server supports. Each protocol from       |
+|              |           | protocol field has its own values/flags.                                                  |
++--------------+-----------+-------------------------------------------------------------------------------------------+
 ```
 
+
+### 3.7.3 `SetupConnection.Error` (Server -> Client)
+When protocol version negotiation fails (or there is another reason why the upstream node cannot setup the connection) the server sends this message with a particular error code prior to closing the connection.
+
+In order to allow a client to determine the set of available features for a given server (e.g. for proxies which dynamically switch between different pools and need to be aware of supported options), clients SHOULD send a SetupConnection message with all flags set and examine the (potentially) resulting `SetupConnection.Error` message’s flags field.
+The Server MUST provide the full set of flags which it does not support in each `SetupConnection.Error` message and MUST consistently support the same set of flags across all servers on the same hostname and port number.
+If flags is 0, the error is a result of some condition aside from unsupported flags.
+
+```
++------------+-----------+---------------------------------------------------------------------------------------------+
+| Field Name | Data Type | Description                                                                                 |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| flags      | U32       | Flags indicating features causing an error                                                  |
++------------+-----------+---------------------------------------------------------------------------------------------+
+| error_code | STR0_255  | Human-readable error code(s), see Error Codes section below                                 |
++------------+-----------+---------------------------------------------------------------------------------------------+
+```
 Possible error codes:
 
 - `unsupported-feature-flags`
@@ -387,7 +410,7 @@ Possible error codes:
 - `protocol-version-mismatch`
 
 
-### 3.7.3 ChannelEndpointChanged (Server -> Client)
+### 3.7.4 `ChannelEndpointChanged` (Server -> Client)
 When a channel’s upstream or downstream endpoint changes and that channel had previously sent messages with **`channel_msg`** bitset of unknown `extension_type`, the intermediate proxy MUST send a **`ChannelEndpointChanged`** message.
 Upon receipt thereof, any extension state (including version negotiation and the presence of support for a given extension) MUST be reset and version/presence negotiation must begin again.
 
