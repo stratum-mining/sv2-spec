@@ -231,8 +231,18 @@ The main idea is that each server operator has a long-term authority keypair and
 certificate signed by the authority private key that confirms its identity to the clients.
 The certificate has time limited validity and is signed by the central pool authority.
 
+### 3.3.4 Noise message framing
+Every message that is sent over the wire as part of a handshake or already an established session is prefixed with payload
+length as a two-bytes little endian u16 number
 
-### 3.3.4 Signature Noise Message
+```
++----------------------------+-------------------------------------------------------------------+
+| length prefix [2 Bytes]    |  Handshake message or encrypted message                           |
++----------------------------+-------------------------------------------------------------------+
+```
+
+
+### 3.3.5 Signature Noise Message
 This message uses the same serialization format as other stratum messages.
 It contains serialized:
 
@@ -254,7 +264,7 @@ It contains serialized:
 ```
 
 
-### 3.3.5 Certificate Format
+### 3.3.6 Certificate Format
 Stratum server certificates have the following layout.
 The signature is  constructed over the fields marked for signing after serialization using Stratum protocol binary serialization format.
 
