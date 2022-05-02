@@ -196,34 +196,53 @@ The reasons why Noise Protocol Framework has been chosen are listed below:
 
 
 ### 3.3.3 Authenticated Key Agreement Handshake
-The handshake chosen for the authenticated key exchange is **`Noise_NX`** as it provides authentication of the server side and does not require authentication of the initiator (client).
+The handshake chosen for the authenticated key exchange is **`Noise_NX_25519_<encryption-algorithm>_BLAKE2s`** as it
+provides authentication of the server side and does not require authentication of the initiator (client).
 Server authentication is achieved implicitly via a series of Elliptic-Curve Diffie-Hellman (ECDH) operations followed by a MAC check.
 
-The authenticated key agreement (`Noise_NX`) is performed in two distinct steps (acts).
-The protocol allows for secure authentication.
-During each act of the handshake the following occurs: some (possibly encrypted) keying material is sent to the other party; an ECDH is performed, based on exactly which act is being executed, with the result mixed into the current set of encryption keys (`ck` the chaining key and `k` the encryption key); and an AEAD payload with a zero-length cipher text is sent.
-As this payload has no length, only a MAC is sent across.
+The authenticated key agreement (`Noise NX`) is performed in three distinct steps (acts).
+1. Encryption Algorithm negotiation: Initiator provides a list of supported encryption algorithms to the responder; the list
+   is mixed into the hash digest on noise Symmetric State initialization as a noise Prologue. Responder mixes the received
+   list to thier hash digest (note that if responder uses different prologue than initiator, then noise handshake fails)
+   and sends the chosen algorithm to the initiator
+2. Ephemeral and static key exchange followed by ECDH: keying material is sent to the other party; an ECDH is performed,
+   with the result mixed into the current set of encryption keys (`ck` the chaining key and `k` the encryption key)
+3. Server authentication with Signature Noise Message: Initiator verifies the SIGNATURE_NOISE_MESSAGE that it received
+   in previous step as a handshake payload
+
 The mixing of ECDH outputs into a hash digest forms an incremental DoubleDH handshake.
 
 Using the language of the Noise Protocol, **`e`** and **`s`** (both public keys with `**e**` being the **ephemeral key** and `**s**` being the **static key**) indicate possibly encrypted keying material, and **`es`**, **`ee`**, and **`se`** each indicate an ECDH operation between two keys.
 The handshake is laid out as follows:
 
 ```
-   Noise_NX(s, rs):
-      
+   Noise_NX:
+       -> [LIST_OF_SUPPORTED_ENCRYPTION_ALGORITHM]
+       <- [CHOSEN_ENCRYPTION_ALGORITHM]
        -> e
        <- e, ee, s, es, SIGNATURE_NOISE_MESSAGE
 ```
 
-The second handshake message is followed by a `SIGNATURE_NOISE_MESSAGE`.
+The last handshake message is followed by a `SIGNATURE_NOISE_MESSAGE`.
 Using this additional message allows us to authenticate the stratum server to the downstream node.
 The certificate implements a simple 2 level public key infrastructure. 
 
-The main idea is that each stratum server is equipped with a certificate (that confirms its identity by providing signature of its "static public key" aka "**`s`**").
+The main idea is that each server operator has a long-term authority keypair and each stratum-server is equipped with a
+certificate signed by the authority private key that confirms its identity to the clients.
 The certificate has time limited validity and is signed by the central pool authority.
 
+### 3.3.4 Noise message framing
+Every message that is sent over the wire as part of a handshake or already an established session is prefixed with payload
+length as a two-bytes little endian u16 number
 
-### 3.3.4 Signature Noise Message
+```
++----------------------------+-------------------------------------------------------------------+
+| length prefix [2 Bytes]    |  Handshake message or encrypted message                           |
++----------------------------+-------------------------------------------------------------------+
+```
+
+
+### 3.3.5 Signature Noise Message
 This message uses the same serialization format as other stratum messages.
 It contains serialized:
 
@@ -245,7 +264,7 @@ It contains serialized:
 ```
 
 
-### 3.3.5 Certificate Format
+### 3.3.6 Certificate Format
 Stratum server certificates have the following layout.
 The signature is  constructed over the fields marked for signing after serialization using Stratum protocol binary serialization format.
 
