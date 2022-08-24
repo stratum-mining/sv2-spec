@@ -1,57 +1,59 @@
 # 2. Design Goals
-As there are numerous changes from the original Stratum v1 to v2, it may be helpful to briefly review some high-level design goals before getting into more detailed technical specifications:
 
-- Develop a binary protocol with a precise definition.
-  Despite its simplicity, v1 was not a precisely defined protocol and ended up with multiple slightly different dialects.
-  We don’t want any room for different interpretations of v2.
+We briefly summarize our high-level design goals before diving into detailed technical specifications of v1 -> v2 changes:
 
-- Make Stratum v2 logically similar to v1 whenever possible so that it’s easier to understand for people who are already familiar with the protocol.
-  V1 is widely used not only in bitcoin mining, but also for mining various altcoins.
+- **Develop a precisely defined binary protocol.**
+  v1's failure to precisely define its specifications led to multiple semicompatible implementations with varying dialects.
+  Stratum v2 precisely defines its protocol parameters to ensure spec cross-compatibility.
 
-- Remove as many issues caused by v1 as possible, based on substantial historical experience with it.
-  - Remove explicit mining subscriptions (mining.subscribe) altogether. It was originally part of a more elaborate protocol and is no longer relevant.
+- **Make Stratum v2 logically similar to v1.**
+  v2 is an update to v1, not a separate protocol. It should improve on the logic and framework of v1, allowing for incremental and modular improvements for miners and mining pools currently using stratum v1. Critically, v1 implementations must be able to effectively communicate with v2 implementations with minimal tradeoffs.
+
+- **Eliminate known, established, and identified issues in v1.**
+
+  - Remove explicit mining subscriptions (mining.subscribe).
   - Make extranonce subscription a native part of the protocol, not an extension.
-  - Clean up difficulty controlling, which is really suboptimal v1.
+  - Optimize difficulty controlling.
   - Drop JSON.
   - Rework [BIP310](https://github.com/bitcoin/bips/blob/master/bip-0310.mediawiki) from scratch.
 
-- Allow different mining jobs on the same connection. 
+- Allow different mining jobs on the same connection (Multiplexing).
 
-- Avoid introducing any additional risks to pool operators and miners since that would make adoption of v2 very improbable.
+- **Avoid introducing additional risks to pool operators and miners since**.
 
-- Support version rolling natively.
-  Bitcoin block header contains a version field whose bits (determined by [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki) can be freely used to extend the hashing space for a miner.
-  It is already a common tech, we want to include it as a first class citizen in the new protocol.
+- Support version rolling natively. Bitcoin block headers contain a version field whose bits (determined by [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki) can be freely used to extend the hashing space for a miner.
 
-- Support header-only mining (not touching the coinbase transaction) in as many situations as possible.
-  Header-only mining should be easier and faster on mining devices, while also decreasing network traffic.
+- **Support header-only mining (not touching the coinbase transaction) wherever possible.**
+  Header-only mining is easier/faster on mining devices and reduces network traffic.
 
-- Dramatically reduce network traffic as well as client-side and server-side computational intensity, while still being able to send and receive hashing results rapidly for precise hash rate measurement (and therefore more precise mining reward distribution).
+- Dramatically reduce network traffic and computational intensity for clients and servers, without sacrificing precise hash rate measurement for mining reward distribution.
 
-- Allow miners to (optionally) choose the transaction set they mine through work negotiation on some independent communication channel.
-  At the same time, allow miners to choose how they utilize the available bits in the block header `nVersion` field, including both those bits which are used for mining (e.g. version-rolling AsicBoost) by [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki), and those bits used for [BIP8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki)/[BIP9](https://github.com/bitcoin/bips/tree/master/bip-0009) signaling.
-  This mechanism must not interfere with the efficiency or security of the main mining protocol.
-  - Use a separate communication channel for transaction selection so that it does not have a performance impact on the main mining/share communication, as well as can be run in three modes - disabled (i.e.pool does not yet support client work selection, to provide an easier transition from Stratum v1), client-push (to maximally utilize the client’s potential block-receive-latency differences from the pool), and client-negotiated (for pools worried about the potential of clients generating invalid block templates).
+- **Allow miners to (optionally) choose the transaction set they mine through work negotiation on some independent communication channel.**
+  Without sacrificing efficiency and security of the main mining protocol, allow miners to choose block header `nVersion` field bits, including both [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki) mining bits (e.g. version-rolling AsicBoost) , and [BIP8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki)/[BIP9](https://github.com/bitcoin/bips/tree/master/bip-0009) signaling bits.
 
-- Put complexity on the pool side rather than the miner side whenever possible.
-  Keep the protocol part to be implemented in embedded devices as small and easy as possible.
-  Mining devices tend to be difficult to update.
-  Any mistake in a firmware can be very costly.
-  Either on miners side (non-functioning firmware) or pool side (necessity to implement various workarounds and hacks to support misbehaving firmware).
+  - Use a separate communication channel for transaction selection. This avoids performance impact on the main mining/share communication and runs in 3 modes:
+    - Disabled (eases transition from Stratum v1 if pool doesn't support client work selection yet)
+    - Client-Push (maximizes client’s potential block-receive-latency differences from the pool)
+    - Client-Negotiated (if pool assesses client might generate invalid block templates)
 
-- Allow for translation to and from the original protocol on a proxy level (e.g. different downstream devices) without the necessity to reconnect.
+- **Push complexity upstream to the pool vs downstream to end-mining devices.**
 
-- Reduce the stale ratio as much as possible through efficiency improvements.
+  - Protocol implementation for embedded devices should be small and easy. Mining devices are difficult to update.
+    Firmware mistakes, both miner-side and pool-side, are costly and complex.
 
-- Support/allow for `nTime` rolling in hardware in a safe and controlled way.
+- Allow for proxy translation to and from the original protocol without forcing a reconnect.
 
-- Simple support for vendor-specific extensions without polluting the protocol, or complicating pool implementation.
+- Minimize the stale ratio through efficiency improvements.
 
-- Optional telemetry data, allowing for easy monitoring of farms, without sacrificing the privacy of miners who wish to remain private.
+- Support/allow for safe and controlled `nTime` rolling in hardware.
 
-- Allow aggregation of connections to upstream nodes with an option to aggregate or not aggregate hash rate for target setting on those connections.
+- Simple support for vendor-specific extensions without polluting the protocol or complicating pool implementation.
 
-- Ensure protocol design allows for devices to implement their own swarm algorithms.
-  Mining devices can dynamically form small groups with an elected master that is responsible for aggregating connections towards upstream endpoint(s), acting as a local proxy.
-  Aggregating connections and running multiple channels across a single TCP connection yields a better ratio of actual payload vs TCP/IP header sizes, as the share submission messages are in the range of 20 bytes.
-  Still, to avoid overly complicating the protocol, automated negotiation of swarm/proxy detection is left to future extensions or vendor-specific messages.
+- Optional telemetry data for easy monitoring of farms, without sacrificing the privacy of miners who wish to remain private.
+
+- Allow connection aggregation to upstream nodes, optionally aggregating hash rate for target setting on those connections.
+
+- **Allow devices to implement custom swarm algorithms.**
+  - Mining devices dynamically form small groups with an elected master, acting as a local proxy responsible for aggregating connections towards upstream endpoint(s).
+  - Connection aggregation and multiplexing yields a superior payload/TCPIP header size ratio, reducing share submission message sizes to ~20 bytes.
+  - Automated swarm/proxy detection negotiation is left to future extensions or vendor-specific messages.
