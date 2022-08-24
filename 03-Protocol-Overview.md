@@ -109,7 +109,7 @@ Multibyte data types are always serialized as little-endian.
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | PUBKEY        | 32                              | ED25519 public key                                                 |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| SIGNATURE     | 2 + LENGTH                      | ED25519 signature                                                  |
+| SIGNATURE     | 64                              | ED25519 signature                                                  |
 | (alias for    |                                 |                                                                    |
 |  BO_64K)      |                                 |                                                                    |
 +---------------+---------------------------------+--------------------------------------------------------------------+
@@ -278,7 +278,7 @@ The signature is  constructed over the fields marked for signing after serializa
 +----------------------+-----------+--------------------------------------------------------------------+--------------+
 | not_valid_after      | U32       | Signature is invalid after this pont in time (unix timestamp)      | YES          |
 +----------------------+-----------+--------------------------------------------------------------------+--------------+
-| authority_public_key | PUBKEY    | Public key used for verfication of the signature                   | NO           |
+| authority_public_key | PUBKEY    | Public key used for verfication of the signature                   | YES          |
 +----------------------+-----------+--------------------------------------------------------------------+--------------+
 | signature            | SIGNATURE | ED25519                                                            | NO           |
 +----------------------+-----------+-----------------------------------------------------------------------------------+
