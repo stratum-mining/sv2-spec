@@ -225,7 +225,7 @@ The certificate implements a simple 2-level public key infrastructure.
 Each server operator has a long-term authority keypair, and each stratum-server has a certificate, signed by the authority private key, authenticating itself to clients.
 The certificate has time-limited validity, and is signed by the central pool authority.
 
-### 3.3.4 Noise message framing
+### 3.3.4 Noise Message Framing
 
 Every message sent over the wire for a handshake or established session is prefixed with payload
 length (two-bytes, little-endian)
@@ -277,7 +277,7 @@ Signature constructed over fields marked for signing after serialization using S
 +----------------------+-----------+-----------------------------------------------------------------------------------+
 ```
 
-### 3.3.6 URL Scheme and Pool Authority Key
+### 3.3.7 URL Scheme and Pool Authority Key
 
 To use the security scheme outlined above, downstream nodes must configure the **Pool Authority Key** for intended pool connection.
 Embed key into the mining URL as part of the path.
