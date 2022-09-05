@@ -88,21 +88,25 @@ Multibyte data types are always serialized as little-endian.
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | U32           | 4                               | Unsigned integer, 32-bit, little-endian                            |
 +---------------+---------------------------------+--------------------------------------------------------------------+
+| U64           | 8                               | Unsigned integer, 64-bit, little-endian                            |
++---------------+---------------------------------+--------------------------------------------------------------------+
 | U256          | 32                              | Unsigned integer, 256-bit, little-endian. Often the raw byte       |
 |               |                                 | output of SHA-256 interpreted as an unsigned integer.              |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| STR0_255      | 1 + LENGTH                      | 1-byte length L, unsigned integer 8-bits, followed by a series of  |
+| STR0_255      | 1 + LENGTH                      | String with 8-bit length prefix L. Unsigned integer, followed by   |
 |               |                                 | L bytes. Allowed range of length is 0 to 255. The string is not    |
 |               |                                 | null-terminated.                                                   |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| B0_255        | 1 + LENGTH                      | 1-byte length L, unsigned integer 8-bits, followed by a sequence   |
-|               |                                 | of L bytes. Allowed range of length is 0 to 255.                   |
+| B0_255        | 1 + LENGTH                      | Byte array with 8-bit length prefix L. Unsigned integer, followed  |
+|               |                                 | by a sequence of L bytes. Allowed range of length is 0 to 255.     |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| B0_64K        | 2 + LENGTH                      | 2-byte length L, unsigned little-endian integer 16-bits followed   |
-|               |                                 | by a sequence of L bytes. Allowed range of length is 0 to 65535.   |
+| B0_64K        | 2 + LENGTH                      | Byte array with 16-bit length prefix L. Unsigned little-endian     |
+|               |                                 | integer followed by a sequence of L bytes. Allowed range of length |
+|               |                                 | is 0 to 65535.                                                     |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| B0_16M        | 3 + LENGTH                      | 3-byte length L, encoded as U24 above, followed by a sequence of L |
-|               |                                 | bytes. Allowed range of length is 0 to 2^24-1.                     |
+| B0_16M        | 3 + LENGTH                      | Byte array with 16-bit length prefix L. Unsigned integer encoded   |
+|               |                                 | as U24 above, followed by a sequence of L bytes. Allowed range of  |
+|               |                                 | length is 0 to 2^24-1.                     |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | BYTES         | LENGTH                          | Arbitrary sequence of LENGTH bytes. See description for how to     |
 |               |                                 | calculate LENGTH.                                                  |
@@ -110,8 +114,10 @@ Multibyte data types are always serialized as little-endian.
 | PUBKEY        | 32                              | ED25519 public key                                                 |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | SIGNATURE     | 64                              | ED25519 signature                                                  |
-| (alias for    |                                 |                                                                    |
-|  BO_64K)      |                                 |                                                                    |
++---------------+---------------------------------+--------------------------------------------------------------------+
+| SHORT_TX_ID   | 6                               | SipHash-2-4(TX_ID, k0, k1) where two most significant bytes are    |
+|               |                                 | dropped from the SipHash output to make it 6 bytes. TX_ID is 32    |
+|               |                                 | byte transaction id and k0 and k1 are U64 siphash keys.            |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | SEQ0_255[T]   | Fixed size T:                   | 1-byte length L, unsigned integer 8-bits, followed by a sequence   |
 |               | 1 + LENGTH * size(T)            | of L elements of type T. Allowed range of length is 0 to 255.      |
