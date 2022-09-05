@@ -112,11 +112,13 @@ A request sent by the Job Negotiator that proposes a selected set of transaction
 | tx_short_hash_nonce         | U64              | A unique nonce used to ensure tx_short_hash collisions are          |
 |                             |                  | uncorrelated across the network                                     |
 +-----------------------------+------------------+---------------------------------------------------------------------+
-| tx_short_hash_list          | SEQ0_64K[B8]     | Sequence of                                                         |
-|                             |                  | SipHash-2-4(SHA256(transaction_data), tx_short_hash_nonce))         |
-|                             |                  | upstream node to check against its mempool. Does not include the    |
-|                             |                  | coinbase transaction (as there is no corresponding full data for it |
-|                             |                  | yet).                                                               |
+| tx_short_hash_list          | SEQ0_64K[        | Sequence of SHORT_TX_IDs. Inputs to the SipHash functions are       |
+|                             |   SHORT_TX_ID    | transaction hashes from the mempool. Secret keys k0, k1 are derived |
+|                             | ]                | from the first two little-endian 64-bit integers from the           |
+|                             |                  | SHA256(tx_short_hash_nonce), respectively (see bip-0152 for more    |
+|                             |                  | information). Upstream node checks the list against its mempool.    |
+|                             |                  | Does not include the coinbase transaction (as there is no           |
+|                             |                  | corresponding full data for it yet).                                |
 +-----------------------------+------------------+---------------------------------------------------------------------+
 | tx_hash_list_hash           | U256             | Hash of the full sequence of SHA256(transaction_data) contained in  |
 |                             |                  | the transaction_hash_list                                           |
@@ -188,7 +190,7 @@ Sent by the Client in response to an `IdentifyTransactions` message to provide t
 +------------+----------------+----------------------------------------------------------------------------------------+
 |            | SEQ0_64K[U256] | The full list of transaction data hashes used to build the mining job in the           |
 |            |                | corresponding CommitMiningJob message                                                  |
-+------------+----------------+-----------------------------------------------------------------------------------------+
++------------+----------------+----------------------------------------------------------------------------------------+
 ```
 
 
