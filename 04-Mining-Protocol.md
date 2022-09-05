@@ -229,7 +229,7 @@ Sent as a response for opening an extended channel.
 +------------+-----------+---------------------------------------------------------------------------------------------+
 | request_id | U32       | Client-specified request ID from OpenMiningChannel message                                  |
 +------------+-----------+---------------------------------------------------------------------------------------------+
-| error_code | STR0_32   | Human-readable error code(s), see Error Codes section below                                 |
+| error_code | STR0_255  | Human-readable error code(s), see Error Codes section below                                 |
 +------------+-----------+---------------------------------------------------------------------------------------------+
 ```
 
@@ -269,7 +269,7 @@ Sent only when `UpdateChannel` message is invalid. When it is accepted by the se
 +------------+-----------+---------------------------------------------------------------------------------------------+
 | channel_id | U32       | Channel identification                                                                      |
 +------------+-----------+---------------------------------------------------------------------------------------------+
-| error_code | STR0_32   | Human-readable error code(s), see Error Codes section below                                 |
+| error_code | STR0_255  | Human-readable error code(s), see Error Codes section below                                 |
 +------------+-----------+---------------------------------------------------------------------------------------------+
 ```
 
@@ -289,7 +289,7 @@ A proxy MUST send this message on behalf of all opened channels from a downstrea
 +-------------+-----------+--------------------------------------------------------------------------------------------+
 | channel_id  | U32       | Channel identification                                                                     |
 +-------------+-----------+--------------------------------------------------------------------------------------------+
-| reason_code | STR0_32   | Reason for closing the channel                                                             |
+| reason_code | STR0_255  | Reason for closing the channel                                                             |
 +-------------+-----------+--------------------------------------------------------------------------------------------+
 ```
 
@@ -347,7 +347,7 @@ The message is the same as `SubmitShares`, with the following additional field:
 +-------------------+-----------+--------------------------------------------------------------------------------------+
 |                                        <SubmitSharesStandard message fields>                                         |
 +-------------------+-----------+--------------------------------------------------------------------------------------+
-| extranonce_prefix | B0_32     | Extranonce bytes which need to be added to coinbase to form a fully valid submission |
+| extranonce        | B0_32     | Extranonce bytes which need to be added to coinbase to form a fully valid submission |
 |                   |           | (full coinbase =                                                                     |
 |                   |           | coinbase_tx_prefix + extranonce_prefix + extranonce + coinbase_tx_suffix).           |
 |                   |           | The size of the provided extranonce MUST be equal to the negotiated extranonce size  |
@@ -392,7 +392,7 @@ This delayed validation can occur when a miner gets faster updates about a new p
 +-----------------+-----------+----------------------------------------------------------------------------------------+
 | sequence_number | U32       | Submission sequence number for which this error is returned                            |
 +-----------------+-----------+----------------------------------------------------------------------------------------+
-| error_code      | STR0_32   | Human-readable error code(s), see Error Codes section below                            |
+| error_code      | STR0_255  | Human-readable error code(s), see Error Codes section below                            |
 +-----------------+-----------+----------------------------------------------------------------------------------------+
 ```
 
@@ -599,7 +599,7 @@ Client can start to mine on the job immediately (by using the `job_id` provided 
 | request_id | U32       | Client-specified identifier for pairing responses. Value from the request MUST be provided  |
 |            |           | by upstream in the response message.                                                        |
 +------------+-----------+---------------------------------------------------------------------------------------------+
-| error_code | STR0_32   | Reason why the custom job has been rejected                                                 |
+| error_code | STR0_255  | Reason why the custom job has been rejected                                                 |
 +------------+-----------+---------------------------------------------------------------------------------------------+
 ```
 
