@@ -97,6 +97,9 @@ Multibyte data types are always serialized as little-endian.
 |               |                                 | L bytes. Allowed range of length is 0 to 255. The string is not    |
 |               |                                 | null-terminated.                                                   |
 +---------------+---------------------------------+--------------------------------------------------------------------+
+| B0_32         | 1 + LENGTH                      | Byte array with 8-bit length prefix L. Unsigned integer, followed  |
+|               |                                 | by a sequence of L bytes. Allowed range of length is 0 to 32.      |
++---------------+---------------------------------+--------------------------------------------------------------------+
 | B0_255        | 1 + LENGTH                      | Byte array with 8-bit length prefix L. Unsigned integer, followed  |
 |               |                                 | by a sequence of L bytes. Allowed range of length is 0 to 255.     |
 +---------------+---------------------------------+--------------------------------------------------------------------+
