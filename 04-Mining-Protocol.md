@@ -102,7 +102,7 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 +--------------------------+-----+-------------------------------------------------------------------------------------+
 | Field Name               | Bit | Description                                                                         |
 +--------------------------+-----+-------------------------------------------------------------------------------------+
-| REQUIRES_VERSION_ROLLING | 0   | The downstream node requires standard jobs. It does not understand group channels - |
+| REQUIRES_STANDARD_JOBS   | 0   | The downstream node requires standard jobs. It does not understand group channels - |
 |                          |     | it is unable to process extended jobs sent to standard channels through a group     |
 |                          |     | channel.                                                                            |
 +--------------------------+-----+-------------------------------------------------------------------------------------+
