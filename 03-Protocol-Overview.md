@@ -176,149 +176,14 @@ The message framing is outlined below:
 ```
 
 
-## 3.3 Protocol Security
-Stratum V2 employs a type of encryption scheme called AEAD (authenticated encryption with associated data) to address the security aspects of all communication that occurs between clients and servers.
-This provides both confidentiality and integrity for the ciphertexts (i.e. encrypted data) being transferred, as well as providing integrity for associated data which is not encrypted.
-Prior to opening any Stratum V2 channels for mining, clients MUST first initiate the cryptographic session state that is used to encrypt all messages sent between themselves and servers.
-Thus, the cryptographic session state is independent of V2 messaging conventions.
-
-At the same time, this specification proposes optional use of a particular handshake protocol based on the **[Noise Protocol framework](https://noiseprotocol.org/noise.html)**.
-The client and server establish secure communication using Diffie-Hellman (DH) key agreement, as described in greater detail in the Authenticated Key Agreement Handshake section below.
-
-Using the handshake protocol to establish secured communication is **optional** on the local network (e.g. local mining devices talking to a local mining proxy).
-However, it is **mandatory** for remote access to the upstream nodes, whether they be pool mining services, job negotiating services or template distributors.
-
-
-### 3.3.1 Motivation for Authenticated Encryption with Associated Data
-Data transferred by the mining protocol MUST not provide adversary information that they can use to estimate the performance of any particular miner.
-Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username.
-This is unacceptable privacy leakage that needs to be addressed.
-
-
-### 3.3.2 Motivation for Using the Noise Protocol Framework
-The reasons why Noise Protocol Framework has been chosen are listed below:
-
-- The Framework pushes to use new, modern cryptography.
-- The Framework provides a formalism to describe the handshake protocol that can be verified.
-- There is no legacy overhead.
-- It is difficult to get wrong.
-- Noise Explorer provides code generators for popular programming languages (e.g. Go, Rust).
-- We can specify no flexibility (i.e. fewer degrees of freedom), helping ensure standardization of the supported ciphersuite(s).
-- A custom certificate scheme is now possible (no need to use x509 certificates).
-
-
-### 3.3.3 Authenticated Key Agreement Handshake
-The handshake chosen for the authenticated key exchange is **`Noise_NX_25519_<encryption-algorithm>_BLAKE2s`** as it
-provides authentication of the server side and does not require authentication of the initiator (client).
-Server authentication is achieved implicitly via a series of Elliptic-Curve Diffie-Hellman (ECDH) operations followed by a MAC check.
-
-The authenticated key agreement (`Noise NX`) is performed in three distinct steps (acts).
-1. Encryption Algorithm negotiation: Initiator provides a list of supported encryption algorithms to the responder; the list
-   is mixed into the hash digest on noise Symmetric State initialization as a noise Prologue. Responder mixes the received
-   list to thier hash digest (note that if responder uses different prologue than initiator, then noise handshake fails)
-   and sends the chosen algorithm to the initiator
-2. Ephemeral and static key exchange followed by ECDH: keying material is sent to the other party; an ECDH is performed,
-   with the result mixed into the current set of encryption keys (`ck` the chaining key and `k` the encryption key)
-3. Server authentication with Signature Noise Message: Initiator verifies the SIGNATURE_NOISE_MESSAGE that it received
-   in previous step as a handshake payload
-
-The mixing of ECDH outputs into a hash digest forms an incremental DoubleDH handshake.
-
-Using the language of the Noise Protocol, **`e`** and **`s`** (both public keys with `**e**` being the **ephemeral key** and `**s**` being the **static key**) indicate possibly encrypted keying material, and **`es`**, **`ee`**, and **`se`** each indicate an ECDH operation between two keys.
-The handshake is laid out as follows:
-
-```
-   Noise_NX:
-       -> [LIST_OF_SUPPORTED_ENCRYPTION_ALGORITHM]
-       <- [CHOSEN_ENCRYPTION_ALGORITHM]
-       -> e
-       <- e, ee, s, es, SIGNATURE_NOISE_MESSAGE
-```
-
-The last handshake message is followed by a `SIGNATURE_NOISE_MESSAGE`.
-Using this additional message allows us to authenticate the stratum server to the downstream node.
-The certificate implements a simple 2 level public key infrastructure. 
-
-The main idea is that each server operator has a long-term authority keypair and each stratum-server is equipped with a
-certificate signed by the authority private key that confirms its identity to the clients.
-The certificate has time limited validity and is signed by the central pool authority.
-
-### 3.3.4 Noise message framing
-Every message that is sent over the wire as part of a handshake or already an established session is prefixed with payload
-length as a two-bytes little endian u16 number
-
-```
-+----------------------------+-------------------------------------------------------------------+
-| length prefix [2 Bytes]    |  Handshake message or encrypted message                           |
-+----------------------------+-------------------------------------------------------------------+
-```
-
-
-### 3.3.5 Signature Noise Message
-This message uses the same serialization format as other stratum messages.
-It contains serialized:
-
-- Server Certificate header (`version`, `valid_from` and `not_not_valid_after` fields)
-- ED25519 signature that can be verified by the Pool Authority Public key and the client can reconstruct the full Certificate from its "`s`" and this header and authenticate the server. 
-
-```
-+-----------------+-----------+----------------------------------------------------------------------------------------+
-| Field Name      | Data Type | Description                                                                            |
-+-----------------+-----------+----------------------------------------------------------------------------------------+
-| version         | U16       | Version of the certificate format                                                      |
-+-----------------+-----------+----------------------------------------------------------------------------------------+
-| valid_from      | U32       | Validity start time (unix timestamp)                                                   |
-+-----------------+-----------+----------------------------------------------------------------------------------------+
-| not_valid_after | U32       | Signature is invalid after this point in time (unix timestamp)                         |
-+-----------------+-----------+----------------------------------------------------------------------------------------+
-| signature       | SIGNATURE | ED25519 signature                                                                      |
-+-----------------+-----------+----------------------------------------------------------------------------------------+
-```
-
-
-### 3.3.6 Certificate Format
-Stratum server certificates have the following layout.
-The signature is  constructed over the fields marked for signing after serialization using Stratum protocol binary serialization format.
-
-```
-+----------------------+-----------+--------------------------------------------------------------------+--------------+
-| Field Name           | Data Type | Description                                                        | Signed Feild |
-+----------------------+-----------+--------------------------------------------------------------------+--------------+
-| version              | U16       | Version of the certificate format                                  | YES          |
-+----------------------+-----------+--------------------------------------------------------------------+--------------+
-| valid_from           | U32       | Validity start time (unix timestamp)                               | YES          |
-+----------------------+-----------+--------------------------------------------------------------------+--------------+
-| not_valid_after      | U32       | Signature is invalid after this pont in time (unix timestamp)      | YES          |
-+----------------------+-----------+--------------------------------------------------------------------+--------------+
-| authority_public_key | PUBKEY    | Public key used for verfication of the signature                   | YES          |
-+----------------------+-----------+--------------------------------------------------------------------+--------------+
-| signature            | SIGNATURE | ED25519                                                            | NO           |
-+----------------------+-----------+-----------------------------------------------------------------------------------+
-```
-
-
-### 3.3.6 URL Scheme and Pool Authority Key
-Downstream nodes that want to use the above outlined security scheme need to have configured the **Pool Authority Key** of the pool that they intend to connect to.
-The key can be embedded into the mining URL as part of the path.
-E.g.:
-
-```
-stratum2+tcp://thepool.com/u95GEReVMjK6k5YqiSFNqqTnKU4ypU2Wm8awa6tmbmDmk1bWt
-```
-
-The "**`u95GEReVMjK6k5YqiSFNqqTnKU4ypU2Wm8awa6tmbmDmk1bWt`**" is the public key in [base58-check](https://en.bitcoin.it/wiki/Base58Check_encoding) encoding.
-It is provided by the target pool and communicated to its users via a trusted channel.
-At least, it can be published on the pool's public website.
-
-
-## 3.4 Reconnecting Downstream Nodes
+## 3.3 Reconnecting Downstream Nodes
 An upstream stratum node may occasionally request reconnection of its downstream peers to a different host (e.g. due to maintenance reasons, etc.).
 This request is per upstream connection and affects all open channels towards the upstream stratum node.
 
 After receiving a request to reconnect, the downstream node MUST run the handshake protocol with the new node as long as its previous connection was also running through a secure cryptographic session state.
 
 
-## 3.5 Protocol Extensions
+## 3.4 Protocol Extensions
 Protocol extensions may be defined by using a non-0 `extension_type` field in the message header (not including the `channel_msg` bit).
 The value used MUST either be in the range `0x4000` - `0x7fff` (inclusive, i.e. have the second-to-most-significant-bit set) denoting an "experimental" extension and not be present in production equipment, or have been allocated for the purpose at [http://stratumprotocol.org](http://stratumprotocol.org).
 While extensions SHOULD have BIPs written describing their full functionality, `extension_type` allocations MAY also be requested for vendor-specific proprietary extensions to be used in production hardware.
@@ -340,7 +205,7 @@ This prevents the needlessly wasted bandwidth and potentially serious performanc
 See `ChannelEndpointChanged` message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
 
 
-## 3.6 Error Codes
+## 3.5 Error Codes
 The protocol uses string error codes.
 The list of error codes can differ between implementations, and thus implementations MUST NOT take any automated action(s) on the basis of an error code.
 Implementations/pools SHOULD provide documentation on the meaning of error codes and error codes SHOULD use printable ASCII where possible.
@@ -357,11 +222,11 @@ Individual error codes are also specified along with their respective error mess
 - `protocol-version-mismatch`
 
 
-## 3.7 Common Protocol Messages
+## 3.6 Common Protocol Messages
 The following protocol messages are common across all of the protocols described in this BIP.
 
 
-### 3.7.1 `SetupConnection` (Client -> Server)
+### 3.6.1 `SetupConnection` (Client -> Server)
 Initiates the connection.
 This MUST be the first message sent by the client on the newly opened connection.
 Server MUST respond with either a `SetupConnection.Success` or `SetupConnection.Error` message.
@@ -401,7 +266,7 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 ```
 
 
-### 3.7.2 `SetupConnection.Success` (Server -> Client)
+### 3.6.2 `SetupConnection.Success` (Server -> Client)
 Response to `SetupConnection` message if the server accepts the connection.
 The client is required to verify the set of feature flags that the server supports and act accordingly.
 
@@ -418,7 +283,7 @@ The client is required to verify the set of feature flags that the server suppor
 ```
 
 
-### 3.7.3 `SetupConnection.Error` (Server -> Client)
+### 3.6.3 `SetupConnection.Error` (Server -> Client)
 When protocol version negotiation fails (or there is another reason why the upstream node cannot setup the connection) the server sends this message with a particular error code prior to closing the connection.
 
 In order to allow a client to determine the set of available features for a given server (e.g. for proxies which dynamically switch between different pools and need to be aware of supported options), clients SHOULD send a SetupConnection message with all flags set and examine the (potentially) resulting `SetupConnection.Error` message’s flags field.
@@ -441,7 +306,7 @@ Possible error codes:
 - `protocol-version-mismatch`
 
 
-### 3.7.4 `ChannelEndpointChanged` (Server -> Client)
+### 3.6.4 `ChannelEndpointChanged` (Server -> Client)
 When a channel’s upstream or downstream endpoint changes and that channel had previously sent messages with **`channel_msg`** bitset of unknown `extension_type`, the intermediate proxy MUST send a **`ChannelEndpointChanged`** message.
 Upon receipt thereof, any extension state (including version negotiation and the presence of support for a given extension) MUST be reset and version/presence negotiation must begin again.
 
