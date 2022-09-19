@@ -114,9 +114,11 @@ Multibyte data types are always serialized as little-endian.
 | BYTES         | LENGTH                          | Arbitrary sequence of LENGTH bytes. See description for how to     |
 |               |                                 | calculate LENGTH.                                                  |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| PUBKEY        | 32                              | ED25519 public key                                                 |
+| MAC           | 16                              | Message Authentication Code produced with AE algorithm             |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| SIGNATURE     | 64                              | ED25519 signature                                                  |
+| PUBKEY        | 32                              | X coordinate of Secp256k1 public key (see BIP 340)                 |
++---------------+---------------------------------+--------------------------------------------------------------------+
+| SIGNATURE     | 64                              | Schnorr signature on Secp256k1 (see BIP 340)                       |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | SHORT_TX_ID   | 6                               | SipHash-2-4(TX_ID, k0, k1) where two most significant bytes are    |
 |               |                                 | dropped from the SipHash output to make it 6 bytes. TX_ID is 32    |
@@ -124,6 +126,11 @@ Multibyte data types are always serialized as little-endian.
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | OPTION[T]     | 1 + occupied ? size(T) : 0      | Alias for SEQ0_1[T]. Identical representation to SEQ0_255 but      |
 |               |                                 | enforces the maximum size of 1
++---------------+---------------------------------+--------------------------------------------------------------------+
+| SEQ0_32[T]    | Fixed size T:                   | 1-byte length L, unsigned integer 8-bits, followed by a sequence   |
+|               | 1 + LENGTH * size(T)            | of L elements of type T. Allowed range of length is 0 to 32.       |
+|               | Variable length T:              |                                                                    |
+|               | 1 + seq.map(|x| x.length).sum() |                                                                    |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | SEQ0_255[T]   | Fixed size T:                   | 1-byte length L, unsigned integer 8-bits, followed by a sequence   |
 |               | 1 + LENGTH * size(T)            | of L elements of type T. Allowed range of length is 0 to 255.      |
