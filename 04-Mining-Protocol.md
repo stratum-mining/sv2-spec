@@ -96,7 +96,7 @@ Figure 4.3.a Mining Protocol Messages: Initialization
 Figure 4.3.b Mining Protocol Messages: Mining on Standard Channel
 
 ### 4.3.1 `SetupConnection` Flags for Mining Protocol
-Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
+Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, where bit 0 is the least significant bit of the u32 type:
 
 ```
 +--------------------------+-----+-------------------------------------------------------------------------------------+
