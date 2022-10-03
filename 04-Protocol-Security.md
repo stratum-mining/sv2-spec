@@ -169,13 +169,6 @@ Protocol variants:
 +--------------------------+-------------------------------------------------------------------------------------------+
 | 0x53474153 (b"SAGS")     |  Noise_NX_secp256k1_AESGCM_SHA256 (optional)                                              |
 +--------------------------+-------------------------------------------------------------------------------------------+
-| 0x47534541 (b"AESG")     |  Noise_NX_25519_AESGCM_BLAKE2s (legacy*)                                                  |
-+--------------------------+-------------------------------------------------------------------------------------------+
-| 0x48434843 (b"CHCH")     |  Noise_NX_25519_ChaChaPoly_BLAKE2s (legacy*)                                              |
-+--------------------------+-------------------------------------------------------------------------------------------+
-
-* if the selected curve is 25519, then SIGNATURE in SIGNATURE_NOISE_MESSAGE is ed25519 signature and authority public
-key is interpreted as ed25519 public key   
 ```
 
 Protocol `Noise_NX_secp256k1_ChaChaPoly_SHA256` must be always supported. It's the only variant that can be implemented using primitives from Bitcoin Core.
