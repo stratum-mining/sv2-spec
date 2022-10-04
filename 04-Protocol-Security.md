@@ -189,7 +189,7 @@ Message length: 4 Bytes
 
 Prior to starting first round of NX-handshake, both initiator and responder initializes handshake variables `h` (hash output), `ck` (chaining key) and `k` (encryption key):
 
-1.  **prolog** is constructed as a serialized sequence of noise-protocol negotiation message with following structure:
+1.  **prologue** is constructed as a serialized sequence of noise-protocol negotiation message with following structure:
 ```
 Prologue
 +----------------+-----------------------------------------------------------------------------------------------------+
@@ -198,6 +198,7 @@ Prologue
 |  u32           |  Algorithm chosen by the responder                                                                  |
 +----------------+-----------------------------------------------------------------------------------------------------+
 ```
+The purpose of prologue is to commit each party's view on the protocol negotiation phase. If those two parties end up with different prologues, the session breaks due to decryption error on the next decryption operation.
 1. **hash output** `h = protocolName || <zero-padding>` or `h = HASH(protocolName)`
   * If `protocolName` is less than or equal to 32 bytes in length, use `protocolName` with zero bytes appended to make 32 bytes. Otherwise, apply `HASH` to it.
   * `protocolName` is official noise protocol name such as `Noise_NX_secp256k1_ChaChaPoly_SHA256` encoded as an ASCII string
