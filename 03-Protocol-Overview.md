@@ -377,9 +377,9 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 |                  |           | 2 = Template Distribution Protocol                                                     |
 |                  |           | 3 = Job Distribution Protocol                                                          |
 +------------------+-----------+----------------------------------------------------------------------------------------+
-| min_version      | U16       | The minimum protocol version the client supports (currently must be 2)                 |
+| min_version      | U16       | The minimum protocol version the client supports (currently must be 3)                 |
 +------------------+-----------+----------------------------------------------------------------------------------------+
-| max_version      | U16       | The maximum protocol version the client supports (currently must be 2)                 |
+| max_version      | U16       | The maximum protocol version the client supports (currently must be 3)                 |
 +------------------+-----------+----------------------------------------------------------------------------------------+
 | flags            | U32       | Flags indicating optional protocol features the client supports. Each protocol from    |
 |                  |           | protocol field as its own values/flags.                                                |
