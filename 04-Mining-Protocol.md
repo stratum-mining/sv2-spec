@@ -407,25 +407,26 @@ The server provides an updated mining job to the client through a standard chann
 If the `future_job` field is set to False, the client MUST start to mine on the new job as soon as possible after receiving this message.
 
 ```
-+-------------+-----------+--------------------------------------------------------------------------------------------+
-| Field Name  | Data Type | Description                                                                                |
-+-------------+-----------+--------------------------------------------------------------------------------------------+
-| channel_id  | U32       | Channel identifier, this must be a standard channel                                        |
-+-------------+-----------+--------------------------------------------------------------------------------------------+
-| job_id      | U32       | Identifier of the job as provided by NewMiningJob or NewExtendedMiningJob message          |
-+-------------+-----------+--------------------------------------------------------------------------------------------+
-| future_job  | BOOL      | True if the job is intended for a future SetNewPrevHash message sent on this channel. If   |
-|             |           | False, the job relates to the last sent SetNewPrevHash message on the channel and the      |
-|             |           | miner should start to work on the job immediately.                                         |
-+-------------+-----------+--------------------------------------------------------------------------------------------+
++----------------+---------------+-------------------------------------------------------------------------------------+
+| Field Name     | Data Type     | Description                                                                         |
++----------------+---------------+-------------------------------------------------------------------------------------+
+| channel_id     | U32           | Channel identifier, this must be a standard channel                                 |
++----------------+---------------+-------------------------------------------------------------------------------------+
+| job_id         | U32           | Identifier of the job as provided by NewMiningJob or NewExtendedMiningJob message   |
++----------------+---------------+-------------------------------------------------------------------------------------+
+| starting_ntime | OPTION[u32]   | Empty if the job is intended for a future SetNewPrevHash message sent on this       |
+|                |               | channel. Filled with min_ntime if the job is intended to the last sent              |
+|                |               | SetNewPrevHash message and the miner should start to work on the job immediately.   |
++----------------+---------------+-------------------------------------------------------------------------------------+
 |                                              <Bitcoin specific part>                                                 |
-+-------------+-----------+--------------------------------------------------------------------------------------------+
-| version     | U32       | Valid version field that reflects the current network consensus. The general purpose bits  |
-|             |           | (as specified in BIP320) can be freely manipulated by the downstream node. The downstream  |
-|             |           | node MUST NOT rely on the upstream node to set the BIP320 bits to any particular value.    |
-+-------------+-----------+--------------------------------------------------------------------------------------------+
-| merkle_root | B32       | Merkle root field as used in the bitcoin block header                                      |
-+-------------+-----------+--------------------------------------------------------------------------------------------+
++----------------+---------------+-------------------------------------------------------------------------------------+
+| version        | U32           | Valid version field that reflects the current network consensus. The general        |
+|                |               | purpose bits (as specified in BIP320) can be freely manipulated by the downstream   |
+|                |               | node. The downstream node MUST NOT rely on the upstream node to set the BIP320 bits |
+|                |               | to any particular value.                                                            |
++----------------+---------------+-------------------------------------------------------------------------------------+
+| merkle_root    | B32           | Merkle root field as used in the bitcoin block header                               |
++----------------+---------------+-------------------------------------------------------------------------------------+
 ```
 
 
@@ -454,11 +455,11 @@ A proxy MUST translate the message for all downstream channels belonging to the 
 +-------------------------+----------------+---------------------------------------------------------------------------+
 | job_id                  | U32            | Server’s identification of the mining job                                 |
 +-------------------------+----------------+---------------------------------------------------------------------------+
-| future_job              | BOOL           | True if the job is intended for a future SetNewPrevHash message sent on   |
-|                         |                | this channel. If False, the job relates to the last sent SetNewPrevHash   |
-|                         |                | message on the channel and the miner should start to work on the job      |
-|                         |                | immediately.                                                              |
-+-------------------------+----------------+---------------------------------------------------------------------------+
+| starting_ntime          | OPTION[u32]    | Empty if the job is intended for a future SetNewPrevHash message sent on  |
+|                         |                | this channel. Filled with min_ntime if the job is intended to the last    |
+|                         |                | sent SetNewPrevHash message on the channel and the miner should start to  |
+|                         |                | work on the job immediately.
++-------------+-------------+------------------------------------------------------------------------------------------+
 | version                 | U32            | Valid version field that reflects the current network consensus           |
 +-------------------------+----------------+---------------------------------------------------------------------------+
 | version_rolling_allowed | BOOL           | If set to True, the general purpose bits of version (as specified in      |

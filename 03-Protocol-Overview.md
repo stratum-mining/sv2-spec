@@ -122,6 +122,9 @@ Multibyte data types are always serialized as little-endian.
 |               |                                 | dropped from the SipHash output to make it 6 bytes. TX_ID is 32    |
 |               |                                 | byte transaction id and k0 and k1 are U64 siphash keys.            |
 +---------------+---------------------------------+--------------------------------------------------------------------+
+| OPTION[T]     | 1 + occupied ? size(T) : 0      | Alias for SEQ0_1[T]. Identical representation to SEQ0_255 but      |
+|               |                                 | enforces the maximum size of 1
++---------------+---------------------------------+--------------------------------------------------------------------+
 | SEQ0_255[T]   | Fixed size T:                   | 1-byte length L, unsigned integer 8-bits, followed by a sequence   |
 |               | 1 + LENGTH * size(T)            | of L elements of type T. Allowed range of length is 0 to 255.      |
 |               | Variable length T:              |                                                                    |
