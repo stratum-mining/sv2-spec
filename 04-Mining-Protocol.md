@@ -418,7 +418,7 @@ If the `future_job` field is set to False, the client MUST start to mine on the 
 |             |           | False, the job relates to the last sent SetNewPrevHash message on the channel and the      |
 |             |           | miner should start to work on the job immediately.                                         |
 +-------------+-----------+--------------------------------------------------------------------------------------------+
-|                                              <Bitcoin specific part>                                                 |
+|                              <The following variables are Bitcoin-specific>                                          |
 +-------------+-----------+--------------------------------------------------------------------------------------------+
 | version     | U32       | Valid version field that reflects the current network consensus. The general purpose bits  |
 |             |           | (as specified in BIP320) can be freely manipulated by the downstream node. The downstream  |
