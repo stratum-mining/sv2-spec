@@ -467,7 +467,7 @@ A proxy MUST translate the message for all downstream channels belonging to the 
 |                         |                | particular value. If set to False, the downstream node MUST use version   |
 |                         |                | as it is defined by this message.                                         |
 +-------------------------+----------------+---------------------------------------------------------------------------+
-| merkle_path             | SEQ0_255[U256] | Valid version field that reflects the current network consensus           |
+| merkle_path             | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                   |
 +-------------------------+----------------+---------------------------------------------------------------------------+
 | coinbase_tx_prefix      | B0_64K         | Prefix part of the coinbase transaction*                                  |
 +-------------------------+----------------+---------------------------------------------------------------------------+
