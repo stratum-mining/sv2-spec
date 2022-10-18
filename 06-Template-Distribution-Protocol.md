@@ -65,7 +65,10 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 | coinbase_tx_outputs_count   | U32            | The number of transaction outputs included in coinbase_tx_outputs     |
 +-----------------------------+----------------+-----------------------------------------------------------------------+
 | coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs to be included as the last outputs in     |
-|                             |                | the coinbase transaction                                              |
+|                             |                | the coinbase transaction. An additional coinbase tx output (other than|
+|                             |                | the output which pays the fees + block subsidy), will most likely be  |
+|                             |                | the coinbase witness commitment output.                               |
+|                             |                |                                                                       |
 +-----------------------------+----------------+-----------------------------------------------------------------------+
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                        |
 +-----------------------------+----------------+-----------------------------------------------------------------------+
