@@ -71,6 +71,13 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 +-----------------------------+----------------+-----------------------------------------------------------------------+
 | merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                               |
 +-----------------------------+----------------+-----------------------------------------------------------------------+
+| witness_reserve_value       | B0_255         | Optional value when a NewTemplate contains segwit inputs. The witness |
+|                             |                | reserve value is always 32 bytes and is used by Bitcoin for future    |
+|                             |                | extensions. The Template Provider and the downstream device will need |
+|                             |                | to use the witness reserve value as an input along with the witness   |
+|                             |                | root to compute a valid witness commitment                            |
+|                             |                |                                                                       |
++-----------------------------+----------------+-----------------------------------------------------------------------+
 ```
 
 
