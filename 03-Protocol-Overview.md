@@ -109,7 +109,7 @@ Multibyte data types are always serialized as little-endian.
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | B0_16M        | 3 + LENGTH                      | Byte array with 16-bit length prefix L. Unsigned integer encoded   |
 |               |                                 | as U24 above, followed by a sequence of L bytes. Allowed range of  |
-|               |                                 | length is 0 to 2^24-1.                     |
+|               |                                 | length is 0 to 2^24-1.                                             |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | BYTES         | LENGTH                          | Arbitrary sequence of LENGTH bytes. See description for how to     |
 |               |                                 | calculate LENGTH.                                                  |
@@ -124,8 +124,8 @@ Multibyte data types are always serialized as little-endian.
 |               |                                 | dropped from the SipHash output to make it 6 bytes. TX_ID is 32    |
 |               |                                 | byte transaction id and k0 and k1 are U64 siphash keys.            |
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| OPTION[T]     | 1 + occupied ? size(T) : 0      | Alias for SEQ0_1[T]. Identical representation to SEQ0_255 but      |
-|               |                                 | enforces the maximum size of 1
+| OPTION[T]     | 1 + (occupied ? size(T) : 0)    | Alias for SEQ0_1[T]. Identical representation to SEQ0_255 but      |
+|               |                                 | enforces the maximum size of 1                                     |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | SEQ0_32[T]    | Fixed size T:                   | 1-byte length L, unsigned integer 8-bits, followed by a sequence   |
 |               | 1 + LENGTH * size(T)            | of L elements of type T. Allowed range of length is 0 to 32.       |

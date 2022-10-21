@@ -62,7 +62,10 @@ For more information refer to BIP340<sup>[3](#reference-3)</sup>
 * `SHA-256()` is used as a `HASH()`
 
 ### 4.3.3 Cipher function for authenticated encryption
-* ChaCha20 and Poly1305 in AEAD mode<sup>[4](reference-4)</sup>
+* Cipher has methods for encryption and decryption for key `k`, nonce `n`, associated_data `ad`, plaintext `pt` and ciphertext `ct`
+  * `ENCRYPT(k, n, ad, pt)`
+  * `DECRYPT(k, n, ad, ct)`
+* ChaCha20 and Poly1305 in AEAD mode<sup>[4](reference-4)</sup> (ChaChaPoly) is used as a default AEAD cipher
 
 ## 4.4 Cryptographic operations
 
@@ -137,55 +140,16 @@ The following functions will also be referenced:
 The handshake chosen for the authenticated key exchange is an **`Noise_NX`** augmented by algorithm negotiation prior to handshake itself and server authentication with simple 2 level public key infrastructure.
 
 The complete authenticated key agreement (`Noise NX`) is performed in five distinct steps (acts).
-1. Noise protocol proposal: Initiator provides a list of algorithms for the noise protocol to the responder
-2. Noise protocol choice: Responder chooses one and sends its choice to the initiator.
-2. NX-handshake part 1: `-> e`
-4. NX-handshake part 2: `<- e, ee, s, es, SIGNATURE_NOISE_MESSAGE`
-5. Server authentication: Initiator validates authenticity of server using from `SIGNATURE_NOISE_MESSAGE`
 
-Should the decryption (i.e. authentication code validation) fail at any point, the session must be terminated. 
+1. NX-handshake part 1: `-> e`
+2. NX-handshake part 2: `<- e, ee, s, es, SIGNATURE_NOISE_MESSAGE`
+3. Server authentication: Initiator validates authenticity of server using from `SIGNATURE_NOISE_MESSAGE`
+4. Cipher upgrade part 1: Initiator provides list of alternative aead-ciphers that it supports
+5. Cipher upgrade part 2: Responder confirms or dismisses upgrade to a different aead-cipher
 
-### 4.5.1 Handshake Act 1: Noise protocol proposal
-Initiator proposes list of concrete noise-protocol dialects
+Should the decryption (i.e. authentication code validation) fail at any point, the session must be terminated.
 
-```
-Protocol proposal message
-+---------------+------------------------------------------------------------------------------------------------------+
-| u32           |  MAGIC_NUMBER: Currently set to 861033555, whose LE binary representation is b"STR3"                 |
-+---------------+------------------------------------------------------------------------------------------------------+
-| SEQ0_32[u32]  |  List of algorithms that the noise protocol should use for the encrypted session                     |
-+---------------+------------------------------------------------------------------------------------------------------+
-
-Message length: 5 + *n* * 4 Bytes, where n is the length byte of the SEQ0_32 field, at most 133
-```
-
-
-```
-Protocol variants:
-+--------------------------+-------------------------------------------------------------------------------------------+
-| u32 code (LE repr)       |   Official protocol name                                                                  |
-+--------------------------+-------------------------------------------------------------------------------------------+
-| 0x53484353 (b"SCHS")     |  Noise_NX_secp256k1_ChaChaPoly_SHA256 (mandatory)                                         |
-+--------------------------+-------------------------------------------------------------------------------------------+
-| 0x53474153 (b"SAGS")     |  Noise_NX_secp256k1_AESGCM_SHA256 (optional)                                              |
-+--------------------------+-------------------------------------------------------------------------------------------+
-```
-
-Protocol `Noise_NX_secp256k1_ChaChaPoly_SHA256` must be always supported. It's the only variant that can be implemented using primitives from Bitcoin Core.
-
-### 4.5.2 Handshake Act 2: Noise protocol choice
-Responder confirms its choice of algorithm with a simple response:
-
-```
-Protocol choice message
-+---------------+------------------------------------------------------------------------------------------------------+
-| u32           |  Server's choice of algorithm                                                                        |
-+---------------+------------------------------------------------------------------------------------------------------+
-
-Message length: 4 Bytes
-```
-
-### 4.5.3 Handshake Act 3: NX-handshake part 1 `-> e`
+### 4.5.1 Handshake Act 1: NX-handshake part 1 `-> e`
 
 Prior to starting first round of NX-handshake, both initiator and responder initializes handshake variables `h` (hash output), `ck` (chaining key) and `k` (encryption key):
 
@@ -206,7 +170,7 @@ The purpose of prologue is to commit each party's view on the protocol negotiati
 3. **hash output** `h = HASH(h || prologue)`
 4. **encryption key** `k ` empty
 
-#### 4.5.3.1 Initiator
+#### 4.5.1.1 Initiator
 Initiator generates ephemeral keypair and sends the public key to the responder:
 
 1. initializes empty output buffer
@@ -224,13 +188,13 @@ Ephemeral public key message:
 Message length: 32 Bytes
 ```
 
-#### 4.5.3.2 Responder
+#### 4.5.1.2 Responder
 1. receives ephemeral public key message (32 bytes plaintext public key)
 2. parses received public key as `re.public_key`
 3. calls `MixHash(re.public_key)`
 4. calls `DecryptAndHash()` on remaining bytes (i.e. on empty data with empty *k*, thus effectively only calls `MixHash()` on empty data)
 
-### 4.5.4 Handshake Act 4: NX-handshake part 2 `<- e, ee, s, es, SIGNATURE_NOISE_MESSAGE`
+### 4.5.2 Handshake Act 2: NX-handshake part 2 `<- e, ee, s, es, SIGNATURE_NOISE_MESSAGE`
 
 Responder provides its ephemeral, encrypted static public keys and encrypted `SIGNATURE_NOISE_MESSAGE` to the initiator, performs Elliptic-Curve Diffie-Hellman operations.
 
@@ -252,7 +216,7 @@ Length: 74 Bytes
 ```
 
 
-#### 4.5.4.1 Responder
+#### 4.5.2.1 Responder
 1. initializes empty output buffer
 2. generates ephemeral keypair `e`, appends `e.public_key` to the buffer (32 bytes plaintext public key)
 3. calls `MixHash(e.public_key)`
@@ -285,7 +249,7 @@ Message format of NX-handshake part 2
 Message length: 170 Bytes
 ```
 
-#### 4.5.4.2 Initiator
+#### 4.5.2.2 Initiator
 1. receives NX-handshake part 2 message
 2. interprets first 32 bytes as `re.public_key`
 3. calls `MixHash(re.public_key)`
@@ -299,7 +263,7 @@ Message length: 170 Bytes
    3. calls `c1.InitializeKey(temp_k1)` and `c2.InitializeKey(temp_k2)`
    4. returns the pair `(c1, c2)`
 
-### 4.5.5 Server authentication
+### 4.5.3 Server authentication
 Identity of the server is confirmed by initiator by verifying the signature in `CERTIFICATE`.
 Certificate is constructed from the `SIGNATURE_NOISE_MESSAGE`, authority public key that is generally known (for example from pool's website) and **server's static public key** that has been received during `NX` handshake.
 
@@ -323,7 +287,7 @@ CERTIFICATE
 ```
 This message is not directly transferred over the wire.
 
-#### 4.5.5.1 Signature structure
+#### 4.5.3.1 Signature structure
 Schnorr signature with *key prefixing* is used<sup>[3](#reference-3)</sup>
 
 signature is constructed for
@@ -331,6 +295,49 @@ signature is constructed for
 * public key `P` that is Certificate Authority
 
 Signature itself is concatenation of an EC point `R` and an integer `s` (note that each item is serialized as 32 bytes array) for which identity `s⋅G = R + HASH(R || P || m)⋅P` holds.
+
+### 4.5.4 Cipher upgrade part 1: `-> AEAD_CIPHERS`
+
+Initiator provides list of AEAD ciphers other than ChaChaPoly that it supports
+
+```
++----------------------+-----------------------------------------------------------------------------------------------+
+| SEQ0_32[u32]         |  List of AEAD cipher functions other than ChaChaPoly that the client supports                 |
++----------------------+-----------------------------------------------------------------------------------------------+
+
+Message length: 1 + *n* * 4 bytes, where n is the length byte of the SEQ0_32 field, at most 129
+
+possible cipher codes:
++----------------------+-----------------------------------------------------------------------------------------------+
+| cipher code          | Cipher description                                                                            |
++----------------------+-----------------------------------------------------------------------------------------------+
+| 0x47534541 (b"AESG") | AES-256 with with GCM from [7]                                                                |
++----------------------+-----------------------------------------------------------------------------------------------+
+
+```
+
+
+### 4.5.5 Cipher upgrade part 2: `<- CIPHER_CHOICE`
+
+Responder acknowledges receiving `AEAD_CIPHERS` message with `CIPHER_CHOICE`. There are two possible cases
+1. `CIPHER_CHOICE` is empty: In this case continue using current established encrypted session
+2. `CIPHER_CHOICE` is non-empty - Restart encrypted session using the new AEAD-cipher
+
+```
+CIPHER_CHOICE
++---------------------+------------------------------------------------------------------------------------------------+
+| OPTION[u32]         |  Request to upgrade to a given AEAD-cipher                                                     |
++---------------------+------------------------------------------------------------------------------------------------+
+
+Message length: 1 or 5 bytes
+```
+
+#### 4.5.5.1 Upgrade to a new AEAD-cipher
+
+If the server provides a non-empty `CIPHER_CHOICE`:
+1. Both initiator and responder create a new pair of CipherState objects with the negotiated cipher for encrypting transport messages from initiator to responder and in the other direction respectively
+2. New keys `key_new` are derived from the original CipherState keys `key_orig` by taking the first 32 bytes from `ENCRYPT(key_orig, maxnonce, zero_len, zeros)` using the negotiated cipher function where `maxnonce` is 2<sup>64</sup> - 1, `zerolen` is a zero-length byte sequence, and `zeros` is a sequence of 32 bytes filled with zeros.
+3. New CipherState objects are reinitialized: `InitializeKey(key_new)`.
 
 ### 4.5.6 Transport message encryption and format
 
@@ -342,7 +349,7 @@ NOISE_FRAME
 +-------------+-----------+--------------------------------------------------------------------------------------------+
 | Field Name  | Data Type | Description                                                                                |
 +-------------+-----------+--------------------------------------------------------------------------------------------+
-| ciphertext  | B0_64K    | AEAD ciphertext including 16 Bytes MAC                                                     |
+| ciphertext  | B0_64K    | AEAD ciphertext including 16 bytes MAC                                                     |
 +-------------+-----------+--------------------------------------------------------------------------------------------+
 Message length: <Plaintext length> + 18 bytes = <Plaintext length> + <MAC length> + <Type length prefix>
 
@@ -390,3 +397,4 @@ prefixed_base58check = "CA2JBhdpuesgbHENcRJs4T9KpCpuUiFpcnLyQGeu4A6gbry7ArBe"
 4. <a id="reference-4"> https://tools.ietf.org/html/rfc8439</a>
 5. <a id="reference-5"> https://www.ietf.org/rfc/rfc2104.txt</a>
 6. <a id="reference-6"> https://tools.ietf.org/html/rfc5869</a>
+7. <a id="reference-6"> https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf</a>
