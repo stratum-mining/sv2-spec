@@ -35,7 +35,7 @@ These primitives are chosen so that Noise Encryption layer for Stratum V2 can be
 
 #### 4.3.1.1 EC point encoding remarks
 Secp256k1 curve points, which includes Public Keys and ECDH results, are points with of X- and Y-coordinate, 32-bytes each. There are several possibilities how to serialize them:
-1. 64-byte full X- and Y-coordinate serialization for public keys (and ECDH results) and 96 Bytes for signatures.
+1. 64-byte full X- and Y-coordinate serialization for public keys (and ECDH results) and 96 bytes for signatures.
 2. 33-byte X-coordinate with 1 parity bit serialization for public keys and similarly 65-byte for signatures.
 3. 32-byte X-coordinate only with implicit Y-coordinate for public keys and 64-byte for signatures.
 
@@ -185,7 +185,7 @@ Ephemeral public key message:
 | PUBKEY        |  Initiator's ephemeral public key                                                                    |
 +---------------+------------------------------------------------------------------------------------------------------+
 
-Message length: 32 Bytes
+Message length: 32 bytes
 ```
 
 #### 4.5.1.2 Responder
@@ -212,7 +212,7 @@ SIGNATURE_NOISE_MESSAGE
 | signature       | SIGNATURE | Certificate signature                                                                  |
 +-----------------+-----------+----------------------------------------------------------------------------------------+
 
-Length: 74 Bytes
+Length: 74 bytes
 ```
 
 
@@ -246,7 +246,7 @@ Message format of NX-handshake part 2
 | MAC                     |  Message authentication code for SIGNATURE_NOISE_MESSAGE                                   |
 +-------------------------+--------------------------------------------------------------------------------------------+
 
-Message length: 170 Bytes
+Message length: 170 bytes
 ```
 
 #### 4.5.2.2 Initiator
@@ -256,7 +256,7 @@ Message length: 170 Bytes
 4. calls `MixKey(ECDH(e, re))`
 5. decrypts next 48 bytes with `DecryptAndHash()` and stores the results as `rs.public_key` which is **server's static public key** (note that 32 bytes is the public key and 16 bytes is MAC)
 6. calls `MixKey(ECDH(e, rs)`
-7. decrypts next 90 Bytes with `DecryptAndHash()` and deserialize plaintext into `SIGNATURE_NOISE_MESSAGE` (74 Bytes data + 16 Bytes MAC)
+7. decrypts next 90 bytes with `DecryptAndHash()` and deserialize plaintext into `SIGNATURE_NOISE_MESSAGE` (74 bytes data + 16 bytes MAC)
 9. return pair of CipherState objects, the first for encrypting transport messages from initiator to responder, and the second for messages in the other direction:
    1. sets `temp_k1, temp_k2 = HKDF(ck, zerolen, 2)`
    2. creates two new CipherState objects `c1` and `c2`
