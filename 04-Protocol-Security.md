@@ -371,21 +371,27 @@ At least, it can be published on the pool's public website.
 
 The key can be embedded into the mining URL as part of the path.
 
-Authority Public key is encoded as a 32-byte secp256k1 public key (with implicit Y coordinate), prefixed with `[0x4b, 0x69]`, in [base58-check](https://en.bitcoin.it/wiki/Base58Check_encoding) encoding.
-
-The prefix `[0x4b, 0x69]` ensures that all possible public keys start with prefix `CA` in base58-check representation.
-
-E.g.:
+Authority Public key is [base58-check](https://en.bitcoin.it/wiki/Base58Check_encoding) encoded 32-byte secp256k1 public key (with implicit Y coordinate) prefixed with a LE u16 version prefix, currently `[1, 0]`:
 
 ```
-stratum2+tcp://thepool.com/CA2JBhdpuesgbHENcRJs4T9KpCpuUiFpcnLyQGeu4A6gbry7ArBe
++--------------+-------------------------------------------------------------------------------------------------------+
+| [1, 0]       |  2 bytes prefix                                                                                       |
++--------------+-------------------------------------------------------------------------------------------------------+
+| PUBKEY       |  32 bytes authority public key                                                                        |
++--------------+-------------------------------------------------------------------------------------------------------+
+```
+
+URL example:
+
+```
+stratum2+tcp://thepool.com/9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh
 ```
 
 ### 4.6.1 Test vector:
 
 ```
 raw_ca_public_key =  [118, 99, 112, 0, 151, 156, 28, 17, 175, 12, 48, 11, 205, 140, 127, 228, 134, 16, 252, 233, 185, 193, 30, 61, 174, 227, 90, 224, 176, 138, 116, 85]
-prefixed_base58check = "CA2JBhdpuesgbHENcRJs4T9KpCpuUiFpcnLyQGeu4A6gbry7ArBe"
+prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 ```
 
 
