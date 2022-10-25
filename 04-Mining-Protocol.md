@@ -414,7 +414,7 @@ If the `future_job` field is set to False, the client MUST start to mine on the 
 +----------------+---------------+-------------------------------------------------------------------------------------+
 | job_id         | U32           | Identifier of the job as provided by NewMiningJob or NewExtendedMiningJob message   |
 +----------------+---------------+-------------------------------------------------------------------------------------+
-| starting_ntime | OPTION[u32]   | Empty if the job is intended for a future SetNewPrevHash message sent on this       |
+| min_ntime      | OPTION[u32]   | Empty if the job is intended for a future SetNewPrevHash message sent on this       |
 |                |               | channel. Filled with min_ntime if the job is intended to the last sent              |
 |                |               | SetNewPrevHash message and the miner should start to work on the job immediately.   |
 +----------------+---------------+-------------------------------------------------------------------------------------+
@@ -455,7 +455,7 @@ A proxy MUST translate the message for all downstream channels belonging to the 
 +-------------------------+----------------+---------------------------------------------------------------------------+
 | job_id                  | U32            | Server’s identification of the mining job                                 |
 +-------------------------+----------------+---------------------------------------------------------------------------+
-| starting_ntime          | OPTION[u32]    | Empty if the job is intended for a future SetNewPrevHash message sent on  |
+| min_ntime               | OPTION[u32]    | Empty if the job is intended for a future SetNewPrevHash message sent on  |
 |                         |                | this channel. Filled with min_ntime if the job is intended to the last    |
 |                         |                | sent SetNewPrevHash message on the channel and the miner should start to  |
 |                         |                | work on the job immediately.
