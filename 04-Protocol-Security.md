@@ -313,8 +313,8 @@ possible cipher codes:
 +----------------------+-----------------------------------------------------------------------------------------------+
 | 0x47534541 (b"AESG") | AES-256 with with GCM from [7]                                                                |
 +----------------------+-----------------------------------------------------------------------------------------------+
-
 ```
+[\[7\]](#reference-7) - Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC
 
 
 ### 4.5.5 Cipher upgrade part 2: `<- CIPHER_CHOICE`
@@ -336,7 +336,7 @@ Message length: 1 or 5 bytes
 
 If the server provides a non-empty `CIPHER_CHOICE`:
 1. Both initiator and responder create a new pair of CipherState objects with the negotiated cipher for encrypting transport messages from initiator to responder and in the other direction respectively
-2. New keys `key_new` are derived from the original CipherState keys `key_orig` by taking the first 32 bytes from `ENCRYPT(key_orig, maxnonce, zero_len, zeros)` using the negotiated cipher function where `maxnonce` is 2<sup>64</sup> - 1, `zerolen` is a zero-length byte sequence, and `zeros` is a sequence of 32 bytes filled with zeros.
+2. New keys `key_new` are derived from the original CipherState keys `key_orig` by taking the first 32 bytes from `ENCRYPT(key_orig, maxnonce, zero_len, zeros)` using the negotiated cipher function where `maxnonce` is 2<sup>64</sup> - 1, `zerolen` is a zero-length byte sequence, and `zeros` is a sequence of 32 bytes filled with zeros. (see `Rekey(k)` function<sup>[8](#reference-8)</sup>)
 3. New CipherState objects are reinitialized: `InitializeKey(key_new)`.
 
 ### 4.5.6 Transport message encryption and format
@@ -403,4 +403,5 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 4. <a id="reference-4"> https://tools.ietf.org/html/rfc8439</a>
 5. <a id="reference-5"> https://www.ietf.org/rfc/rfc2104.txt</a>
 6. <a id="reference-6"> https://tools.ietf.org/html/rfc5869</a>
-7. <a id="reference-6"> https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf</a>
+7. <a id="reference-7"> https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf</a>
+8. <a id="reference-8"> https://noiseprotocol.org/noise.html#cipher-functions</a>
