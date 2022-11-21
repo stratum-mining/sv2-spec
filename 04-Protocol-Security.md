@@ -258,8 +258,7 @@ Message length: 170 bytes
    4. returns the pair `(c1, c2)`
 
 ### 4.5.3 Server authentication
-Identity of the server is confirmed by initiator by verifying the signature in `CERTIFICATE`.
-Certificate is constructed from the `SIGNATURE_NOISE_MESSAGE`, authority public key that is generally known (for example from pool's website) and **server's static public key** that has been received during `NX` handshake.
+During the handshake, initiator receives `SIGNATURE_NOISE_MESSAGE` and **server's static public key**. These parts make up a `CERTIFICATE` signed by an authority whose public key is generally known (for example from pool's website). Initiator confirms the identity of the server by verifying the signature in the certificate.
 
 ```
 CERTIFICATE
@@ -278,8 +277,10 @@ CERTIFICATE
 +----------------------+-----------+------------------------------------------------------------------+----------------+
 | signature            | SIGNATURE | Signature over the serialized fields marked for signing          |  NO            |
 +----------------------+-----------+------------------------------------------------------------------+----------------+
+
+This message is not sent directly. Instead, it is constructed from SIGNATURE_NOISE_MESSAGE and server's static public 
+key that are sent during the handshake process
 ```
-This message is not directly transferred over the wire.
 
 #### 4.5.3.1 Signature structure
 Schnorr signature with *key prefixing* is used<sup>[3](#reference-3)</sup>
