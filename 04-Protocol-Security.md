@@ -100,15 +100,19 @@ The following functions will also be referenced:
 * `a || b` denotes the concatenation of two byte strings `a` and `b`
 
 * `HMAC-HASH(key, data)`
-    * Applies HMAC defined in `RFC 2104`<sup>[5](#reference-5)
+  * Applies HMAC defined in `RFC 2104`<sup>[5](#reference-5)
+  * In our case where the key is always 32 bytes, this reduces down to:
+    * pad the key with zero bytes to fill the hash block (block length is 64 bytes in case of SHA-256): `k' = k || <zero-bytes>`
+    * calculate `temp = SHA-256((k' XOR ipad) || data)` where ipad is repeated 0x36 byte
+    * output `SHA-256((k' XOR opad) || temp)` where opad is repeated 0x5c byte
 
 * `HKDF(chaining_key, input_key_material, num_output)`: a function defined in `RFC 5869`<sup>[6](#reference-6)</sup>, evaluated with a zero-length `info` field:
-    * Sets `temp_key = HMAC-HASH(chaining_key, input_key_material)`
-    * Sets `output1 = HMAC-HASH(temp_key, byte(0x01))`
-    * Sets `output2 = HMAC-HASH(temp_key, output1 || byte(0x02))`
-    * If `num_outputs == 2` then returns the pair `(output1, output2)`
-    * Sets `output3 = HMAC-HASH(temp_key, output2 || byte(0x03))`
-    * Returns the triple `(output1, output2, output3)`
+  * Sets `temp_key = HMAC-HASH(chaining_key, input_key_material)`
+  * Sets `output1 = HMAC-HASH(temp_key, byte(0x01))`
+  * Sets `output2 = HMAC-HASH(temp_key, output1 || byte(0x02))`
+  * If `num_outputs == 2` then returns the pair `(output1, output2)`
+  * Sets `output3 = HMAC-HASH(temp_key, output2 || byte(0x03))`
+  * Returns the triple `(output1, output2, output3)`
 
 * `MixKey(input_key_material)`: Executes the following steps:
   * sets `(ck, temp_k) = HKDF(ck, input_key_material, 2)`
