@@ -214,9 +214,9 @@ Length: 74 bytes
 1. initializes empty output buffer
 2. generates ephemeral keypair `e`, appends `e.public_key` to the buffer (32 bytes plaintext public key)
 3. calls `MixHash(e.public_key)`
-4. calls `MixKey(ECDH(e, re))`
+4. calls `MixKey(ECDH(e.private_key, re.public_key))`
 5. appends `EncryptAndHash(s.public_key)` (32 bytes encrypted public key, 16 bytes MAC)
-6. calls `MixKey(ECDH(s, re))`
+6. calls `MixKey(ECDH(s.private_key, re.public_key))`
 7. appends `EncryptAndHash(SIGNATURE_NOISE_MESSAGE)` to the buffer
 8. submits the buffer for sending to the initiator
 9. return pair of CipherState objects, the first for encrypting transport messages from initiator to responder, and the second for messages in the other direction:
@@ -247,9 +247,9 @@ Message length: 170 bytes
 1. receives NX-handshake part 2 message
 2. interprets first 32 bytes as `re.public_key`
 3. calls `MixHash(re.public_key)`
-4. calls `MixKey(ECDH(e, re))`
+4. calls `MixKey(ECDH(e.private_key, re.public_key))`
 5. decrypts next 48 bytes with `DecryptAndHash()` and stores the results as `rs.public_key` which is **server's static public key** (note that 32 bytes is the public key and 16 bytes is MAC)
-6. calls `MixKey(ECDH(e, rs)`
+6. calls `MixKey(ECDH(e.private_key, rs.public_key)`
 7. decrypts next 90 bytes with `DecryptAndHash()` and deserialize plaintext into `SIGNATURE_NOISE_MESSAGE` (74 bytes data + 16 bytes MAC)
 9. return pair of CipherState objects, the first for encrypting transport messages from initiator to responder, and the second for messages in the other direction:
    1. sets `temp_k1, temp_k2 = HKDF(ck, zerolen, 2)`
