@@ -92,8 +92,8 @@ The following functions will also be referenced:
 
 * `generateKey()`: generates and returns a fresh `secp256k1` keypair
   * Where the object returned by `generateKey` has two attributes:
-    * `.pub`, which returns an abstract object representing the public key
-    * `.priv`, which represents the private key used to generate the public key
+    * `.public_key`, which returns an abstract object representing the public key
+    * `.private_key`, which represents the private key used to generate the public key
   * Where the object also has a single method:
     * `.serializeImplicit()` that outputs a 32-byte serialization of the X-coordinate of EC point (implicit Y-coordinate)
 
@@ -102,7 +102,7 @@ The following functions will also be referenced:
 * `HMAC-HASH(key, data)`
     * Applies HMAC defined in `RFC 2104`<sup>[5](#reference-5)
 
-* `HKDF(salt, input_key_material, num_output)`: a function defined in `RFC 5869`<sup>[6](#reference-6)</sup>, evaluated with a zero-length `info` field:
+* `HKDF(chaining_key, input_key_material, num_output)`: a function defined in `RFC 5869`<sup>[6](#reference-6)</sup>, evaluated with a zero-length `info` field:
     * Sets `temp_key = HMAC-HASH(chaining_key, input_key_material)`
     * Sets `output1 = HMAC-HASH(temp_key, byte(0x01))`
     * Sets `output2 = HMAC-HASH(temp_key, output1 || byte(0x02))`
@@ -164,7 +164,7 @@ Prior to starting first round of NX-handshake, both initiator and responder init
 Initiator generates ephemeral keypair and sends the public key to the responder:
 
 1. initializes empty output buffer
-2. generates ephemeral keypair `e`, appeends `e.public_key` to the buffer (32 bytes plaintext public key)
+2. generates ephemeral keypair `e`, appends `e.public_key` to the buffer (32 bytes plaintext public key)
 3. calls `MixHash(e.public_key)`
 4. calls `EncryptAndHash()` with empty payload and appends the ciphertext to the buffer (note that *k* is empty at this point, so this effectively reduces down to `MixHash()` on empty data)
 5. submits the buffer for sending to the responder in the following format
