@@ -99,8 +99,19 @@ The following functions will also be referenced:
 
 * `a || b` denotes the concatenation of two byte strings `a` and `b`
 
+* `HMAC-HASH(key, data)`
+    * Applies HMAC defined in `RFC 2104`<sup>[5](#reference-5)
+
+* `HKDF(salt, input_key_material, num_output)`: a function defined in `RFC 5869`<sup>[6](#reference-6)</sup>, evaluated with a zero-length `info` field:
+    * Sets `temp_key = HMAC-HASH(chaining_key, input_key_material)`
+    * Sets `output1 = HMAC-HASH(temp_key, byte(0x01))`
+    * Sets `output2 = HMAC-HASH(temp_key, output1 || byte(0x02))`
+    * If `num_outputs == 2` then returns the pair `(output1, output2)`
+    * Sets `output3 = HMAC-HASH(temp_key, output2 || byte(0x03))`
+    * Returns the triple `(output1, output2, output3)`
+
 * `MixKey(input_key_material)`: Executes the following steps:
-  * sets `ck, temp_k = HKDF(ck, input_key_material, 2)`
+  * sets `(ck, temp_k) = HKDF(ck, input_key_material, 2)`
   * calls `InitializeKey(temp_k)`
 
 * `MixHash(data)`: Sets `h = HASH(h || data)`
@@ -117,17 +128,6 @@ The following functions will also be referenced:
 
 * `ECDH(k, rk)`: performs an Elliptic-Curve Diffie-Hellman operation using `k`, which is a valid `secp256k1` private key, and `rk`, which is a valid public key
   * The output is X-coordinate of the resulting EC point
-
-* `HMAC-HASH(key, data)`
-  * Applies HMAC defined in `RFC 2104`<sup>[5](#reference-5)
-
-* `HKDF(salt, input_key_material, num_output)`: a function defined in `RFC 5869`<sup>[6](#reference-6)</sup>, evaluated with a zero-length `info` field:
-  * Sets `temp_key = HMAC-HASH(chaining_key, input_key_material)`
-  * Sets `output1 = HMAC-HASH(temp_key, byte(0x01))`
-  * Sets `output2 = HMAC-HASH(temp_key, output1 || byte(0x02))`
-  * If `num_outputs == 2` then returns the pair `(output1, output2)`
-  * Sets `output3 = HMAC-HASH(temp_key, output2 || byte(0x03))`
-  * Returns the triple `(output1, output2, output3)`
 
 * `encryptWithAD(k, n, ad, plaintext)`: outputs `encrypt(k, n, ad, plaintext)`
   * Where `encrypt` is an evaluation of `ChaCha20-Poly1305` (IETF variant) or `AES-GCM` with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a *little-endian* 64-bit value. Note: this follows the Noise Protocol convention, rather than our normal endian.
