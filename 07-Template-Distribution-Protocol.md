@@ -1,4 +1,4 @@
-# 6. Template Distribution Protocol
+# 7. Template Distribution Protocol
 The Template Distribution protocol is used to receive updates of the block template to use in mining the next block.
 It effectively replaces [BIP 22](https://github.com/bitcoin/bips/blob/master/bip-0022.mediawiki) and [BIP 23](https://github.com/bitcoin/bips/blob/master/bip-0023.mediawiki) (`getblocktemplate`) and provides a much more efficient API which allows Bitcoin Core (or some other full node software) to push template updates at more appropriate times as well as provide a template which may be mined on quickly for the block-after-next.
 While not recommended, the template update protocol can be a remote server, and is thus authenticated and signed in the same way as all other protocols (using the same SetupConnection handshake).
@@ -10,7 +10,7 @@ Thereafter, the server SHOULD push new block templates to the client whenever th
 Template Providers MUST attempt to broadcast blocks which are mined using work they provided, and thus MUST track the work which they provided to clients.
 
 
-## 6.1 `CoinbaseOutputDataSize` (Client -> Server)
+## 7.1 `CoinbaseOutputDataSize` (Client -> Server)
 Ultimately, the pool is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size when selecting transactions for inclusion in a block (to not create an invalid, oversized block).
 Thus, this message is used to indicate that some additional space in the block/coinbase transaction be reserved for the pool’s use (while always assuming the pool will use the entirety of available coinbase space).
 
@@ -29,7 +29,7 @@ Further, the Template Provider MUST consider the maximum additional bytes requir
 ```
 
 
-## 6.2 `NewTemplate` (Server -> Client)
+## 7.2 `NewTemplate` (Server -> Client)
 The primary template-providing function. Note that the `coinbase_tx_outputs` bytes will appear as is at the end of the coinbase transaction.
 
 ```
@@ -74,7 +74,7 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 ```
 
 
-## 6.3 `SetNewPrevHash` (Server -> Client)
+## 7.3 `SetNewPrevHash` (Server -> Client)
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
 If a `NewWork` message has previously been sent with the `future_job` flag set, which is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be set to the `job_id` present in that `NewTemplate` message indicating the client MUST begin mining on that template as soon as possible.
 
@@ -100,7 +100,7 @@ TODO: Define how many previous works the client has to track (2? 3?), and requir
 ```
 
 
-## 6.4 `RequestTransactionData` (Client -> Server)
+## 7.4 `RequestTransactionData` (Client -> Server)
 A request sent by the Job Negotiator to the Template Provider which requests the set of transaction data for all transactions (excluding the coinbase transaction) included in a block, as well as any additional data which may be required by the Pool to validate the work.
 
 ```
@@ -111,7 +111,7 @@ A request sent by the Job Negotiator to the Template Provider which requests the
 +-------------+-----------+--------------------------------------------------------------------------------------------+
 ```
 
-## 6.5 `RequestTransactionData.Success` (Server->Client)
+## 7.5 `RequestTransactionData.Success` (Server->Client)
 A response to `RequestTransactionData` which contains the set of full transaction data and excess data required for validation.
 For practical purposes, the excess data is usually the SegWit commitment, however the Job Negotiator MUST NOT parse or interpret the excess data in any way.
 Note that the transaction data MUST be treated as opaque blobs and MUST include any SegWit or other data which the Pool may require to verify the transaction.
@@ -140,7 +140,7 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 ```
 
 
-## 6.6 `RequestTransactionData.Error` (Server->Client)
+## 7.6 `RequestTransactionData.Error` (Server->Client)
 
 ```
 +-------------+-----------+--------------------------------------------------------------------------------------------+
@@ -156,7 +156,7 @@ Possible error codes:
 - `template-id-not-found`
 
 
-## 6.7 `SubmitSolution` (Client -> Server)
+## 7.7 `SubmitSolution` (Client -> Server)
 Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or below `SetNewPrevHash::target`, the client MUST immediately send this message, and the server MUST then immediately construct the corresponding full block and attempt to propagate it to the Bitcoin network.
 
 ```

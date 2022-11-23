@@ -1,4 +1,4 @@
-# 5. Job Negotiation Protocol
+# 6. Job Negotiation Protocol
 As outlined above, this protocol runs between the Job Negotiator and Pool and can be provided as a trusted 3rd party service for mining farms.
 
 Protocol flow:
@@ -7,10 +7,10 @@ Protocol flow:
 Figure 5.a Job Negotiation Protocol: Flow
 
 
-## 5.1 Job Negotiation Protocol Messages
+## 6.1 Job Negotiation Protocol Messages
 
 
-### 5.1.1 `SetupConnection` Flags for Job Negotiation Protocol
+### 6.1.1 `SetupConnection` Flags for Job Negotiation Protocol
 Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 
 ```
@@ -28,7 +28,7 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 
 No flags are yet defined for use in `SetupConnection.Success`.
 
-### 5.1.2 `AllocateMiningJobToken` (Client -> Server)
+### 6.1.2 `AllocateMiningJobToken` (Client -> Server)
 A request to get an identifier for a future-submitted mining job.
 Rate limited to a rather slow rate and only available on connections where this has been negotiated. Otherwise, only `mining_job_token(s)` from `CreateMiningJob.Success` are valid.
 
@@ -44,7 +44,7 @@ Rate limited to a rather slow rate and only available on connections where this 
 +-----------------+-----------+----------------------------------------------------------------------------------------+
 ```
 
-### 5.1.3 `AllocateMiningJobToken.Success` (Server -> Client)
+### 6.1.3 `AllocateMiningJobToken.Success` (Server -> Client)
 The Server MUST NOT change the value of `coinbase_output_max_additional_size` in `AllocateMiningJobToken.Success` messages unless required for changes to the pool’s configuration.
 Notably, if the pool intends to change the space it requires for coinbase transaction outputs regularly, it should simply prefer to use the maximum of all such output sizes as the `coinbase_output_max_additional_size` value.
 
@@ -74,7 +74,7 @@ Notably, if the pool intends to change the space it requires for coinbase transa
 +-------------------------------------+-----------+--------------------------------------------------------------------+
 ```
 
-### 5.1.4 `CommitMiningJob` (Client -> Server)
+### 6.1.4 `CommitMiningJob` (Client -> Server)
 A request sent by the Job Negotiator that proposes a selected set of transactions to the upstream (pool) node.
 
 ```
@@ -129,7 +129,7 @@ A request sent by the Job Negotiator that proposes a selected set of transaction
 ```
 
 
-### 5.1.5 `CommitMiningJob.Success` (Server -> Client)
+### 6.1.5 `CommitMiningJob.Success` (Server -> Client)
 ```
 +-----------------------+------------------+---------------------------------------------------------------------------+
 | Field Name            | Data Type        | Description                                                               |
@@ -148,7 +148,7 @@ A request sent by the Job Negotiator that proposes a selected set of transaction
 ```
 
 
-### 5.1.6 `CommitMiningJob.Error` (Server->Client)
+### 6.1.6 `CommitMiningJob.Error` (Server->Client)
 ```
 +---------------+-----------+------------------------------------------------------------------------------------------+
 | Field Name    | Data Type | Description                                                                              |
@@ -166,7 +166,7 @@ Possible error codes:
 - `invalid-job-param-value-{}` - `{}` is replaced by a particular field name from `CommitMiningJob` message
 
 
-### 5.1.7 `IdentifyTransactions` (Server->Client)
+### 6.1.7 `IdentifyTransactions` (Server->Client)
 Sent by the Server in response to a `CommitMiningJob` message indicating it detected a collision in the `tx_short_hash_list`, or was unable to reconstruct the `tx_hash_list_hash`.
 
 ```
@@ -178,7 +178,7 @@ Sent by the Server in response to a `CommitMiningJob` message indicating it dete
 ```
 
 
-### 5.1.8 `IdentifyTransactions.Success` (Client->Server)
+### 6.1.8 `IdentifyTransactions.Success` (Client->Server)
 Sent by the Client in response to an `IdentifyTransactions` message to provide the full set of transaction data hashes.
 
 ```
@@ -194,7 +194,7 @@ Sent by the Client in response to an `IdentifyTransactions` message to provide t
 ```
 
 
-### 5.1.9 `ProvideMissingTransactions` (Server->Client)
+### 6.1.9 `ProvideMissingTransactions` (Server->Client)
 
 ```
 +--------------------------+---------------+---------------------------------------------------------------------------+
@@ -210,7 +210,7 @@ Sent by the Client in response to an `IdentifyTransactions` message to provide t
 ```
 
 
-### 5.1.10 `ProvideMissingTransactions.Success` (Client->Server)
+### 6.1.10 `ProvideMissingTransactions.Success` (Client->Server)
 This is a message to push transactions that the server did not recognize and requested them to be supplied in `ProvideMissingTransactions`.
 
 ```
