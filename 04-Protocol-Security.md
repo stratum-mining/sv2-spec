@@ -76,9 +76,11 @@ CipherState has the following interface:
 * `InitializeKey(key)`:
   * Sets `k = key`, `n = 0`
 * `EncryptWithAd(ad, plaintext)`
-  * if `k` is non-empty, performs `ENCRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns `plaintext`
+  * If `k` is non-empty, performs `ENCRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns `plaintext`
+  * Where `ENCRYPT` is an evaluation of `ChaCha20-Poly1305` (IETF variant) or `AES-GCM` with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a *little-endian* 64-bit value. Note: this follows the Noise Protocol convention, rather than our normal endian.
 * `DecryptWithAd(ad, ciphertext)`
-  * if `k` is non-empty performs `DECRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns ciphertext. If an authentication failure occurs in `DECRYPT()` then `n` is not incremented and an error is signaled to the caller.
+  * If `k` is non-empty performs `DECRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns ciphertext. If an authentication failure occurs in `DECRYPT()` then `n` is not incremented and an error is signaled to the caller.
+  * Where `DECRYPT` is an evaluation of `ChaCha20-Poly1305` (IETF variant) or `AES-GCM` with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a *little-endian* 64-bit value.
 
 ### 4.4.2 Handshake Operation
 Throughout the handshake process, each side maintains these variables:
@@ -132,12 +134,6 @@ The following functions will also be referenced:
 
 * `ECDH(k, rk)`: performs an Elliptic-Curve Diffie-Hellman operation using `k`, which is a valid `secp256k1` private key, and `rk`, which is a valid public key
   * The output is X-coordinate of the resulting EC point
-
-* `encryptWithAD(k, n, ad, plaintext)`: outputs `encrypt(k, n, ad, plaintext)`
-  * Where `encrypt` is an evaluation of `ChaCha20-Poly1305` (IETF variant) or `AES-GCM` with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a *little-endian* 64-bit value. Note: this follows the Noise Protocol convention, rather than our normal endian.
-
-* `decryptWithAD(k, n, ad, ciphertext)`: outputs `decrypt(k, n, ad, ciphertext)`
-  * Where `decrypt` is an evaluation of `ChaCha20-Poly1305` (IETF variant) or `AES-GCM` with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a *little-endian* 64-bit value.
 
 
 ## 4.5 Authenticated Key Agreement Handshake
