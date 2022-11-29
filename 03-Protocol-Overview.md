@@ -49,7 +49,7 @@ The Mining Protocol is used for communication between a Mining Device and Pool S
 
 The Job Negotiation Protocol is used for communication between a Job Negotiator and Pool Service.
 
-The Template Distribution Protocol is used for communication between a Job Negotiator and Template Provider.
+The Template Distribution Protocol is used for communication either between a Job Negotiator and a Template Provider or between a Pool Service and Template Provider.
 
 The Job Distribution Protocol is used for communication between a Job Negotiator and a Mining Proxy.
 
