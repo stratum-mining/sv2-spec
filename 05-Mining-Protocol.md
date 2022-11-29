@@ -7,7 +7,7 @@ The upstream stratum endpoints could be actual mining servers or proxies that pa
 Each channel identifies a dedicated mining session associated with an authorized user.
 Upstream stratum nodes accept work submissions and specify a mining target on a per-channel basis.
 
-There can theoretically be up to 232 open channels within one physical connection to an upstream stratum node.
+There can theoretically be up to 2^32 open channels within one physical connection to an upstream stratum node.
 All channels are independent of each other, but share some messages broadcast from the server for higher efficiency (e.g. information about a new prevhash).
 Each channel is identified by its `channel_id` (`U32`), which is consistent throughout the whole life of the connection.
 
