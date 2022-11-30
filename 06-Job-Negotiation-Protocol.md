@@ -65,10 +65,9 @@ Notably, if the pool intends to change the space it requires for coinbase transa
 +-------------------------------------+-----------+--------------------------------------------------------------------+
 | async_mining_allowed                | BOOL      | If true, the mining_job_token can be used immediately on a mining  |
 |                                     |           | connection in the SetCustomMiningJob message, even before          |
-|                                     |           | connection in the SetCommitMiningJob and CommitMiningJob.Success   |
-|                                     |           | messages have been sent and received.                              |
-|                                     |           | If false, Job Negotiator MUST use this token for CommitMiningJob   |
-|                                     |           | only.                                                              |
+|                                     |           | CommitMiningJob and CommitMiningJob.Success messages have been     |
+|                                     |           | sent and received. If false, Job Negotiator MUST use this token    |
+|                                     |           | token for CommitMiningJob only.                                    |
 |                                     |           | This MUST be true when SetupConnection.flags had                   |
 |                                     |           | REQUIRES_ASYNC_JOB_MINING set.                                     |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
