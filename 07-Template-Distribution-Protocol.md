@@ -64,7 +64,7 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 +-----------------------------+----------------+-----------------------------------------------------------------------+
 | coinbase_tx_outputs_count   | U32            | The number of transaction outputs included in coinbase_tx_outputs     |
 +-----------------------------+----------------+-----------------------------------------------------------------------+
-| coinbase_tx_outputs         |SEQ0_64K[B0_64K]| Bitcoin transaction outputs to be included as the last outputs in     |
+| coinbase_tx_outputs         |B0_64K          | Bitcoin transaction outputs to be included as the last outputs in     |
 |                             |                | the coinbase transaction                                              |
 +-----------------------------+----------------+-----------------------------------------------------------------------+
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                        |

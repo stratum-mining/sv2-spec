@@ -100,7 +100,7 @@ A request sent by the Job Negotiator that proposes a selected set of transaction
 |                             |                  | added by the client. Includes both transaction fees and block       |
 |                             |                  | subsidy.                                                            |
 +-----------------------------+------------------+---------------------------------------------------------------------+
-| coinbase_tx_outputs         | SEQ0_64K[B0_64K] | Bitcoin transaction outputs to be included as the last outputs in   |
+| coinbase_tx_outputs         | B0_64K           | Bitcoin transaction outputs to be included as the last outputs in   |
 |                             |                  | the coinbase transaction                                            |
 +-----------------------------+------------------+---------------------------------------------------------------------+
 | coinbase_tx_locktime        | U32              | The locktime field in the coinbase transaction                      |
