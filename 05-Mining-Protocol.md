@@ -36,9 +36,9 @@ The client which opened the particular channel owns the whole assigned space and
 
 ### 5.1.2 Extended Channels
 Extended channels are intended to be used by proxies.
-Upstream servers which accept connections and provide work MUST support extended channels.
+Upstream servers which accept connections and provide work support extended channels.
 Clients, on the other hand, do not have to support extended channels, as they MAY be implemented more simply with only standard channels at the end-device level.
-Thus, upstream servers providing work MUST also support standard channels.
+Thus, upstream servers providing work must also support standard channels.
 
 The size of search space for an extended channel is `2^(NONCE_BITS+VERSION_ROLLING_BITS+extranonce_size*8)` per `nTime` value.
 
@@ -52,7 +52,7 @@ Group channel ID namespace is the same as channel ID namespace on a particular c
 
 ### 5.1.4 Future Jobs
 An empty future block job or speculated non-empty job can be sent in advance to speedup new mining job distribution.
-The point is that the mining server MAY have precomputed such a job and is able to pre-distribute it for all active channels.
+The point is that the mining server may have precomputed such a job and is able to pre-distribute it for all active channels.
 The only missing information to start to mine on the new block is the new prevhash.
 This information can be provided independently.
 
@@ -72,15 +72,15 @@ The other portion of the block header that’s used to define the full search sp
 - Merkle root, deterministically computed from:
   - Coinbase transaction: typically 4-8 bytes, possibly much more.
   - Transaction set: practically unbounded space.
-    All roles in Stratum v2 MUST NOT use transaction selection/ordering for additional hash space extension.
-    This stems both from the concept that miners/pools should be able to choose their transaction set freely without any interference with the protocol, and also to enable future protocol modifications to Bitcoin.
-    In other words, any rules imposed on transaction selection/ordering by miners not described in the rest of this document may result in invalid work/blocks.
+    All roles in Stratum v2 must not use transaction selections for additional hash space extension.
+    This stems both from the concept that miners should be able to choose their transaction set freely without any interference with the protocol, and also to enable future protocol modifications to Bitcoin.
+    In other words, any rules imposed on transaction selections or orders by miners not described in the rest of this document may result in invalid work or blocks.
 
-Mining servers MUST assign a unique subset of the search space to each connection/channel (and therefore each mining device) frequently and rapidly enough so that the mining devices are not running out of search space.
+Mining servers must assign a unique subset of the search space to each connection or channel frequently and rapidly enough so that the mining devices are not running out of search space.
 Unique jobs can be generated regularly by: 
 
-- Putting unique data into the coinbase for each connection/channel, and/or 
-- Using unique work from a work provider, e.g. a previous work update (note that this is likely more difficult to implement, especially in light of the requirement that transaction selection/ordering not be used explicitly for additional hash space distribution).
+- Putting unique data into the coinbase for each connection or channel, or 
+- Using unique work from a work provider, e.g. a previous work update. As a note,  this is likely more difficult to implement, especially in light of the requirement that transaction selections not be used explicitly for additional hash space distribution.
 
 This protocol explicitly expects that upstream server software is able to manage the size of the hashing space correctly for its clients and can provide new jobs quickly enough.
 
@@ -132,8 +132,8 @@ This message requests to open a standard channel to the upstream node.
 After receiving a `SetupConnection.Success` message, the client SHOULD respond by opening channels on the connection.
 If no channels are opened within a reasonable period the server SHOULD close the connection for inactivity.
 
-Every client SHOULD start its communication with an upstream node by opening a channel, which is necessary for almost all later communication.
-The upstream node either passes opening the channel further or has enough local information to handle channel opening on its own (this is mainly intended for v1 proxies).
+Every client should start its communication with an upstream node by opening a channel, which is necessary for almost all later communication.
+The upstream node either passes opening the channel further or has enough local information to handle channel opening on its own, this is mainly intended for v1 proxies.
 Clients must also communicate information about their hashing power in order to receive well-calibrated job assignments.
 
 ```
@@ -237,8 +237,8 @@ Possible error codes:
 
 ### 5.3.7 `UpdateChannel` (Client -> Server)
 Client notifies the server about changes on the specified channel.
-If a client performs device/connection aggregation (i.e. it is a proxy), it MUST send this message when downstream channels change.
-This update can be debounced so that it is not sent more often than once in a second (for a very busy proxy).
+If a client performs device or connection aggregation, it must send this message when downstream channels change.
+This update can be debounced so that it is not sent more often than once in a second for a very busy proxy.
 
 ```
 +-------------------+-----------+--------------------------------------------------------------------------------------+
@@ -254,7 +254,7 @@ This update can be debounced so that it is not sent more often than once in a se
 +-------------------+-----------+--------------------------------------------------------------------------------------+
 ```
 
-When `maximum_target` is smaller than currently used maximum target for the channel, upstream node MUST reflect the client’s request (and send appropriate `SetTarget` message).
+When `maximum_target` is smaller than currently used maximum target for the channel, upstream node must reflect the client’s request and send appropriate `SetTarget` message.
 
 
 ### 5.3.8 `UpdateChannel.Error` (Server -> Client)
@@ -277,8 +277,8 @@ Possible error codes:
 
 ### 5.3.9 `CloseChannel` (Client -> Server, Server -> Client)
 Client sends this message when it ends its operation.
-The server MUST stop sending messages for the channel.
-A proxy MUST send this message on behalf of all opened channels from a downstream connection in case of downstream connection closure.
+The server must stop sending messages for the channel.
+A proxy must send this message on behalf of all opened channels from a downstream connection in case of downstream connection closure.
 
 ```
 +-------------+-----------+--------------------------------------------------------------------------------------------+
@@ -290,8 +290,8 @@ A proxy MUST send this message on behalf of all opened channels from a downstrea
 +-------------+-----------+--------------------------------------------------------------------------------------------+
 ```
 
-If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it MUST send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
-In general, proxy servers MUST keep the upstream node notified about the real state of the downstream channels.
+If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it must send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
+In general, proxy servers must keep the upstream node notified about the real state of the downstream channels.
 
 
 ### 5.3.10 `SetExtranoncePrefix` (Server -> Client)
@@ -373,7 +373,7 @@ Because it is a common case that shares submission is successful, this response 
 
 The server does not have to double check that the sequence numbers sent by a client are actually increasing.
 It can simply use the last one received when sending a response.
-It is the client’s responsibility to keep the sequence numbers correct/useful.
+It is the client’s responsibility to keep the sequence numbers correct and useful.
 
 
 ### 5.3.14 `SubmitShares.Error` (Server -> Client)
@@ -401,7 +401,6 @@ Possible error codes:
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
 The server provides an updated mining job to the client through a standard channel.
-If the `future_job` field is set to False, the client MUST start to mine on the new job as soon as possible after receiving this message.
 
 ```
 +----------------+---------------+-------------------------------------------------------------------------------------+
@@ -426,19 +425,19 @@ If the `future_job` field is set to False, the client MUST start to mine on the 
 
 
 ### 5.3.16 `NewExtendedMiningJob` (Server -> Client)
-(Extended and group channels only)
+Extended and group channels only.
 
 For an **extended channel**:
 The whole search space of the job is owned by the specified channel.
-If the `future_job` field is set to False, the client MUST start to mine on the new job as soon as possible after receiving this message.
+
 
 For a **group channel**:
 This is a broadcast variant of `NewMiningJob` message with the `merkle_root` field replaced by `merkle_path` and coinbase transaction prefix and suffix, for further traffic optimization.
 The Merkle root is then defined deterministically for each channel by the common `merkle_path` and unique `extranonce_prefix` serialized into the coinbase.
 The full coinbase is then constructed as follows: `coinbase_tx_prefix + extranonce_prefix + coinbase_tx_suffix`.
 
-The proxy MAY transform this multicast variant for downstream standard channels into `NewMiningJob` messages by computing the derived Merkle root for them.
-A proxy MUST translate the message for all downstream channels belonging to the group which don’t signal that they accept extended mining jobs in the `SetupConnection` message (intended and expected behavior for end mining devices).
+The proxy may transform this multicast variant for downstream standard channels into `NewMiningJob` messages by computing the derived Merkle root for them.
+A proxy must translate the message for all downstream channels belonging to the group which don’t signal that they accept extended mining jobs in the `SetupConnection` message intended and expected behavior for end mining devices.
 
 ```
 +-------------------------+----------------+---------------------------------------------------------------------------+
@@ -477,8 +476,8 @@ A proxy MUST translate the message for all downstream channels belonging to the 
 
 ### 5.3.17 `SetNewPrevHash` (Server -> Client, broadcast)
 Prevhash is distributed whenever a new block is detected in the network by an upstream node.
-This message MAY be shared by all downstream nodes (sent only once to each channel group).
-Clients MUST immediately start to mine on the provided prevhash.
+This message may be shared by all downstream nodes sent only once to each channel group.
+Clients must immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
 The remaining jobs already queued by the client have to be made invalid. 
 
@@ -506,7 +505,7 @@ Note: There is no need for block height in this message.
 
 ### 5.3.18 `SetCustomMiningJob` (Client -> Server)
 Can be sent only on extended channel.
-`SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully negotiated).
+`SetupConnection.flags` must contain `REQUIRES_WORK_SELECTION` flag work selection feature successfully negotiated.
 
 The downstream node has a custom job negotiated by a trusted external Job Negotiator.
 The `mining_job_token` provides the information for the pool to authorize the custom job that has been or will be negotiated between the Job Negotiator and Pool.
@@ -555,14 +554,13 @@ The `mining_job_token` provides the information for the pool to authorize the cu
 | extranonce_size             | U16              | Size of extranonce in bytes that will be provided by the downstream |
 |                             |                  | node                                                                |
 +-----------------------------+------------------+---------------------------------------------------------------------+
-| future_job                  | BOOL             | TBD: Can be custom job ever future?                                 |
-+-----------------------------+------------------+---------------------------------------------------------------------+
+
 ```
 
 
 ### 5.3.19 `SetCustomMiningJob.Success` (Server -> Client)
 Response from the server when it accepts the custom mining job.
-Client can start to mine on the job immediately (by using the `job_id` provided within this response).
+Client can start to mine on the job immediately by using the `job_id` provided within this response.
 
 ```
 +-----------------------------+-----------+----------------------------------------------------------------------------+
@@ -609,9 +607,6 @@ Possible errors:
 The server controls the submission rate by adjusting the difficulty target on a specified channel.
 All submits leading to hashes higher than the specified target will be rejected by the server.
 
-Maximum target is valid until the next `SetTarget` message is sent and is applicable for all jobs received on the channel in the future or already received with flag `future_job=True`.
-The message is not applicable for already received jobs with `future_job=False`, as their maximum target remains stable.
-
 ```
 +----------------+-----------+-----------------------------------------------------------------------------------------+
 | Field Name     | Data Type | Description                                                                             |
@@ -653,8 +648,8 @@ The group channel is used mainly for efficient job distribution to multiple stan
 If we want to allow different jobs to be served to different standard channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob`, we need a more fine-grained grouping for standard channels.
 
 This message associates a set of standard channels with a group channel.
-A channel (identified by particular ID) becomes a group channel when it is used by this message as `group_channel_id`.
-The server MUST ensure that a group channel has a unique channel ID within one connection. Channel reinterpretation is not allowed.
+A channel, identified by particular ID, becomes a group channel when it is used by this message as `group_channel_id`.
+The server must ensure that a group channel has a unique channel ID within one connection. Channel reinterpretation is not allowed.
 
 This message can be sent only to connections that don’t have `REQUIRES_STANDARD_JOBS` flag in `SetupConnection`.
 
