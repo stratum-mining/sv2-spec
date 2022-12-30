@@ -72,11 +72,11 @@ The other portion of the block header that’s used to define the full search sp
 - Merkle root, deterministically computed from:
   - Coinbase transaction: typically 4-8 bytes, possibly much more.
   - Transaction set: practically unbounded space.
-    All roles in Stratum v2 MUST NOT use transaction selection/ordering for additional hash space extension.
-    This stems both from the concept that miners/pools should be able to choose their transaction set freely without any interference with the protocol, and also to enable future protocol modifications to Bitcoin.
-    In other words, any rules imposed on transaction selection/ordering by miners not described in the rest of this document may result in invalid work/blocks.
+    All roles in Stratum v2 must not use transaction selection for additional hash space extension.
+    This stems both from the concept that pools should be able to choose their transaction set freely without any interference with the protocol, and also to enable future protocol modifications to Bitcoin.
+    In other words, any rules imposed on transaction selection by miners not described in the rest of this document may result in invalid work.
 
-Mining servers MUST assign a unique subset of the search space to each connection/channel (and therefore each mining device) frequently and rapidly enough so that the mining devices are not running out of search space.
+Mining servers must assign a unique subset of the search space to each channel (and therefore each mining device) frequently and rapidly enough so that the mining devices are not running out of search space.
 Unique jobs can be generated regularly by: 
 
 - Putting unique data into the coinbase for each connection/channel, and/or 
@@ -237,7 +237,7 @@ Possible error codes:
 
 ### 5.3.7 `UpdateChannel` (Client -> Server)
 Client notifies the server about changes on the specified channel.
-If a client performs device/connection aggregation (i.e. it is a proxy), it MUST send this message when downstream channels change.
+If a client performs connection aggregation (i.e. it is a proxy), it must send this message when downstream channels change.
 This update can be debounced so that it is not sent more often than once in a second (for a very busy proxy).
 
 ```
@@ -277,8 +277,8 @@ Possible error codes:
 
 ### 5.3.9 `CloseChannel` (Client -> Server, Server -> Client)
 Client sends this message when it ends its operation.
-The server MUST stop sending messages for the channel.
-A proxy MUST send this message on behalf of all opened channels from a downstream connection in case of downstream connection closure.
+The server must stop sending messages for the channel.
+A proxy must send this message on behalf of all opened channels from a downstream connection in case of downstream connection closure.
 
 ```
 +-------------+-----------+--------------------------------------------------------------------------------------------+
