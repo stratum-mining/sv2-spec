@@ -2,5 +2,5 @@
 
 There are not yet any defined extensions.
 
-| Extenstion Type (no channel_msg bit) | Extension Name | Description / BIP |
-| ------------------------------------ | -------------- | ----------------- |
+| Extension Type (no channel_msg bit) | Extension Name | Description / BIP |
+| ----------------------------------- | -------------- | ----------------- |
