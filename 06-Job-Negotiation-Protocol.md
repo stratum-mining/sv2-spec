@@ -11,6 +11,16 @@ Figure 5.a Job Negotiation Protocol: Flow
 
 
 ### 6.1.1 `SetupConnection` Flags for Job Negotiation Protocol
+
+The Job Negotiation Protocol's messages will be changed with the consensus of developers, pools, and community feedback. 
+
+These changes will allow the JN proxy to establish an ExtendedWithNegotiator channel with the pool after a successful SetupConnection. The pool will then send a SetCoinbase message with coinbase_output_max_additional_size data to the Template Provider, which will respond with a NewTemplate and SetNewPrevash message. 
+These messages will be sent by the JN proxy to the Mining Proxy to build new jobs for the mining devices through the Mining Protocol. 
+
+All other messages will be removed since there will not be needed any verification on the current or future templates by the pool wwich will just receive shares related to the coinbase sent previously.
+
+DRAFT: Additionally, a set of messages related to the SanityCheck message from the JN proxy will be created to allow the pool to verify that the miner received the correct template and to decide the repartition of fees in case they are not aligned with a corresponding template that may have had more fees.
+
 Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 
 ```
