@@ -58,6 +58,8 @@ This information can be provided independently.
 
 Such an approach improves the efficiency of the protocol where the upstream node does not waste precious time immediately after a new block is found in the network.
 
+To specify that a job is for a future prevhash, the job's `min_ntime` field is left empty.
+
 
 ## 5.2 Hashing Space Distribution
 Each mining device has to work on a unique part of the whole search space.
@@ -401,7 +403,7 @@ Possible error codes:
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
 The server provides an updated mining job to the client through a standard channel.
-If the `future_job` field is set to False, the client MUST start to mine on the new job as soon as possible after receiving this message.
+If the `min_ntime` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime.
 
 ```
 +----------------+---------------+-------------------------------------------------------------------------------------+
@@ -411,9 +413,13 @@ If the `future_job` field is set to False, the client MUST start to mine on the 
 +----------------+---------------+-------------------------------------------------------------------------------------+
 | job_id         | U32           | Identifier of the job as provided by NewMiningJob or NewExtendedMiningJob message   |
 +----------------+---------------+-------------------------------------------------------------------------------------+
-| min_ntime      | OPTION[u32]   | Empty if the job is intended for a future SetNewPrevHash message sent on this       |
-|                |               | channel. Filled with min_ntime if the job is intended to the last sent              |
-|                |               | SetNewPrevHash message and the miner should start to work on the job immediately.   |
+| min_ntime      | OPTION[u32]   | Smallest nTime value available for hashing for the new mining job.                  |
+|                |               | An empty value indicates this is a future job to be activated once a SetNewPrevHash |
+|                |               | message is received with a matching job_id. This SetNewPrevHash message provides    |
+|                |               | the new prev_hash and min_ntime.                                                    |
+|                |               | If the min_ntime value is set, this mining job is active and miner must start       |
+|                |               | mining on it immediately. In this case, the new mining job uses the prev_hash from  |
+|                |               | the last received SetNewPrevHash message.                                           |
 +----------------+---------------+-------------------------------------------------------------------------------------+
 | version        | U32           | Valid version field that reflects the current network consensus. The general        |
 |                |               | purpose bits (as specified in BIP320) can be freely manipulated by the downstream   |
@@ -430,7 +436,7 @@ If the `future_job` field is set to False, the client MUST start to mine on the 
 
 For an **extended channel**:
 The whole search space of the job is owned by the specified channel.
-If the `future_job` field is set to False, the client MUST start to mine on the new job as soon as possible after receiving this message.
+If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message.
 
 For a **group channel**:
 This is a broadcast variant of `NewMiningJob` message with the `merkle_root` field replaced by `merkle_path` and coinbase transaction prefix and suffix, for further traffic optimization.
@@ -450,10 +456,13 @@ A proxy MUST translate the message for all downstream channels belonging to the 
 +-------------------------+----------------+---------------------------------------------------------------------------+
 | job_id                  | U32            | Server’s identification of the mining job                                 |
 +-------------------------+----------------+---------------------------------------------------------------------------+
-| min_ntime               | OPTION[u32]    | Empty if the job is intended for a future SetNewPrevHash message sent on  |
-|                         |                | this channel. Filled with min_ntime if the job is intended to the last    |
-|                         |                | sent SetNewPrevHash message on the channel and the miner should start to  |
-|                         |                | work on the job immediately.                                              |
+| min_ntime               | OPTION[u32]    | Smallest nTime value available for hashing for the new mining job.        |
+|                         |                | An empty value indicates this is a future job to be activated once a      |
+|                         |                | SetNewPrevHash message is received with a matching job_id. This           |
+|                         |                | SetNewPrevHash message provides the new prev_hash and min_ntime.          |
+|                         |                | If the min_ntime value is set, this mining job is active and miner must   |
+|                         |                | start mining on it immediately. In this case, the new mining job uses the |
+|                         |                | prev_hash from the last received SetNewPrevHash message.                  |
 +-------------------------+----------------+---------------------------------------------------------------------------+
 | version                 | U32            | Valid version field that reflects the current network consensus           |
 +-------------------------+----------------+---------------------------------------------------------------------------+
@@ -555,7 +564,9 @@ The `mining_job_token` provides the information for the pool to authorize the cu
 | extranonce_size             | U16              | Size of extranonce in bytes that will be provided by the downstream |
 |                             |                  | node                                                                |
 +-----------------------------+------------------+---------------------------------------------------------------------+
-| future_job                  | BOOL             | TBD: Can be custom job ever future?                                 |
+| min_ntime                   | OPTION[u32]      | TBD: Can be custom job ever future?                                 |
+|                             |                  |                                                                     |
+|                             |                  |                                                                     |
 +-----------------------------+------------------+---------------------------------------------------------------------+
 ```
 
@@ -609,8 +620,8 @@ Possible errors:
 The server controls the submission rate by adjusting the difficulty target on a specified channel.
 All submits leading to hashes higher than the specified target will be rejected by the server.
 
-Maximum target is valid until the next `SetTarget` message is sent and is applicable for all jobs received on the channel in the future or already received with flag `future_job=True`.
-The message is not applicable for already received jobs with `future_job=False`, as their maximum target remains stable.
+Maximum target is valid until the next `SetTarget` message is sent and is applicable for all jobs received on the channel in the future or already received with an empty `min_ntime`.
+The message is not applicable for already received jobs with `min_ntime=nTime`, as their maximum target remains stable.
 
 ```
 +----------------+-----------+-----------------------------------------------------------------------------------------+
