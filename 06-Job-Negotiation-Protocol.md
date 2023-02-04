@@ -38,15 +38,8 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 
 ### 6.1.2 `SetupConnection.Success` (Server -> Client)
 
-```
-+-----------------+-----------+----------------------------------------------------------------------------------------+
-| Field Name      | Data Type |       Description                                                                            
-+-----------------+------------------------------------------------------------------+----------------------------------------------------------------------------------------+
-| used_version    | U16       |    
-+-----------------+-----------+----------------------------------------------------------------------------------------+
-| flags           | U32       |                                                        
-+-----------------+-----------+----------------------------------------------------------------------------------------+
-```
+No flags are yet defined for use in SetupConnection.Success.
+
 ### 6.1.3 `SetCoinbase` (Server -> Client)
  Ultimately, the pool is responsible for adding coinbase transaction outputs for payouts and
  other uses, and thus the Template Provider will need to consider this additional block size
@@ -63,20 +56,20 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
  count variable-length integer in the coinbase transaction when complying with the size limits.
 ```
 +-------------------------------------+-----------+--------------------------------------------------------------------+
-| Field Name                 | Data Type | Description                                                        |
+| Field Name                          | Data Type | Description                                                        |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
-| coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in
-     coinbase transaction outputs. This can be extrapoleted from the below fields but for
-     convenince is here.                                                       |
-+-------------------------------------+-----------
-+--------------------------------------------------------------------+
-| token                               | U64    | Token valid for the below coinbase. When a downstream send a SetCostumMiningJob the pool check if the token match a valid coinbase if so it respond with SetCostumMiningJob.Success   |
-+-------------------------------------+-----------
-+--------------------------------------------------------------------+
-| coinbase_tx_prefix                  | BOOL      | Prefix part of the coinbase transaction                                   |
-+-------------------------------------+-----------
-+--------------------------------------------------------------------+
-| coinbase_tx_suffix                  | B0_255    | Suffix part of the coinbase transaction.   |
+| coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in |     
+|                                     |           | coinbase transaction outputs.                                      |
+|                                     |           | This can be extrapoleted from the below fields but for             |
+|                                     |           | convenince is here.                                                |
++-------------------------------------+-----------+--------------------------------------------------------------------+
+| token                               | U64       | Token valid for the below coinbase. When a downstream send a       |
+|                                     |           | SetCostumMiningJob the pool check if the token match a valid       |
+|                                     |           | coinbase if so it respond with SetCostumMiningJob.Success          |
++-------------------------------------+-----------+--------------------------------------------------------------------+
+| coinbase_tx_prefix                  | BOOL      | Prefix part of the coinbase transaction                            |
++-------------------------------------+-----------+--------------------------------------------------------------------+
+| coinbase_tx_suffix                  | B0_255    | Suffix part of the coinbase transaction.                           |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
 ```
 ### 5.3.18 `SetCustomMiningJob` (Client -> Server)
@@ -103,7 +96,7 @@ Client can start to mine on the job immediately (by using the `job_id` provided 
 +-----------------------------+-----------+----------------------------------------------------------------------------+
 | job_id                      | U32       | Server’s identification of the mining job                                  |
 +-----------------------------+-----------+----------------------------------------------------------------------------+
-| coinbase_tx_prefix          | B0_64K    | Prefix part of the coinbase transaction*                                   |
+| coinbase_tx_prefix          | B0_64K    | Prefix part of the coinbase transaction                                    |
 +-----------------------------+-----------+----------------------------------------------------------------------------+
 | coinbase_tx_suffix          | B0_64K    | Suffix part of the coinbase transaction                                    |
 +-----------------------------+-----------+----------------------------------------------------------------------------+
