@@ -256,7 +256,7 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 | flags            | U32       | Flags indicating optional protocol features the client supports. Each protocol from    |
 |                  |           | protocol field as its own values/flags.                                                |
 +------------------+-----------+----------------------------------------------------------------------------------------+
-| endpoint_host    | U32       | ASCII text indicating the hostname or IP address                                       |
+| endpoint_host    | STR0_255  | ASCII text indicating the hostname or IP address                                       |
 +------------------+-----------+----------------------------------------------------------------------------------------+
 | endpoint_port    | U16       | Connecting port value                                                                  |
 +------------------+-----------+----------------------------------------------------------------------------------------+
