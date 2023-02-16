@@ -402,7 +402,7 @@ Possible error codes:
 
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
-The server provides an updated mining job to the client through a standard channel.
+The server provides an updated mining job to the client through a standard channel. This MUST be the first message after the channel has been successfully opened. This first message will have min_ntime unset (future job).
 If the `min_ntime` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime.
 
 ```
@@ -439,7 +439,8 @@ The whole search space of the job is owned by the specified channel.
 If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message.
 
 For a **group channel**:
-This is a broadcast variant of `NewMiningJob` message with the `merkle_root` field replaced by `merkle_path` and coinbase transaction prefix and suffix, for further traffic optimization.
+This is a broadcast variant of `
+` message with the `merkle_root` field replaced by `merkle_path` and coinbase transaction prefix and suffix, for further traffic optimization.
 The Merkle root is then defined deterministically for each channel by the common `merkle_path` and unique `extranonce_prefix` serialized into the coinbase.
 The full coinbase is then constructed as follows: `coinbase_tx_prefix + extranonce_prefix + coinbase_tx_suffix`.
 
@@ -485,11 +486,11 @@ A proxy MUST translate the message for all downstream channels belonging to the 
 - For an **extended channel**: `extranonce_prefix + extranonce (=N bytes)`, where `N` is the negotiated extranonce space for the channel (`OpenMiningChannel.Success.extranonce_size`)
 
 ### 5.3.17 `SetNewPrevHash` (Server -> Client, broadcast)
-Prevhash is distributed whenever a new block is detected in the network by an upstream node.
+Prevhash is distributed whenever a new block is detected in the network by an upstream node or when a new downstream opens a channel.
 This message MAY be shared by all downstream nodes (sent only once to each channel group).
 Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
-The remaining jobs already queued by the client have to be made invalid. 
+The remaining jobs already queued by the client have to be made invalid unless they are future jobs. 
 
 Note: There is no need for block height in this message.
 
