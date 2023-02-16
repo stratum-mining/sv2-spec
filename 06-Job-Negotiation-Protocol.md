@@ -10,7 +10,7 @@ Figure 5.a Job Negotiation Protocol: Flow
 ## 6.1 Job Negotiation Protocol Messages
 
 
-### 6.1.1 `SetupConnection` Flags for Job Negotiation Protocol
+### 6.1.1 `SetupConnection` ( Client -> Server) Flags for Job Negotiation Protocol
 
 Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 
@@ -18,12 +18,9 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 +---------------------------+-----+------------------------------------------------------------------------------------+
 | Field Name                | Bit | Description                                                                        |
 +---------------------------+-----+------------------------------------------------------------------------------------+
-| REQUIRES_ASYNC_JOB_MINING | 0   | The Job Negotiator requires that the mining_job_token in                           |
-|                           |     | AllocateMiningJobToken.Success can be used immediately on a mining connection in   |
-|                           |     | SetCustomMiningJob message, even before CommitMiningJob and                        |
-|                           |     | CommitMiningJob.Success messages have been sent and received.                      |
-|                           |     | The server MUST only send AllocateMiningJobToken.Success messages with             |
-|                           |     | async_mining_allowed set.                                                          |
+| REQUIRES_ASYNC_JOB_MINING | 0   | The Job Negotiator requires that the token in                                      |
+|                           |     | SetCoinbase can be used immediately on a mining connection in                      |
+|                           |     | SetCustomMiningJob message.                                                        |
 +---------------------------+-----+------------------------------------------------------------------------------------+
 ```
 
@@ -58,8 +55,8 @@ No flags are yet defined for use in SetupConnection.Success.
 |                                     |           | SetCostumMiningJob the pool check if the token match a valid       |
 |                                     |           | coinbase if so it respond with SetCostumMiningJob.Success          |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
-| coinbase_tx_prefix                  | BOOL      | Prefix part of the coinbase transaction                            |
+| coinbase_tx_prefix                  | B0_64K     | Prefix part of the coinbase transaction                            |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
-| coinbase_tx_suffix                  | B0_255    | Suffix part of the coinbase transaction.                           |
+| coinbase_tx_suffix                  | B0_64K     | Suffix part of the coinbase transaction.                           |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
 ```
