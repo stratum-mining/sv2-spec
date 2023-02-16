@@ -429,8 +429,6 @@ If the `min_ntime` field is set, the client MUST start to mine on the new job im
 | merkle_root    | B32           | Merkle root field as used in the bitcoin block header                               |
 +----------------+---------------+-------------------------------------------------------------------------------------+
 ```
-
-
 ### 5.3.16 `NewExtendedMiningJob` (Server -> Client)
 (Extended and group channels only)
 
