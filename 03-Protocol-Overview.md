@@ -68,7 +68,7 @@ Multibyte data types are always serialized as little-endian.
 
 ```
 +---------------+---------------------------------+--------------------------------------------------------------------+
-| Protocol Type | Byte Length                     | Description                                                        |
+| Data Type     | Byte Length                     | Description                                                        |
 +---------------+---------------------------------+--------------------------------------------------------------------+
 | BOOL          | 1                               | Boolean value. Encoded as an unsigned 1-bit integer, True = 1,     |
 |               |                                 | False = 0 with 7 additional padding bits in the high positions.    |
