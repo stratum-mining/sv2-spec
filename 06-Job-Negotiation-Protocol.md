@@ -55,8 +55,8 @@ No flags are yet defined for use in SetupConnection.Success.
 |                                     |           | SetCostumMiningJob the pool check if the token match a valid       |
 |                                     |           | coinbase if so it respond with SetCostumMiningJob.Success          |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
-| coinbase_tx_prefix                  | B0_64K     | Prefix part of the coinbase transaction                            |
+| coinbase_tx_prefix                  | B0_64K     | Prefix part of the coinbase transaction                           |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
-| coinbase_tx_suffix                  | B0_64K     | Suffix part of the coinbase transaction.                           |
+| coinbase_tx_suffix                  | B0_64K     | Suffix part of the coinbase transaction.                          |
 +-------------------------------------+-----------+--------------------------------------------------------------------+
 ```
