@@ -489,7 +489,7 @@ Prevhash is distributed whenever a new block is detected in the network by an up
 This message MAY be shared by all downstream nodes (sent only once to each channel group).
 Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
-The remaining jobs already queued by the client have to be made invalid unless they are future jobs. 
+The remaining jobs already queued by the client have to be made invalid. 
 
 Note: There is no need for block height in this message.
 
