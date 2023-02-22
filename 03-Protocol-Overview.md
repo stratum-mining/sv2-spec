@@ -165,7 +165,7 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 | min_version        | U16       | The minimum protocol version the client supports (currently must be 3)                                                      |
 | max_version        | U16       | The maximum protocol version the client supports (currently must be 3)                                                      |
 | flags              | U32       | Flags indicating optional protocol features the client supports. Each protocol from protocol field as its own values/flags. |
-| endpoint_host      | U32       | ASCII text indicating the hostname or IP address                                                                            |
+| endpoint_host      | STRO_255  | ASCII text indicating the hostname or IP address                                                                            |
 | endpoint_port      | U16       | Connecting port value                                                                                                       |
 | Device Information |
 | vendor             | STR0_255  | E.g. "Bitmain"                                                                                                              |
