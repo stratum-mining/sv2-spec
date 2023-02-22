@@ -173,6 +173,7 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 | firmware           | STR0_255  | E.g. "braiins-os-2018-09-22-1-hash"                                                                                         |
 | device_id          | STR0_255  | Unique identifier of the device as defined by the vendor                                                                    |
 
+
 ### 3.6.2 `SetupConnection.Success` (Server -> Client)
 
 Response to `SetupConnection` message if the server accepts the connection.
