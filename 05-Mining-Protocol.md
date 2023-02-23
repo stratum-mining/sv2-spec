@@ -293,7 +293,8 @@ Possible error codes:
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
 
-The server provides an updated mining job to the client through a standard channel.
+The server provides an updated mining job to the client through a standard channel. This MUST be the first message after the channel has been successfully opened. This first message will have min_ntime unset (future job).
+
 If the `min_ntime` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime.
 
 | Field Name  | Data Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -338,7 +339,8 @@ A proxy MUST translate the message for all downstream channels belonging to the 
 
 ### 5.3.17 `SetNewPrevHash` (Server -> Client, broadcast)
 
-Prevhash is distributed whenever a new block is detected in the network by an upstream node.
+Prevhash is distributed whenever a new block is detected in the network by an upstream node or when a new downstream opens a channel.
+
 This message MAY be shared by all downstream nodes (sent only once to each channel group).
 Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
