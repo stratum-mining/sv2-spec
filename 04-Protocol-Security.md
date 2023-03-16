@@ -113,7 +113,7 @@ The following functions will also be referenced:
 
 - `HMAC-HASH(key, data)`
 
-  - Applies HMAC defined in `RFC 2104`<sup>[5](#reference-5)
+  - Applies HMAC defined in `RFC 2104`<sup>[5](#reference-5)</sup>
   - In our case where the key is always 32 bytes, this reduces down to:
     - pad the key with zero bytes to fill the hash block (block length is 64 bytes in case of SHA-256): `k' = k || <zero-bytes>`
     - calculate `temp = SHA-256((k' XOR ipad) || data)` where ipad is repeated 0x36 byte
