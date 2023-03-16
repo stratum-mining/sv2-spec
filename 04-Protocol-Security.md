@@ -72,7 +72,7 @@ For more information refer to BIP340<sup>[3](#reference-3)</sup>
 - Cipher has methods for encryption and decryption for key `k`, nonce `n`, associated_data `ad`, plaintext `pt` and ciphertext `ct`
   - `ENCRYPT(k, n, ad, pt)`
   - `DECRYPT(k, n, ad, ct)`
-- ChaCha20 and Poly1305 in AEAD mode<sup>[4](reference-4)</sup> (ChaChaPoly) is used as a default AEAD cipher
+- ChaCha20 and Poly1305 in AEAD mode<sup>[4](#reference-4)</sup> (ChaChaPoly) is used as a default AEAD cipher
 
 ## 4.4 Cryptographic operations
 
@@ -113,7 +113,7 @@ The following functions will also be referenced:
 
 - `HMAC-HASH(key, data)`
 
-  - Applies HMAC defined in `RFC 2104`<sup>[5](#reference-5)
+  - Applies HMAC defined in `RFC 2104`<sup>[5](#reference-5)</sup>
   - In our case where the key is always 32 bytes, this reduces down to:
     - pad the key with zero bytes to fill the hash block (block length is 64 bytes in case of SHA-256): `k' = k || <zero-bytes>`
     - calculate `temp = SHA-256((k' XOR ipad) || data)` where ipad is repeated 0x36 byte
