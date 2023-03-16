@@ -150,7 +150,7 @@ Sent as a response for opening a standard channel, if successful.
 
 ### 5.3.4 `OpenExtendedMiningChannel` (Client -> Server)
 
-Similar to [5.3.2 `OpenStandardMiningChannel`](532-openstandardminingchannel-client---server), but requests to open an extended channel instead of standard channel.
+Similar to [5.3.2 `OpenStandardMiningChannel`](#532-openstandardminingchannel-client---server), but requests to open an extended channel instead of standard channel.
 
 | Field Name                                    | Data Type | Description                                           |
 | --------------------------------------------- | --------- | ----------------------------------------------------- |
