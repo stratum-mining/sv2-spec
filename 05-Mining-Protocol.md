@@ -394,8 +394,6 @@ Client can start to mine on the job immediately (by using the `job_id` provided 
 | request_id         | U32       | Client-specified identifier for pairing responses. Value from the request |
 |                    |           | MUST be provided by upstream in the response message.                     |
 | job_id             | U32       | Server’s identification of the mining job                                 |
-| coinbase_tx_prefix | B0_64K    | Prefix part of the coinbase transaction\*                                 |
-| coinbase_tx_suffix | B0_64K    | Suffix part of the coinbase transaction                                   |
 
 \*The full coinbase is constructed by inserting one of the following:
 
