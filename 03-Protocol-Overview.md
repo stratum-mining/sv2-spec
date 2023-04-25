@@ -162,7 +162,7 @@ Clients that are not configured to provide telemetry data to the upstream node S
 However, they MUST always set vendor to a string describing the manufacturer/developer and firmware version and SHOULD always set `hardware_version` to a string describing, at least, the particular hardware/software package in use.
 
 | Field Name         | Data Type | Description                                                                                                                 |
-| ------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------- |
+|--------------------|-----------|-----------------------------------------------------------------------------------------------------------------------------|
 | protocol           | U8        | 0 = Mining Protocol <br>1 = Job Negotiaion <br>2 = Template Distribution Protocol <br> 3 = Job Distribution Protocol        |
 | min_version        | U16       | The minimum protocol version the client supports (currently must be 3)                                                      |
 | max_version        | U16       | The maximum protocol version the client supports (currently must be 3)                                                      |
@@ -182,7 +182,7 @@ Response to `SetupConnection` message if the server accepts the connection.
 The client is required to verify the set of feature flags that the server supports and act accordingly.
 
 | Field Name   | Data Type | Description                                                                                                                                             |
-| ------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|--------------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | used_version | U16       | Selected version proposed by the connecting node that the upstream node supports. This version will be used on the connection for the rest of its life. |
 | flags        | U32       | Flags indicating optional protocol features the server supports. Each protocol from protocol field has its own values/flags.                            |
 

@@ -331,29 +331,67 @@ If the server provides a non-empty `CIPHER_CHOICE`:
 2. New keys `key_new` are derived from the original CipherState keys `key_orig` by taking the first 32 bytes from `ENCRYPT(key_orig, maxnonce, zero_len, zeros)` using the negotiated cipher function where `maxnonce` is 2<sup>64</sup> - 1, `zerolen` is a zero-length byte sequence, and `zeros` is a sequence of 32 bytes filled with zeros. (see `Rekey(k)` function<sup>[8](#reference-8)</sup>)
 3. New CipherState objects are reinitialized: `InitializeKey(key_new)`.
 
-### 4.5.6 Transport message encryption and format
+## 4.6 Encrypted stratum message framing
 
-After handshake process is finished, both initiator and responder have CipherState objects for encryption and decryption and after initiator validated server's identity, any subsequent traffic is encrypted and decrypted with `EncryptWithAd()` and `DecryptWithAd()` methods of the respectrive CipherState objects with zero-length associated data.
+After handshake process is finished, both initiator and responder have CipherState objects for encryption and decryption and after initiator validated server's identity, any subsequent traffic is encrypted and decrypted with `EncryptWithAd()` and `DecryptWithAd()` methods of the respective CipherState objects with zero-length associated data.
 
-Ciphertext is sent in `NOISE_FRAME` over the wire.
+Maximum transport message length (ciphertext) is for noise protocol message 65535 bytes.
 
-##### NOISE_FRAME
-| Field Name | Data Type | Description |
-| ---------- | --------- | ----------- |
-| ciphertext | B0_64K | AEAD ciphertext including 16 bytes MAC |
+Since Stratum Message Frame consists of
+- fixed length message header: 6 bytes
+- variable length serialized stratum message
 
-Message length: `<Plaintext length> + 18 bytes = <Plaintext length> + <MAC length> + <Type length prefix>`
+Stratum Message header and stratum message payload are processed separately.
 
-Maximum message length = 65537 bytes
-Maximum ciphertext length = 65535 bytes
-Maximum plaintext length 65519 bytes
+#### Encrypting stratum message
+1. serialize stratum message into a plaintext binary string (payload)
+2. prepare frame header for the stratum message with `message_length` being length of payload ciphertext*
+3. Encrypt and concatenate serialized header and payload:
+   4. `EncryptWithAd([], header)` - 22 bytes
+   5. `EncryptWithAd([], payload)` - variable length encrypted message
+4. concatenate resulting header and payload ciphertext
 
-Note that in regard to Stratum V2 message, `NOISE_FRAME` doesn't necessarily need to contain to exactly one encrypted Stratum message. Ciphertext payload may contain multiple subsequent messages or even only partial message. Examples:
+*converting plaintext length to ciphertext length:
+```c
+#define MAX_CT_LEN 65535
+#define MAC_LEN 16
+#define MAX_PT_LEN (MAX_CT_LEN - MAC_LEN)
 
-- `OpenStandardMiningChannelSuccess` followed immediately with `NewMiningJob`
-- Arbitrary message containing `B0_16M` type, since the noise ciphertext can be at most `2**16 - 1 == 65535` bytes long
+uint pt_len_to_ct_len(uint pt_len) {
+        uint remainder;
+        remainder = pt_len % MAX_PT_LEN;
+        if (remainder > 0) {
+                remainder += MAC_LEN;
+        }
+        return pt_len / MAX_PT_LEN * MAX_CT_LEN + remainder;
+}
+```
 
-## 4.6 URL Scheme and Pool Authority Key
+#### Decrypting stratum message
+1. read exactly 22 bytes and decrypt into stratum frame or fail
+2. read `frame.message_length` number of bytes and decrypt into plaintext payload or fail
+3. deserialize plaintext payload into stratum message given by `frame.extension_type` and `frame.message_type` or fail
+
+#### Encrypted stratum message frame layout
+```
++--------------------------------------------------+-------------------------------------------------------------------+
+| Extended noise header                            | Encrypted stratum-message payload                                 |
++--------------------------------------------------+-------------------+-------------------+---------------------------+
+| Header AEAD ciphertext                           | Noise block 1     | Noise block 2     | Last Noise block          |
+| 22 Bytes                                         | 65535 Bytes       | 65535 Bytes       | 17 - 65535 Bytes          |
++----------------------------------------+---------+-----------+-------+-----------+-------+---------------+-----------+
+| Encrypted Stratum message Header       | MAC     | ct_pld_1  | MAC_1 | ct_pld_2  | MAC_2 | ct_pld_rest   | MAC_rest  |
+| 6 Bytes                                | 16 B    | 65519 B   | 16 B  | 65519 B   | 16 B  | 1 - 65519 B   | 16 Bytes  |
++================+==========+============+=========+===========+=======+===========+=======+===============+===========+
+| extension_type | msg_type | pld_length | <padd   | pt_pld_1  | <padd | pt_pld_2  | <padd | pt_pld_rest   | <padding> |
+| U16            | U8       | U24        |   ing>  | 65519 B   |  ing> | 65519 B   |  ing> | 1 - 65519 B   |           |
++----------------+----------+------------+---------+-------------------------------------------------------------------+
+
+Serialized stratum-v2 body (payload) is split into 65519-byte chunks and encrypted to form 65535-bytes AEAD ciphertexts,
+where `ct_pld_N` is the N-th ciphertext block of payload and `pt_pld_N` is the N-th plaintext block of payload.
+```
+
+## 4.7 URL Scheme and Pool Authority Key
 
 Downstream nodes that want to use the above outlined security scheme need to have configured the **Pool Authority Public Key** of the pool that they intend to connect to. It is provided by the target pool and communicated to its users via a trusted channel.
 At least, it can be published on the pool's public website.
@@ -374,7 +412,7 @@ stratum2+tcp://thepool.com/9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh
 
 ```
 
-### 4.6.1 Test vector:
+### 4.7.1 Test vector:
 
 ```
 
@@ -383,7 +421,7 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 
 ```
 
-## 4.7 References
+## 4.8 References
 
 1. <a id="reference-1"> https://web.cs.ucdavis.edu/~rogaway/papers/ad.pdf</a>
 2. <a id="reference-2"> https://www.secg.org/sec2-v2.pdf</a>
