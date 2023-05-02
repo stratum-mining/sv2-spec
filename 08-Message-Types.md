@@ -30,7 +30,7 @@
 | 0x24                           | 0               | SetCustomMiningJob.Error           |
 | 0x25                           | 0               | Reconnect                          |
 | 0x26                           | 0               | SetGroupChannel                    |
-| Job Negotiation Protocol       |                 |                                    |
+| Job Declaration Protocol       |                 |                                    |
 | 0x50                           | 0               | AllocateMiningJobToken             |
 | 0x51                           | 0               | AllocateMiningJobToken.Success     |
 | 0x52                           | 0               | AllocateMiningJobToken.Error       |

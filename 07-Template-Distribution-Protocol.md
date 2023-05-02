@@ -4,7 +4,7 @@ The Template Distribution protocol is used to receive updates of the block templ
 It effectively replaces [BIP 22](https://github.com/bitcoin/bips/blob/master/bip-0022.mediawiki) and [BIP 23](https://github.com/bitcoin/bips/blob/master/bip-0023.mediawiki) (`getblocktemplate`) and provides a much more efficient API which allows Bitcoin Core (or some other full node software) to push template updates at more appropriate times as well as provide a template which may be mined on quickly for the block-after-next.
 While not recommended, the template update protocol can be a remote server, and is thus authenticated and signed in the same way as all other protocols (using the same SetupConnection handshake).
 
-Like the Job Negotiation and Job Distribution protocols, all Template Distribution messages have the `channel_msg` bit unset, and there is no concept of channels.
+Like the Job Declaration and Job Distribution protocols, all Template Distribution messages have the `channel_msg` bit unset, and there is no concept of channels.
 After the initial common handshake, the client MUST immediately send a `CoinbaseOutputDataSize` message to indicate the space it requires for coinbase output addition, to which the server MUST immediately reply with the current best block template it has available to the client.
 Thereafter, the server SHOULD push new block templates to the client whenever the total fee in the current block template increases materially, and MUST send updated block templates whenever it learns of a new block.
 
@@ -15,7 +15,7 @@ Template Providers MUST attempt to broadcast blocks which are mined using work t
 Ultimately, the pool is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size when selecting transactions for inclusion in a block (to not create an invalid, oversized block).
 Thus, this message is used to indicate that some additional space in the block/coinbase transaction be reserved for the pool’s use (while always assuming the pool will use the entirety of available coinbase space).
 
-The Job Negotiator MUST discover the maximum serialized size of the additional outputs which will be added by the pool(s) it intends to use this work.
+The Job Declarator MUST discover the maximum serialized size of the additional outputs which will be added by the pool(s) it intends to use this work.
 It then MUST communicate the maximum such size to the Template Provider via this message.
 The Template Provider MUST NOT provide `NewWork` messages which would represent consensus-invalid blocks once this additional size — along with a maximally-sized (100 byte) coinbase field — is added.
 Further, the Template Provider MUST consider the maximum additional bytes required in the output count variable-length integer in the coinbase transaction when complying with the size limits.
@@ -59,7 +59,7 @@ TODO: Define how many previous works the client has to track (2? 3?), and requir
 
 ## 7.4 `RequestTransactionData` (Client -> Server)
 
-A request sent by the Job Negotiator to the Template Provider which requests the set of transaction data for all transactions (excluding the coinbase transaction) included in a block, as well as any additional data which may be required by the Pool to validate the work.
+A request sent by the Job Declarator to the Template Provider which requests the set of transaction data for all transactions (excluding the coinbase transaction) included in a block, as well as any additional data which may be required by the Pool to validate the work.
 
 | Field Name  | Data Type | Description                                            |
 | ----------- | --------- | ------------------------------------------------------ |
@@ -68,7 +68,7 @@ A request sent by the Job Negotiator to the Template Provider which requests the
 ## 7.5 `RequestTransactionData.Success` (Server->Client)
 
 A response to `RequestTransactionData` which contains the set of full transaction data and excess data required for validation.
-For practical purposes, the excess data is usually the SegWit commitment, however the Job Negotiator MUST NOT parse or interpret the excess data in any way.
+For practical purposes, the excess data is usually the SegWit commitment, however the Job Declarator MUST NOT parse or interpret the excess data in any way.
 Note that the transaction data MUST be treated as opaque blobs and MUST include any SegWit or other data which the Pool may require to verify the transaction.
 For practical purposes, the transaction data is likely the witness-encoded transaction today.
 However, to ensure backward compatibility, the transaction data MAY be encoded in a way that is different from the consensus serialization of Bitcoin transactions.

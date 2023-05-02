@@ -1,21 +1,21 @@
-# 6. Job Negotiation Protocol
+# 6. Job Declaration Protocol
 
-As outlined above, this protocol runs between the Job Negotiator and Pool and can be provided as a trusted 3rd party service for mining farms.
+As outlined above, this protocol runs between the Job Declarator and Pool and can be provided as a trusted 3rd party service for mining farms.
 
 Protocol flow:
 
-![5.a-Job-Negotiation-Protocol-Flow](./img/5.a-Job-Negotiation-Protocol-Flow.png)  
-Figure 5.a Job Negotiation Protocol: Flow
+![5.a-Job-Declaration-Protocol-Flow](./img/5.a-Job-Declaration-Protocol-Flow.png)  
+Figure 5.a Job Declaration Protocol: Flow
 
-## 6.1 Job Negotiation Protocol Messages
+## 6.1 Job Declaration Protocol Messages
 
-### 6.1.1 `SetupConnection` Flags for Job Negotiation Protocol
+### 6.1.1 `SetupConnection` Flags for Job Declaration Protocol
 
 Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 
 | Field Name                | Bit | Description                                                                                                                                                                                                                                                                                                                                                          |
 | ------------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| REQUIRES_ASYNC_JOB_MINING | 0   | The Job Negotiator requires that the mining_job_token in AllocateMiningJobToken.Success can be used immediately on a mining connection in SetCustomMiningJob message, even before CommitMiningJob and CommitMiningJob.Success messages have been sent and received. The server MUST only send AllocateMiningJobToken.Success messages with async_mining_allowed set. |
+| REQUIRES_ASYNC_JOB_MINING | 0   | The Job Declarator requires that the mining_job_token in AllocateMiningJobToken.Success can be used immediately on a mining connection in SetCustomMiningJob message, even before CommitMiningJob and CommitMiningJob.Success messages have been sent and received. The server MUST only send AllocateMiningJobToken.Success messages with async_mining_allowed set. |
 
 No flags are yet defined for use in `SetupConnection.Success`.
 
@@ -38,13 +38,13 @@ Notably, if the pool intends to change the space it requires for coinbase transa
 | Field Name                          | Data Type | Description                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | request_id                          | U32       | Unique identifier for pairing the response                                                                                                                                                                                                                                                                                                                               |
-| mining_job_token                    | B0_255    | Token that makes the client eligible for committing a mining job for approval/transaction negotiation or for identifying custom mining job on mining connection.                                                                                                                                                                                                         |
+| mining_job_token                    | B0_255    | Token that makes the client eligible for committing a mining job for approval/transaction declaration or for identifying custom mining job on mining connection.                                                                                                                                                                                                         |
 | coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs. See discussion in the Template Distribution Protocol's CoinbaseOutputDataSize message for more details.                                                                                                                                                                 |
-| async_mining_allowed                | BOOL      | If true, the mining_job_token can be used immediately on a mining connection in the SetCustomMiningJob message, even before CommitMiningJob and CommitMiningJob.Success messages have been sent and received. If false, Job Negotiator MUST use this token for CommitMiningJob only. <br>This MUST be true when SetupConnection.flags had REQUIRES_ASYNC_JOB_MINING set. |
+| async_mining_allowed                | BOOL      | If true, the mining_job_token can be used immediately on a mining connection in the SetCustomMiningJob message, even before CommitMiningJob and CommitMiningJob.Success messages have been sent and received. If false, Job Declarator MUST use this token for CommitMiningJob only. <br>This MUST be true when SetupConnection.flags had REQUIRES_ASYNC_JOB_MINING set. |
 
 ### 6.1.4 `CommitMiningJob` (Client -> Server)
 
-A request sent by the Job Negotiator that proposes a selected set of transactions to the upstream (pool) node.
+A request sent by the Job Declarator that proposes a selected set of transactions to the upstream (pool) node.
 
 | Field Name                  | Data Type             | Description                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | --------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -68,7 +68,7 @@ A request sent by the Job Negotiator that proposes a selected set of transaction
 | Field Name           | Data Type | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | -------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | request_id           | U32       | Identifier of the original request                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| new_mining_job_token | B0_255    | Unique identifier provided by the pool of the job that the Job Negotiator has negotiated with the pool. It MAY be the same token as CommitMiningJob::mining_job_token if the pool allows to start mining on not yet negotiated job. If the token is different from the one in the corresponding CommitMiningJob message (irrespective of if the client is already mining using the original token), the client MUST send a SetCustomMiningJob message on each Mining Protocol client which wishes to mine using the negotiated job. |
+| new_mining_job_token | B0_255    | Unique identifier provided by the pool of the job that the Job Declarator has declared with the pool. It MAY be the same token as CommitMiningJob::mining_job_token if the pool allows to start mining on not yet declared job. If the token is different from the one in the corresponding CommitMiningJob message (irrespective of if the client is already mining using the original token), the client MUST send a SetCustomMiningJob message on each Mining Protocol client which wishes to mine using the declared job. |
 
 ### 6.1.6 `CommitMiningJob.Error` (Server->Client)
 
@@ -105,7 +105,7 @@ Sent by the Client in response to an `IdentifyTransactions` message to provide t
 | Field Name               | Data Type     | Description                                                                                                                                                                                                                             |
 | ------------------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | request_id               | U32           | Identifier of the original CreateMiningJob request                                                                                                                                                                                      |
-| unknown_tx_position_list | SEQ0_64K[U16] | A list of unrecognized transactions that need to be supplied by the Job Negotiator in full. They are specified by their position in the original CommitMiningJob message, 0-indexed not including the coinbase transaction transaction. |
+| unknown_tx_position_list | SEQ0_64K[U16] | A list of unrecognized transactions that need to be supplied by the Job Declarator in full. They are specified by their position in the original CommitMiningJob message, 0-indexed not including the coinbase transaction transaction. |
 
 ### 6.1.10 `ProvideMissingTransactions.Success` (Client->Server)
 

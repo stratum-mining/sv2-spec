@@ -359,16 +359,16 @@ Note: There is no need for block height in this message.
 ### 5.3.18 `SetCustomMiningJob` (Client -> Server)
 
 Can be sent only on extended channel.
-`SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully negotiated).
+`SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully declared).
 
-The downstream node has a custom job negotiated by a trusted external Job Negotiator.
-The `mining_job_token` provides the information for the pool to authorize the custom job that has been or will be negotiated between the Job Negotiator and Pool.
+The downstream node has a custom job declared by a trusted external Job Declarator.
+The `mining_job_token` provides the information for the pool to authorize the custom job that has been or will be declared between the Job Declarator and Pool.
 
 | Field Name                  | Data Type      | Description                                                                                                                                                           |
 | --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | channel_id                  | U32            | Extended channel identifier                                                                                                                                           |
 | request_id                  | U32            | Client-specified identifier for pairing responses                                                                                                                     |
-| mining_job_token            | B0_255         | Token provided by the pool which uniquely identifies the job that the Job Negotiator has negotiated with the pool. See the Job Negotiation Protocol for more details. |
+| mining_job_token            | B0_255         | Token provided by the pool which uniquely identifies the job that the Job Declarator has declared with the pool. See the Job Declaration Protocol for more details. |
 | version                     | U32            | Valid version field that reflects the current network consensus. The general purpose bits (as specified in BIP320) can be freely manipulated by the downstream node.  |
 | prev_hash                   | U256           | Previous block’s hash, found in the block header field                                                                                                                |
 | min_ntime                   | U32            | Smallest nTime value available for hashing                                                                                                                            |
