@@ -38,8 +38,8 @@
 | 0x54                           | 0               | IdentifyTransactions.Success       |
 | 0x55                           | 0               | ProvideMissingTransactions         |
 | 0x56                           | 0               | ProvideMissingTransactions.Success |
-| 0x57                           | 0               | CommitMiningJob         |
-| 0x58                           | 0               | CommitMiningJob.Success |
+| 0x57                           | 0               | DeclareMiningJob         |
+| 0x58                           | 0               | DeclareMiningJob.Success |
 | Template Distribution Protocol |                 |                                    |
 | 0x70                           | 0               | CoinbaseOutputDataSize             |
 | 0x71                           | 0               | NewTemplate                        |
