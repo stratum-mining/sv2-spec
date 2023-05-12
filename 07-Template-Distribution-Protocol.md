@@ -10,7 +10,17 @@ Thereafter, the server SHOULD push new block templates to the client whenever th
 
 Template Providers MUST attempt to broadcast blocks which are mined using work they provided, and thus MUST track the work which they provided to clients.
 
-## 7.1 `CoinbaseOutputDataSize` (Client -> Server)
+## 7.1 `SetupConnection` Flags for Template Distribution Protocol
+
+Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, where bit 0 is the least significant bit of the u32 type:
+
+| Field Name               | Bit | Description                                                                           |
+| ------------------------ | --- | ------------------------------------------------------------------------------------- |
+| REQUIRE_TX_SHORT_LIST    | 0   | The client require to receive a tx short hash list for each  new template received.   |
+|                          |     | The server MUST wait for the `SetNonce` before sending any message. The server  MUST  |
+|                          |     | send a `TxShortHashList` for each `NewTemplate`.                                      |
+
+## 7.2 `CoinbaseOutputDataSize` (Client -> Server)
 
 Ultimately, the pool is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size when selecting transactions for inclusion in a block (to not create an invalid, oversized block).
 Thus, this message is used to indicate that some additional space in the block/coinbase transaction be reserved for the pool’s use (while always assuming the pool will use the entirety of available coinbase space).
@@ -24,7 +34,17 @@ Further, the Template Provider MUST consider the maximum additional bytes requir
 | ----------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
 | coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs |
 
-## 7.2 `NewTemplate` (Server -> Client)
+## 7.3 `SetNonce` (Client -> Server)
+
+If client is a `JobDeclarator`, it need to receive a tx short hash list of the transactions that
+are in the block candidate for each `NewTemplate`. In order to calculate the list the server and the
+client needs negotiate a nonce.
+
+| Field Name                          | Data Type | Description                                                                                     |
+| ----------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
+| tx_short_hash_nonce                 | U64       | A unique nonce used to ensure tx_short_hash collisions are uncorrelated across the network      |
+
+## 7.4 `NewTemplate` (Server -> Client)
 
 The primary template-providing function. Note that the `coinbase_tx_outputs` bytes will appear as is at the end of the coinbase transaction.
 
@@ -42,7 +62,20 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                                                                                                                                     |
 | merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                                                                                                                                                                                                                            |
 
-## 7.3 `SetNewPrevHash` (Server -> Client)
+## 7.5 `TxShortHashList` (Client -> Server)
+
+If client is a `JobDeclarator`, it need to receive a tx short hash list of the transactions that
+are in the block candidate for each `NewTemplate`.
+
+| Field Name                          | Data Type             | Description                                                                                       |
+| ----------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------- |
+| template_id                         | U64                   | Id of the template from which the tx short hash list have been derived                            |
+| tx_short_hash_list                  | SEQ0_64K[SHORT_TX_ID] | Sequence of SHORT_TX_IDs. Inputs to the SipHash functions are transaction hashes from the mempool.|
+|                                     |                       | Secret keys k0, k1 are derived from the first two little-endian 64-bit integers from the          |
+|                                     |                       | SHA256(tx_short_hash_nonce), respectively (see bip-0152 for more information).                    |
+|                                     |                       | Does not include the coinbase transaction (as there is no corresponding full data for it yet).    |
+
+## 7.6 `SetNewPrevHash` (Server -> Client)
 
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
 If a `NewMiningJob` message has previously been sent with an empty `min_ntime`, which is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be set to the `job_id` present in that `NewTemplate` message indicating the client MUST begin mining on that template as soon as possible.
@@ -57,7 +90,7 @@ TODO: Define how many previous works the client has to track (2? 3?), and requir
 | nBits            | U32       | Block header field                                                                                                                                                                                     |
 | target           | U256      | The maximum double-SHA256 hash value which would represent a valid block. Note that this may be lower than the target implied by nBits in several cases, including weak-block based block propagation. |
 
-## 7.4 `RequestTransactionData` (Client -> Server)
+## 7.7 `RequestTransactionData` (Client -> Server)
 
 A request sent by the Job Negotiator to the Template Provider which requests the set of transaction data for all transactions (excluding the coinbase transaction) included in a block, as well as any additional data which may be required by the Pool to validate the work.
 
@@ -65,7 +98,7 @@ A request sent by the Job Negotiator to the Template Provider which requests the
 | ----------- | --------- | ------------------------------------------------------ |
 | template_id | U64       | The template_id corresponding to a NewTemplate message |
 
-## 7.5 `RequestTransactionData.Success` (Server->Client)
+## 7.8 `RequestTransactionData.Success` (Server->Client)
 
 A response to `RequestTransactionData` which contains the set of full transaction data and excess data required for validation.
 For practical purposes, the excess data is usually the SegWit commitment, however the Job Negotiator MUST NOT parse or interpret the excess data in any way.
@@ -87,7 +120,7 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 | excess_data      | B0_64K           | Extra data which the Pool may require to validate the work                                                                           |
 | transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
 
-## 7.6 `RequestTransactionData.Error` (Server->Client)
+## 7.9 `RequestTransactionData.Error` (Server->Client)
 
 | Field Name  | Data Type | Description                                                                   |
 | ----------- | --------- | ----------------------------------------------------------------------------- |
@@ -98,7 +131,7 @@ Possible error codes:
 
 - `template-id-not-found`
 
-## 7.7 `SubmitSolution` (Client -> Server)
+## 7.10 `SubmitSolution` (Client -> Server)
 
 Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or below `SetNewPrevHash::target`, the client MUST immediately send this message, and the server MUST then immediately construct the corresponding full block and attempt to propagate it to the Bitcoin network.
 
