@@ -50,3 +50,11 @@
 | 0x76                           | 0               | SubmitSolution                     |
 | 0x77                           | 0               | SetNonce                           |
 | 0x78                           | 0               | TxShortHashList                    |
+| 0x79                           | 0               | AllocateTxs                        |
+| 0x7a                           | 0               | AllocateTxs.Success                |
+| 0x7b                           | 0               | IdentifyTransactions               |
+| 0x7c                           | 0               | IdentifyTransactions.Success       |
+| 0x7d                           | 0               | ProvideMissingTransactions         |
+| 0x7e                           | 0               | ProvideMissingTransactions.Success |
+| 0x7f                           | 0               | AllocateTxs.Error                  |
+| 0x80                           | 0               | SubmitBlock                        |

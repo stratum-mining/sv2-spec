@@ -96,10 +96,10 @@ Sent by the Server in response to a `CommitMiningJob` message indicating it dete
 
 Sent by the Client in response to an `IdentifyTransactions` message to provide the full set of transaction data hashes.
 
-| Field Name | Data Type      | Description                                                                                                        |
-| ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------ |
-| request_id | U32            | Unique identifier for the pairing response to the CommitMiningJob/IdentifyTransactions message                     |
-|            | SEQ0_64K[U256] | The full list of transaction data hashes used to build the mining job in the corresponding CommitMiningJob message |
+| Field Name   | Data Type      | Description                                                                                                        |
+| ------------ | -------------- | ------------------------------------------------------------------------------------------------------------------ |
+| request_id   | U32            | Unique identifier for the pairing response to the CommitMiningJob/IdentifyTransactions message                     |
+| transactions | SEQ0_64K[U256] | The full list of transaction data hashes used to build the mining job in the corresponding CommitMiningJob message |
 
 ### 6.1.9 `ProvideMissingTransactions` (Server->Client)
 

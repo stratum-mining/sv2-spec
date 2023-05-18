@@ -142,3 +142,94 @@ Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or 
 | header_timestamp | U32       | The nTime field in the block header. This MUST be greater than or equal to the header_timestamp field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
 | header_nonce     | U32       | The nonce field in the header                                                                                                                                                                                                                  |
 | coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewMiningJob message, above                                                                                                                                           |
+
+## 7.11 `AllocateTxs` (Client -> Server)
+
+When a pool have a job committed by downstream, it send the tx_short_hash_list of the transactions
+that are in the job so that the TP know how to build a block when downstream find a solution.
+
+| Field Name          | Data Type            | Description                                                                                       |
+| ------------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
+| mining_job_token    | B0_255               | Token that makes the client eligible for committing a mining job for approval/transaction         |
+|                     |                      | negotiation or for identifying custom mining job on mining connection.                            |
+| tx_short_hash_list  | SEQ0_64K[SHORT_TX_ID]| Sequence of SHORT_TX_IDs. Inputs to the SipHash functions are transaction hashes from the mempool.|
+|                     |                      | Secret keys k0, k1 are derived from the first two little-endian 64-bit integers from the          |
+|                     |                      | SHA256(tx_short_hash_nonce), respectively (see bip-0152 for more information).                    |
+|                     |                      | Does not include the coinbase transaction (as there is no corresponding full data for it yet).    |
+| tx_short_hash_nonce | U64                  | A unique nonce used to ensure tx_short_hash collisions are uncorrelated across the network.       |
+
+## 7.12 `AllocateTxs.Success` (Client -> Server)
+
+That means that the transactions that are in the job with `mining_job_token` has been allocated by
+the server and nothing needs to be done by client.
+
+| Field Name          | Data Type            | Description                                                                                       |
+| ------------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
+| mining_job_token    | B0_255               | Token that makes the client eligible for committing a mining job for approval/transaction         |
+|                     |                      | negotiation or for identifying custom mining job on mining connection.                            |
+
+## 7.13 `IdentifyTransactions` (Server->Client)
+
+Sent by the Server in response to a `AllocateTxs.Success` message indicating it detected a collision in the `tx_short_hash_list`, or was unable to reconstruct the `tx_hash_list_hash`.
+
+| Field Name          | Data Type            | Description                                                                                       |
+| ------------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
+| mining_job_token    | B0_255               | Token that makes the client eligible for committing a mining job for approval/transaction         |
+|                     |                      | negotiation or for identifying custom mining job on mining connection.                            |
+
+
+## 7.14 `IdentifyTransactions.Success` (Client->Server)
+
+Sent by the Client in response to an `IdentifyTransactions` message to provide the full set of transaction data hashes.
+
+| Field Name          | Data Type            | Description                                                                                       |
+| ------------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
+| mining_job_token    | B0_255               | Token that makes the client eligible for committing a mining job for approval/transaction         |
+|                     |                      | negotiation or for identifying custom mining job on mining connection.                            |
+| transactions        | SEQ0_64K[U256]       | The full list of transaction data hashes used to build the mining job in the corresponding        |
+|                     |                      | AllocateTxs message                                                                               |
+
+## 7.15 `ProvideMissingTransactions` (Server->Client)
+
+When the TP do not have tx data for one ore more tx short hash it require MUST send `ProvideMissingTransactions` 
+
+| Field Name               | Data Type            | Description                                                                                       |
+| ------------------------ | -------------------- | ------------------------------------------------------------------------------------------------- |
+| mining_job_token         | B0_255               | Token that makes the client eligible for committing a mining job for approval/transaction         |
+|                          |                      | negotiation or for identifying custom mining job on mining connection.                            |
+| unknown_tx_position_list | SEQ0_64K[U16]        | A list of unrecognized transactions that need to be supplied by the Job Negotiator in full. They  |
+|                          |                      | are specified by their position in the original AllocateTxs message, 0-indexed not including      |
+|                          |                      | the coinbase transaction transaction.                                                             |
+
+## 7.16 `ProvideMissingTransactions.Success` (Client->Server)
+
+This is a message to push transactions that the server did not recognize and requested them to be supplied in `ProvideMissingTransactions`.
+
+| Field Name       | Data Type        | Description                                                                                                                          |
+| ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| mining_job_token | B0_255           | Token that makes the client eligible for committing a mining job for approval/transaction negotiation or for identifying custom      |
+|                  |                  | mining job on mining connection.                                                                                                     |
+| transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
+
+## 7.17 `AllocateTxs.Error` (Server -> Client)
+
+When the client provide invalid transaction data the server MUST send `AllocateTxs.Error`
+
+| Field Name          | Data Type            | Description                                                                                       |
+| ------------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
+| mining_job_token    | B0_255               | Token that makes the client eligible for committing a mining job for approval/transaction         |
+|                     |                      | negotiation or for identifying custom mining job on mining connection.                            |
+| error_code          | STR0_255             | Reason why no transaction data has been provided                                                  |
+
+## 7.18 `SubmitBlock` (Client -> Server)
+
+When pool receive a solution for a committed job and the transactions in the job have been allocated
+with the TP, the pool SHOULD send SubmitBlock.
+
+| Field Name          | Data Type            | Description                                                                                       |
+| ------------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
+| mining_job_token    | B0_255               | Token that makes the client eligible for committing a mining job for approval/transaction         |
+| version             | U32                  | The version field in the block header.                                                            |
+| header_timestamp    | U32                  | The nTime field in the block header.                                                              |
+| header_nonce        | U32                  | The nonce field in the header.                                                                    |
+| coinbase_tx         | B0_64K               | The full serialized coinbase transaction.                                                         |
