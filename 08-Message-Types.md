@@ -41,14 +41,14 @@
 | 0x57                           | 0               | CommitMiningJob                    |
 | 0x58                           | 0               | CommitMiningJob.Success            |
 | Template Distribution Protocol |                 |                                    |
-| 0x70                           | 0               | CoinbaseOutputDataSize             |
+| 0x70                           | 0               | SetCoinbaseOutputs                 |
 | 0x71                           | 0               | NewTemplate                        |
 | 0x72                           | 0               | SetNewPrevHash                     |
 | 0x73                           | 0               | RequestTransactionData             |
 | 0x74                           | 0               | RequestTransactionData.Success     |
 | 0x75                           | 0               | RequestTransactionData.Error       |
 | 0x76                           | 0               | SubmitSolution                     |
-| 0x77                           | 0               | SetNonce                           |
+| 0x77                           | 0               | GetLastTemplate                    |
 | 0x78                           | 0               | TxShortHashList                    |
 | 0x79                           | 0               | AllocateTxs                        |
 | 0x7a                           | 0               | AllocateTxs.Success                |

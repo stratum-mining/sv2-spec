@@ -34,12 +34,19 @@ Rate limited to a rather slow rate and only available on connections where this 
 The Server MUST NOT change the value of `coinbase_output_max_additional_size` in `AllocateMiningJobToken.Success` messages unless required for changes to the pool’s configuration.
 Notably, if the pool intends to change the space it requires for coinbase transaction outputs regularly, it should simply prefer to use the maximum of all such output sizes as the `coinbase_output_max_additional_size` value.
 
-| Field Name                          | Data Type | Description                                                                                                                                                                                                                                                                                                                                                              |
-| ----------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| request_id                          | U32       | Unique identifier for pairing the response                                                                                                                                                                                                                                                                                                                               |
-| mining_job_token                    | B0_255    | Token that makes the client eligible for committing a mining job for approval/transaction negotiation or for identifying custom mining job on mining connection.                                                                                                                                                                                                         |
-| coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs. See discussion in the Template Distribution Protocol's CoinbaseOutputDataSize message for more details.                                                                                                                                                                 |
-| async_mining_allowed                | BOOL      | If true, the mining_job_token can be used immediately on a mining connection in the SetCustomMiningJob message, even before CommitMiningJob and CommitMiningJob.Success messages have been sent and received. If false, Job Negotiator MUST use this token for CommitMiningJob only. <br>This MUST be true when SetupConnection.flags had REQUIRES_ASYNC_JOB_MINING set. |
+| Field Name                          | Data Type | Description                                                                         |
+| ----------------------------------- | --------- | ----------------------------------------------------------------------------------- |
+| request_id                          | U32       | Unique identifier for pairing the response                                          |
+| mining_job_token                    | B0_255    | Token that makes the client eligible for committing a mining job for                |
+|                                     |           | approval/transaction negotiation or for identifying custom mining job on mining     |
+|                                     |           | connection.                                                                         |
+| coinbase_outputs                    | B0_64K    | Serialized outputs to be added as the first outputs in the coinbase                 |
+| coinbase_tx_outputs_count           | U32       | The number of transaction outputs included in coinbase_tx_outputs                   | 
+| async_mining_allowed                | BOOL      | If true, the mining_job_token can be used immediately on a mining connection in the |
+|                                     |           | SetCustomMiningJob message, even before CommitMiningJob and CommitMiningJob.Success |
+|                                     |           | messages have been sent and received. If false, Job Negotiator MUST use this token  |
+|                                     |           | for CommitMiningJob only.                                                           |
+|                                     |           | <br>This MUST be true when SetupConnection.flags had REQUIRES_ASYNC_JOB_MINING set. |
 
 ### 6.1.4 `CommitMiningJob` (Client -> Server)
 

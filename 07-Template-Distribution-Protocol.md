@@ -5,7 +5,7 @@ It effectively replaces [BIP 22](https://github.com/bitcoin/bips/blob/master/bip
 While not recommended, the template update protocol can be a remote server, and is thus authenticated and signed in the same way as all other protocols (using the same SetupConnection handshake).
 
 Like the Job Negotiation and Job Distribution protocols, all Template Distribution messages have the `channel_msg` bit unset, and there is no concept of channels.
-After the initial common handshake, the client MUST immediately send a `CoinbaseOutputDataSize` message to indicate the space it requires for coinbase output addition, to which the server MUST immediately reply with the current best block template it has available to the client.
+After the initial common handshake, the client MUST immediately send a `SetPoolOutputs` message to indicate the space it requires for coinbase output addition, to which the server MUST immediately reply with the current best block template it has available to the client.
 Thereafter, the server SHOULD push new block templates to the client whenever the total fee in the current block template increases materially, and MUST send updated block templates whenever it learns of a new block.
 
 Template Providers MUST attempt to broadcast blocks which are mined using work they provided, and thus MUST track the work which they provided to clients.
@@ -17,32 +17,23 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, wher
 | Field Name               | Bit | Description                                                                           |
 | ------------------------ | --- | ------------------------------------------------------------------------------------- |
 | REQUIRE_TX_SHORT_LIST    | 0   | The client require to receive a tx short hash list for each  new template received.   |
-|                          |     | The server MUST wait for the `SetNonce` before sending any message. The server  MUST  |
-|                          |     | send a `TxShortHashList` for each `NewTemplate`.                                      |
+|                          |     | The server  MUST send a `TxShortHashList` for each `NewTemplate`.                     |
 
-## 7.2 `CoinbaseOutputDataSize` (Client -> Server)
+## 7.2 `SetPoolOutputs` (Client -> Server)
 
-Ultimately, the pool is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size when selecting transactions for inclusion in a block (to not create an invalid, oversized block).
-Thus, this message is used to indicate that some additional space in the block/coinbase transaction be reserved for the pool’s use (while always assuming the pool will use the entirety of available coinbase space).
 
-The Job Negotiator MUST discover the maximum serialized size of the additional outputs which will be added by the pool(s) it intends to use this work.
-It then MUST communicate the maximum such size to the Template Provider via this message.
-The Template Provider MUST NOT provide `NewMiningJob` messages which would represent consensus-invalid blocks once this additional size — along with a maximally-sized (100 byte) coinbase field — is added.
-Further, the Template Provider MUST consider the maximum additional bytes required in the output count variable-length integer in the coinbase transaction when complying with the size limits.
+| Field Name                | Data Type          | Description                                                            |
+| ------------------------- | ------------------ | ---------------------------------------------------------------------- |
+| coinbase_outputs          | B0_64K             | Serialized outputs to be added as the first outputs in the coinbase    |
+| coinbase_tx_outputs_count | U32                | The number of transaction outputs included in coinbase_tx_outputs      | 
 
-| Field Name                          | Data Type | Description                                                                                     |
-| ----------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
-| coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs |
+## 7.3 `GetLastTemplate` (Client -> Server)
 
-## 7.3 `SetNonce` (Client -> Server)
-
-If client is a `JobDeclarator`, it need to receive a tx short hash list of the transactions that
-are in the block candidate for each `NewTemplate`. In order to calculate the list the server and the
-client needs negotiate a nonce.
+When a client send this message the server MUST build and send a `NewTemplate` using the last received pool's
+coinbase outputs. If no outputs have been received the server MUST ignore the message.
 
 | Field Name                          | Data Type | Description                                                                                     |
 | ----------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
-| tx_short_hash_nonce                 | U64       | A unique nonce used to ensure tx_short_hash collisions are uncorrelated across the network      |
 
 ## 7.4 `NewTemplate` (Server -> Client)
 
@@ -74,6 +65,7 @@ are in the block candidate for each `NewTemplate`.
 |                                     |                       | Secret keys k0, k1 are derived from the first two little-endian 64-bit integers from the          |
 |                                     |                       | SHA256(tx_short_hash_nonce), respectively (see bip-0152 for more information).                    |
 |                                     |                       | Does not include the coinbase transaction (as there is no corresponding full data for it yet).    |
+| tx_short_hash_nonce                 | U64                   | A unique nonce used to ensure tx_short_hash collisions are uncorrelated across the network.       |
 
 ## 7.6 `SetNewPrevHash` (Server -> Client)
 
