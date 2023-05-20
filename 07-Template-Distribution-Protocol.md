@@ -168,9 +168,10 @@ the server and nothing needs to be done by client.
 | mining_job_token    | B0_255               | Token that makes the client eligible for committing a mining job for approval/transaction         |
 |                     |                      | negotiation or for identifying custom mining job on mining connection.                            |
 
-## 7.13 `IdentifyTransactions` (Server->Client)
+## 7.13 `IdentifyTransactions` (Client -> Server, Server -> Client)
 
-Sent by the Server in response to a `AllocateTxs.Success` message indicating it detected a collision in the `tx_short_hash_list`, or was unable to reconstruct the `tx_hash_list_hash`.
+Sent by the TP to the JDS in response to a `AllocateTxs` message indicating it detected a collision in the `tx_short_hash_list`, or was unable to reconstruct the `tx_hash_list_hash`.
+Or sent by the JDC to the TP when the JDS need to identify a transaction.
 
 | Field Name          | Data Type            | Description                                                                                       |
 | ------------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
@@ -178,9 +179,10 @@ Sent by the Server in response to a `AllocateTxs.Success` message indicating it 
 |                     |                      | negotiation or for identifying custom mining job on mining connection.                            |
 
 
-## 7.14 `IdentifyTransactions.Success` (Client->Server)
+## 7.14 `IdentifyTransactions.Success` (Client->Server, Server -> Client)
 
-Sent by the Client in response to an `IdentifyTransactions` message to provide the full set of transaction data hashes.
+Sent by the JDS to the TP in response to an `IdentifyTransactions` message to provide the full set of transaction data hashes.
+Sent by the TP to the JDC in response to an `IdentifyTransactions` message to provide the full set of transaction data hashes.
 
 | Field Name          | Data Type            | Description                                                                                       |
 | ------------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
@@ -189,9 +191,10 @@ Sent by the Client in response to an `IdentifyTransactions` message to provide t
 | transactions        | SEQ0_64K[U256]       | The full list of transaction data hashes used to build the mining job in the corresponding        |
 |                     |                      | AllocateTxs message                                                                               |
 
-## 7.15 `ProvideMissingTransactions` (Server->Client)
+## 7.15 `ProvideMissingTransactions` (Server->Client, Server -> Client)
 
-When the TP do not have tx data for one ore more tx short hash it require MUST send `ProvideMissingTransactions` 
+When the TP do not have tx data for one ore more tx short hash it require, the TP MUST send `ProvideMissingTransactions` 
+When the JDC receive `ProvideMissingTransactions` from the JDS it MUST rely it to the TP.
 
 | Field Name               | Data Type            | Description                                                                                       |
 | ------------------------ | -------------------- | ------------------------------------------------------------------------------------------------- |
@@ -201,9 +204,9 @@ When the TP do not have tx data for one ore more tx short hash it require MUST s
 |                          |                      | are specified by their position in the original AllocateTxs message, 0-indexed not including      |
 |                          |                      | the coinbase transaction transaction.                                                             |
 
-## 7.16 `ProvideMissingTransactions.Success` (Client->Server)
+## 7.16 `ProvideMissingTransactions.Success` (Client->Server, Server -> Client)
 
-This is a message to push transactions that the server did not recognize and requested them to be supplied in `ProvideMissingTransactions`.
+This is a message to push transactions that the TP or the JDC did not recognize and requested them to be supplied in `ProvideMissingTransactions`.
 
 | Field Name       | Data Type        | Description                                                                                                                          |
 | ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |

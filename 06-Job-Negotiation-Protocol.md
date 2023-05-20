@@ -28,7 +28,6 @@ Rate limited to a rather slow rate and only available on connections where this 
 | --------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | user_identifier | STR0_255  | Unconstrained sequence of bytes. Whatever is needed by the pool to identify/authenticate the client, e.g. "braiinstest". Additional restrictions can be imposed by the pool. It is highly recommended that UTF-8 encoding is used. |
 | request_id      | U32       | Unique identifier for pairing the response                                                                                                                                                                                         |
-| coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs added by the pool                                                                            |
 
 ### 6.1.3 `AllocateMiningJobToken.Success` (Server -> Client)
 
