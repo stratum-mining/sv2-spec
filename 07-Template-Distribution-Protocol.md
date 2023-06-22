@@ -17,7 +17,7 @@ Thus, this message is used to indicate that some additional space in the block/c
 
 The Job Declarator MUST discover the maximum serialized size of the additional outputs which will be added by the pool(s) it intends to use this work.
 It then MUST communicate the maximum such size to the Template Provider via this message.
-The Template Provider MUST NOT provide `NewWork` messages which would represent consensus-invalid blocks once this additional size — along with a maximally-sized (100 byte) coinbase field — is added.
+The Template Provider MUST NOT provide `NewMiningJob` messages which would represent consensus-invalid blocks once this additional size — along with a maximally-sized (100 byte) coinbase field — is added.
 Further, the Template Provider MUST consider the maximum additional bytes required in the output count variable-length integer in the coinbase transaction when complying with the size limits.
 
 | Field Name                          | Data Type | Description                                                                                     |
@@ -45,7 +45,7 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 ## 7.3 `SetNewPrevHash` (Server -> Client)
 
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
-If a `NewWork` message has previously been sent with an empty `min_ntime`, which is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be set to the `job_id` present in that `NewTemplate` message indicating the client MUST begin mining on that template as soon as possible.
+If a `NewMiningJob` message has previously been sent with an empty `min_ntime`, which is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be set to the `job_id` present in that `NewTemplate` message indicating the client MUST begin mining on that template as soon as possible.
 
 TODO: Define how many previous works the client has to track (2? 3?), and require that the server reference one of those in `SetNewPrevHash`.
 
@@ -105,7 +105,7 @@ Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or 
 | Field Name       | Data Type | Description                                                                                                                                                                                                                                    |
 | ---------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | template_id      | U64       | The template_id field as it appeared in NewTemplate                                                                                                                                                                                            |
-| version          | U32       | The version field in the block header. Bits not defined by BIP320 as additional nonce MUST be the same as they appear in the NewWork message, other bits may be set to any value.                                                              |
+| version          | U32       | The version field in the block header. Bits not defined by BIP320 as additional nonce MUST be the same as they appear in the NewMiningJob message, other bits may be set to any value.                                                              |
 | header_timestamp | U32       | The nTime field in the block header. This MUST be greater than or equal to the header_timestamp field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
 | header_nonce     | U32       | The nonce field in the header                                                                                                                                                                                                                  |
-| coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewWork message, above                                                                                                                                           |
+| coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewMiningJob message, above                                                                                                                                           |
