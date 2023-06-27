@@ -28,7 +28,7 @@ As there are numerous changes from the original Stratum v1 to v2, it may be help
 
 - Dramatically reduce network traffic as well as client-side and server-side computational intensity, while still being able to send and receive hashing results rapidly for precise hash rate measurement (and therefore more precise mining reward distribution).
 
-- Allow miners to (optionally) choose the transaction set they mine through work negotiation on some independent communication channel.
+- Allow miners to (optionally) choose the transaction set they mine through work declaration on some independent communication channel.
   At the same time, allow miners to choose how they utilize the available bits in the block header `nVersion` field, including both those bits which are used for mining (e.g. version-rolling AsicBoost) by [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki), and those bits used for [BIP8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki)/[BIP9](https://github.com/bitcoin/bips/tree/master/bip-0009) signaling.
   This mechanism must not interfere with the efficiency or security of the main mining protocol.
   - Use a separate communication channel for transaction selection so that it does not have a performance impact on the main mining/share communication, as well as can be run in three modes - disabled (i.e.pool does not yet support client work selection, to provide an easier transition from Stratum v1), client-push (to maximally utilize the client’s potential block-receive-latency differences from the pool), and client-negotiated (for pools worried about the potential of clients generating invalid block templates).
