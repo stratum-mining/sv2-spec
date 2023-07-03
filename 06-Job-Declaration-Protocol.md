@@ -98,7 +98,7 @@ Sent by the Client in response to an `IdentifyTransactions` message to provide t
 | Field Name | Data Type      | Description                                                                                                        |
 | ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------ |
 | request_id | U32            | Unique identifier for the pairing response to the DeclareMiningJob/IdentifyTransactions message                     |
-|            | SEQ0_64K[U256] | The full list of transaction data hashes used to build the mining job in the corresponding DeclareMiningJob message |
+| tx_data_hashes | SEQ0_64K[U256] | The full list of transaction data hashes used to build the mining job in the corresponding DeclareMiningJob message |
 
 ### 6.1.9 `ProvideMissingTransactions` (Server->Client)
 
