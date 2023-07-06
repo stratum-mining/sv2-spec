@@ -142,7 +142,7 @@ The server does not have to double check that the sequence numbers sent by a cli
 It can simply use the last one received when sending a response.
 It is the client’s responsibility to keep the sequence numbers correct/useful.
 
-### 5.3.14 `SubmitShares.Error` (Server -> Client)
+### 6.1.13 `SubmitShares.Error` (Server -> Client)
 
 An error is immediately submitted for every incorrect submit attempt.
 In case the server is not able to immediately validate the submission, the error is sent as soon as the result is known.
