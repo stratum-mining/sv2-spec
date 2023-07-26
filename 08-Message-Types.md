@@ -43,7 +43,6 @@
 | 0x1b                           | 1               | SubmitSharesExtended               |
 | 0x1c                           | 1               | SubmitShares.Success               |
 | 0x1d                           | 1               | SubmitShares.Error                 |
-
 | Template Distribution Protocol |                 |                                    |
 | 0x70                           | 0               | CoinbaseOutputDataSize             |
 | 0x71                           | 0               | NewTemplate                        |
