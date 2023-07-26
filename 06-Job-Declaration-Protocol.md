@@ -28,7 +28,6 @@ Rate limited to a rather slow rate and only available on connections where this 
 | --------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | user_identifier | STR0_255  | Unconstrained sequence of bytes. Whatever is needed by the pool to identify/authenticate the client, e.g. "braiinstest". Additional restrictions can be imposed by the pool. It is highly recommended that UTF-8 encoding is used. |
 | request_id      | U32       | Unique identifier for pairing the response                                                                                                                                                                                         |
-| coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs added by the pool                                                                            |
 
 ### 6.1.3 `AllocateMiningJobToken.Success` (Server -> Client)
 
@@ -41,6 +40,7 @@ Notably, if the pool intends to change the space it requires for coinbase transa
 | mining_job_token                    | B0_255    | Token that makes the client eligible for committing a mining job for approval/transaction declaration or for identifying custom mining job on mining connection.                                                                                                                                                                                                         |
 | coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs. See discussion in the Template Distribution Protocol's CoinbaseOutputDataSize message for more details.                                                                                                                                                                 |
 | async_mining_allowed                | BOOL      | If true, the mining_job_token can be used immediately on a mining connection in the SetCustomMiningJob message, even before DeclareMiningJob and DeclareMiningJob.Success messages have been sent and received. If false, Job Declarator MUST use this token for DeclareMiningJob only. <br>This MUST be true when SetupConnection.flags had REQUIRES_ASYNC_JOB_MINING set. |
+| coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs added by the pool                                                                            |
 
 ### 6.1.4 `DeclareMiningJob` (Client -> Server)
 
