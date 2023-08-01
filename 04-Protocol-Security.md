@@ -119,14 +119,12 @@ The following functions will also be referenced:
     - calculate `temp = SHA-256((k' XOR ipad) || data)` where ipad is repeated 0x36 byte
     - output `SHA-256((k' XOR opad) || temp)` where opad is repeated 0x5c byte
 
-- `HKDF(chaining_key, input_key_material, num_output)`: a function defined in `RFC 5869`<sup>[6](#reference-6)</sup>, evaluated with a zero-length `info` field:
+- `HKDF(chaining_key, input_key_material)`: a function defined in `RFC 5869`<sup>[6](#reference-6)</sup>, evaluated with a zero-length `info` field and 2 `num_output` field:
 
   - Sets `temp_key = HMAC-HASH(chaining_key, input_key_material)`
   - Sets `output1 = HMAC-HASH(temp_key, byte(0x01))`
   - Sets `output2 = HMAC-HASH(temp_key, output1 || byte(0x02))`
-  - If `num_outputs == 2` then returns the pair `(output1, output2)`
-  - Sets `output3 = HMAC-HASH(temp_key, output2 || byte(0x03))`
-  - Returns the triple `(output1, output2, output3)`
+  - Returns the pair `(output1, output2)`
 
 - `MixKey(input_key_material)`: Executes the following steps:
 
