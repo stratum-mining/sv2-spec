@@ -30,7 +30,7 @@ Meanwhile, there are five possible roles (types of software/hardware) for commun
    The actual device computing the hashes. This can be further divided into header-only mining devices and standard mining devices, though most devices will likely support both modes.
 
 2. **Pool Service**  
-   Produces jobs (for those not declarating jobs via the Job Declaration Protocol), validates shares, and ensures blocks found by clients are propagated through the network (though clients which have full block templates MUST also propagate blocks into the Bitcoin P2P network).
+   Produces jobs (for those not declaring jobs via the Job Declaration Protocol), validates shares, and ensures blocks found by clients are propagated through the network (though clients which have full block templates MUST also propagate blocks into the Bitcoin P2P network).
 
 3. **Mining Proxy (optional)**  
    Sits in between Mining Device(s) and Pool Service, aggregating connections for efficiency.
