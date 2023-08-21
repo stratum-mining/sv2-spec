@@ -20,7 +20,7 @@ As there are numerous changes from the original Stratum v1 to v2, it may be help
 - Avoid introducing any additional risks to pool operators and miners since that would make adoption of v2 very improbable.
 
 - Support version rolling natively.
-  Bitcoin block header contains a version field whose bits (determined by [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki) can be freely used to extend the hashing space for a miner.
+  Bitcoin block header contains a version field whose bits (determined by [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki)) can be freely used to extend the hashing space for a miner.
   It is already a common tech, we want to include it as a first class citizen in the new protocol.
 
 - Support header-only mining (not touching the coinbase transaction) in as many situations as possible.
