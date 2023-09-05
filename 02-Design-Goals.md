@@ -20,7 +20,7 @@ As there are numerous changes from the original Stratum v1 to v2, it may be help
 - Avoid introducing any additional risks to pool operators and miners since that would make adoption of v2 very improbable.
 
 - Support version rolling natively.
-  Bitcoin block header contains a version field whose bits (determined by [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki) can be freely used to extend the hashing space for a miner.
+  Bitcoin block header contains a version field whose bits (determined by [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki)) can be freely used to extend the hashing space for a miner.
   It is already a common tech, we want to include it as a first class citizen in the new protocol.
 
 - Support header-only mining (not touching the coinbase transaction) in as many situations as possible.
@@ -31,7 +31,7 @@ As there are numerous changes from the original Stratum v1 to v2, it may be help
 - Allow miners to (optionally) choose the transaction set they mine through work declaration on some independent communication channel.
   At the same time, allow miners to choose how they utilize the available bits in the block header `nVersion` field, including both those bits which are used for mining (e.g. version-rolling AsicBoost) by [BIP320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki), and those bits used for [BIP8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki)/[BIP9](https://github.com/bitcoin/bips/tree/master/bip-0009) signaling.
   This mechanism must not interfere with the efficiency or security of the main mining protocol.
-  - Use a separate communication channel for transaction selection so that it does not have a performance impact on the main mining/share communication, as well as can be run in three modes - disabled (i.e.pool does not yet support client work selection, to provide an easier transition from Stratum v1), client-push (to maximally utilize the client’s potential block-receive-latency differences from the pool), and client-declared (for pools worried about the potential of clients generating invalid block templates).
+  - Use a separate communication channel for transaction selection so that it does not have a performance impact on the main mining/share communication, as well as can be run in three modes - disabled (i.e.pool does not yet support client work selection, to provide an easier transition from Stratum v1), client-push (to maximally utilize the client’s potential block-receive-latency differences from the pool), and client-declared (for pools worried about the potential of clients generating invalid block templates). The key issue to note is that both the client-push and client-declared approaches essentially function as client-push. The primary distinction between them lies in whether the pool validates the job proposed by the miner or not.
 
 - Put complexity on the pool side rather than the miner side whenever possible.
   Keep the protocol part to be implemented in embedded devices as small and easy as possible.
