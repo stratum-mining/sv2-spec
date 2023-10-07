@@ -40,9 +40,9 @@
 | 0x57                           | 0               | DeclareMiningJob                   |
 | 0x58                           | 0               | DeclareMiningJob.Success           |
 | 0x59                           | 0               | DeclareMiningJob.Error             |
-| 0x1b                           | 1               | SubmitSharesExtended               |
-| 0x1c                           | 1               | SubmitShares.Success               |
-| 0x1d                           | 1               | SubmitShares.Error                 |
+| 0x60                           | 1               | SubmitSharesExtended               |
+| 0x61                           | 1               | SubmitShares.Success               |
+| 0x62                           | 1               | SubmitShares.Error                 |
 | Template Distribution Protocol |                 |                                    |
 | 0x70                           | 0               | CoinbaseOutputDataSize             |
 | 0x71                           | 0               | NewTemplate                        |
