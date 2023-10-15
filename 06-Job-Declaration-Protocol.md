@@ -136,21 +136,3 @@ In JD case this is a Success response for a share that is under Bitcoin target, 
 The server does not have to double check that the sequence numbers sent by a client are actually increasing.
 It can simply use the last one received when sending a response.
 It is the client’s responsibility to keep the sequence numbers correct/useful.
-
-### 6.1.13 `SubmitShares.Error` (Server -> Client)
-
-An error is immediately submitted for every incorrect submit attempt.
-In case the server is not able to immediately validate the submission, the error is sent as soon as the result is known.
-This delayed validation can occur when a miner gets faster updates about a new prevhash than the server does (see `NewPrevHash` message for details).
-
-| Field Name      | Data Type | Description                                                 |
-| --------------- | --------- | ----------------------------------------------------------- |
-| channel_id      | U32       | Channel identifier                                          |
-| sequence_number | U32       | Submission sequence number for which this error is returned |
-| error_code      | STR0_255  | Human-readable error code(s), see Error Codes section below |
-
-Possible error codes:
-
-- `invalid-channel-id`
-- `stale-share`
-- `difficulty-too-low`
