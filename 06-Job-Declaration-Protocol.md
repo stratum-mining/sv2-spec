@@ -120,18 +120,4 @@ This is a message to push transactions that the server did not recognize and req
 | prev hash                               | U256      | Hash of the last block                                                                                  |
 | nonce                                   | U32       | Nonce leading to the hash being submitted                                                               |
 | ntime                                   | U32       | The nTime field in the block header.                                                                    |
-| version                                 | U32       | Full nVersion field                                                                                     |
-
-
-
-### 6.1.12 `SubmitSolution.Success` (Server -> Client)
-
-Response to `SubmitSharesExtended`, accepting results from the miner.
-In JD case this is a Success response for a share that is under Bitcoin target, so it's for a valid block so there is no need to group or count valid shares in this case becasue it will be always be one.
-
-| Field Name                 | Data Type | Description                                         |
-| -------------------------- | --------- | --------------------------------------------------- |
-
-The server does not have to double check that the sequence numbers sent by a client are actually increasing.
-It can simply use the last one received when sending a response.
-It is the client’s responsibility to keep the sequence numbers correct/useful.
+| nbits                                   | U32       | Block header field                                                                                      |
