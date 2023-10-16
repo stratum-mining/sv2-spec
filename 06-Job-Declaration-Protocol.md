@@ -123,6 +123,11 @@ This is a message to push transactions that the server did not recognize and req
 | --------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | extranonce                              | B0_32     | Extranonce bytes which need to be added to coinbase to form a fully valid submission (full coinbase = coinbase_tx_prefix + extranonce_prefix + extranonce + coinbase_tx_suffix). The size of the provided extranonce MUST be equal to the negotiated extranonce size from channel opening. |
 | prev hash                               | U256      | Hash of the last block                                                                                  |
+| nonce                                   | U32       | Nonce leading to the hash being submitted                                                               |
+| ntime                                   | U32       | The nTime field in the block header.                                                                    |
+| version                                 | U32       | Full nVersion field                                                                                     |
+
+
 
 ### 6.1.12 `SubmitSolution.Success` (Server -> Client)
 
