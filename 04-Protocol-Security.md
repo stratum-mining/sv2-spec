@@ -287,39 +287,6 @@ signature is constructed for
 
 Signature itself is concatenation of an EC point `R` and an integer `s` (note that each item is serialized as 32 bytes array) for which identity `s⋅G = R + HASH(R || P || m)⋅P` holds.
 
-### 4.5.4 Cipher upgrade part 1: `-> AEAD_CIPHERS`
-
-Initiator provides list of AEAD ciphers other than ChaChaPoly that it supports
-
-| Field name | Description |
-| ---------- | ----------- |
-| SEQ0_32[u32] | List of AEAD cipher functions other than ChaChaPoly that the client supports |
-
-Message length: 1 + _n_ \* 4 bytes, where n is the length byte of the SEQ0_32 field, at most 129
-
-possible cipher codes:
-
-| cipher code | Cipher description |
-| ----------- | ------------------ |
-| 0x47534541 (b"AESG") | AES-256 with with GCM from [7] |
-
-[\[7\]](#reference-7) - Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC
-
-### 4.5.5 Cipher upgrade part 2: `<- CIPHER_CHOICE`
-
-Responder acknowledges receiving `AEAD_CIPHERS` message with `CIPHER_CHOICE`. There are two possible cases
-
-1. `CIPHER_CHOICE` is empty: In this case continue using current established encrypted session
-2. `CIPHER_CHOICE` is non-empty - Restart encrypted session using the new AEAD-cipher
-
-##### CIPHER_CHOICE
-
-| Field name | Description |
-| ---------- | ----------- |
-| OPTION[u32] | Request to upgrade to a given AEAD-cipher |
-
-Message length: 1 or 5 bytes
-
 
 #### 4.5.5.1 Upgrade to a new AEAD-cipher
 
