@@ -150,15 +150,13 @@ The following functions will also be referenced:
 
 ## 4.5 Authenticated Key Agreement Handshake
 
-The handshake chosen for the authenticated key exchange is an **`Noise_NX`** augmented by algorithm negotiation prior to handshake itself and server authentication with simple 2 level public key infrastructure.
+The handshake chosen for the authenticated key exchange is an **`Noise_NX`** augmented by server authentication with simple 2 level public key infrastructure.
 
-The complete authenticated key agreement (`Noise NX`) is performed in five distinct steps (acts).
+The complete authenticated key agreement (`Noise NX`) is performed in three distinct steps (acts).
 
 1. NX-handshake part 1: `-> e`
 2. NX-handshake part 2: `<- e, ee, s, es, SIGNATURE_NOISE_MESSAGE`
 3. Server authentication: Initiator validates authenticity of server using from `SIGNATURE_NOISE_MESSAGE`
-4. Cipher upgrade part 1: Initiator provides list of alternative aead-ciphers that it supports
-5. Cipher upgrade part 2: Responder confirms or dismisses upgrade to a different aead-cipher
 
 Should the decryption (i.e. authentication code validation) fail at any point, the session must be terminated.
 
@@ -287,15 +285,6 @@ signature is constructed for
 
 Signature itself is concatenation of an EC point `R` and an integer `s` (note that each item is serialized as 32 bytes array) for which identity `s⋅G = R + HASH(R || P || m)⋅P` holds.
 
-
-#### 4.5.5.1 Upgrade to a new AEAD-cipher
-
-If the server provides a non-empty `CIPHER_CHOICE`:
-
-1. Both initiator and responder create a new pair of CipherState objects with the negotiated cipher for encrypting transport messages from initiator to responder and in the other direction respectively
-2. New keys `key_new` are derived from the original CipherState keys `key_orig` by taking the first 32 bytes from `ENCRYPT(key_orig, maxnonce, zero_len, zeros)` using the negotiated cipher function where `maxnonce` is 2<sup>64</sup> - 1, `zerolen` is a zero-length byte sequence, and `zeros` is a sequence of 32 bytes filled with zeros. (see `Rekey(k)` function<sup>[8](#reference-8)</sup>)
-3. New CipherState objects are reinitialized: `InitializeKey(key_new)`.
-
 ## 4.6 Encrypted stratum message framing
 
 After handshake process is finished, both initiator and responder have CipherState objects for encryption and decryption and after initiator validated server's identity, any subsequent traffic is encrypted and decrypted with `EncryptWithAd()` and `DecryptWithAd()` methods of the respective CipherState objects with zero-length associated data.
@@ -394,6 +383,4 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 4. <a id="reference-4"> https://tools.ietf.org/html/rfc8439</a>
 5. <a id="reference-5"> https://www.ietf.org/rfc/rfc2104.txt</a>
 6. <a id="reference-6"> https://tools.ietf.org/html/rfc5869</a>
-7. <a id="reference-7"> https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf</a>
-8. <a id="reference-8"> https://noiseprotocol.org/noise.html#cipher-functions</a>
 ```
