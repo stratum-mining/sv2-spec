@@ -290,6 +290,7 @@ Possible error codes:
 - `invalid-channel-id`
 - `stale-share`
 - `difficulty-too-low`
+- `invalid-job-id`
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
 
