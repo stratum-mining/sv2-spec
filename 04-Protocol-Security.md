@@ -84,7 +84,7 @@ CipherState has the following interface:
 - `InitializeKey(key)`:
   - Sets `k = key`, `n = 0`
 - `EncryptWithAd(ad, plaintext)`
-  - If `k` is non-empty, performs `ENCRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns `plaintext`
+  - If `k` is non-empty, performs `ENCRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns `plaintext`. The `++` post-increment operator applied to `n` means: "use the current n value, then increment it".
   - Where `ENCRYPT` is an evaluation of `ChaCha20-Poly1305` (IETF variant) or `AES-GCM` with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a _little-endian_ 64-bit value. Note: this follows the Noise Protocol convention, rather than our normal endian.
 - `DecryptWithAd(ad, ciphertext)`
   - If `k` is non-empty performs `DECRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns ciphertext. If an authentication failure occurs in `DECRYPT()` then `n` is not incremented and an error is signaled to the caller.
