@@ -96,8 +96,8 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 
 Possible error codes:
 
-- `template-id-not-found`
-- `stale-template-id`
+- `template-id-not-found` - used when the template being referenced is too old and no longer stored in the memory of the Template Provider
+- `stale-template-id` - used when the prev_hash of the corresponding template is still in the Template Provider's memory, but it no longer points to the latest tip 
 
 ## 7.7 `SubmitSolution` (Client -> Server)
 
