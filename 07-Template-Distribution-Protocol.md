@@ -97,6 +97,7 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 Possible error codes:
 
 - `template-id-not-found`
+- `stale-template-id`
 
 ## 7.7 `SubmitSolution` (Client -> Server)
 
