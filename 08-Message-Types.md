@@ -6,6 +6,7 @@
 | 0x01                           | 0               | SetupConnection.Success            |
 | 0x02                           | 0               | SetupConnection.Error              |
 | 0x03                           | 1               | ChannelEndpointChanged             |
+| 0x04                           | 0               | Reconnect                          |
 | Mining Protocol                |                 |                                    |
 | 0x10                           | 0               | OpenStandardMiningChannel          |
 | 0x11                           | 0               | OpenStandardMiningChannel.Success  |
@@ -28,7 +29,6 @@
 | 0x22                           | 0               | SetCustomMiningJob                 |
 | 0x23                           | 0               | SetCustomMiningJob.Success         |
 | 0x24                           | 0               | SetCustomMiningJob.Error           |
-| 0x25                           | 0               | Reconnect                          |
 | 0x26                           | 0               | SetGroupChannel                    |
 | Job Declaration Protocol       |                 |                                    |
 | 0x50                           | 0               | AllocateMiningJobToken             |

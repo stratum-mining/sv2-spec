@@ -430,23 +430,8 @@ The message is not applicable for already received jobs with `min_ntime=nTime`, 
 
 When `SetTarget` is sent to a group channel, the maximum target is applicable to all channels in the group.
 
-### 5.3.22 `Reconnect` (Server -> Client)
 
-This message allows clients to be redirected to a new upstream node.
-
-| Field Name | Data Type | Description                                                           |
-| ---------- | --------- | --------------------------------------------------------------------- |
-| new_host   | STR0_255  | When empty, downstream node attempts to reconnect to its present host |
-| new_port   | U16       | When 0, downstream node attempts to reconnect to its present port     |
-
-This message is connection-related so that it should not be propagated downstream by intermediate proxies.
-Upon receiving the message, the client re-initiates the Noise handshake and uses the pool’s authority public key to verify that the certificate presented by the new server has a valid signature.
-
-For security reasons, it is not possible to reconnect to a server with a certificate signed by a different pool authority key.
-The message intentionally does not contain a **pool public key** and thus cannot be used to reconnect to a different pool.
-This ensures that an attacker will not be able to redirect hashrate to an arbitrary server should the pool server get compromised and instructed to send reconnects to a new location.
-
-### 5.3.23 `SetGroupChannel` (Server -> Client)
+### 5.3.24 `SetGroupChannel` (Server -> Client)
 
 Every standard channel is a member of a group of standard channels, addressed by the upstream server's provided identifier.
 The group channel is used mainly for efficient job distribution to multiple standard channels at once.
