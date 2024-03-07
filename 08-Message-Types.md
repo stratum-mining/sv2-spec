@@ -29,7 +29,7 @@
 | 0x22                           | 0               | SetCustomMiningJob                 |
 | 0x23                           | 0               | SetCustomMiningJob.Success         |
 | 0x24                           | 0               | SetCustomMiningJob.Error           |
-| 0x26                           | 0               | SetGroupChannel                    |
+| 0x25                           | 0               | SetGroupChannel                    |
 | Job Declaration Protocol       |                 |                                    |
 | 0x50                           | 0               | AllocateMiningJobToken             |
 | 0x51                           | 0               | AllocateMiningJobToken.Success     |

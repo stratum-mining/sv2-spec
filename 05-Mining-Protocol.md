@@ -431,7 +431,7 @@ The message is not applicable for already received jobs with `min_ntime=nTime`, 
 When `SetTarget` is sent to a group channel, the maximum target is applicable to all channels in the group.
 
 
-### 5.3.24 `SetGroupChannel` (Server -> Client)
+### 5.3.22 `SetGroupChannel` (Server -> Client)
 
 Every standard channel is a member of a group of standard channels, addressed by the upstream server's provided identifier.
 The group channel is used mainly for efficient job distribution to multiple standard channels at once.
