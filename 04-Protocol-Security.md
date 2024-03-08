@@ -153,10 +153,28 @@ The following functions will also be referenced:
   - Calls `MixHash(ciphertext)`
   - returns `plaintext`
 
-- `ellswift_ecdh_xonly(k, rk)`: performs an Elliptic-Curve Diffie-Hellman operation
+- `ECDH(k, rk)`: performs an Elliptic-Curve Diffie-Hellman operation
   using `k`, which is a   valid `secp256k1` private key, and `rk`, which is a EllSwift
   encoded public key
   - The output is 32 bytes
+  - It is a shortcut for performing operation `v2_ecdh` defined in BIP324<sup>[7](#reference-7)</sup>:
+    - let `k, ellswift_k` be key pair created by `ellswift_create()` function
+    - let `rk` be remote public key **encoded as ellswift**.
+    - let `initiator` be bool flag that is **true** if the party performing ECDH initiated the handshake
+    - then `ECDH(k, rk) = v2_ecdh(k, ellswift_k, rk, initiator)`
+
+- `v2_ecdh(k, ellswift_k, rk, initiator)`: 
+  - let `ecdh_point_x32` = `ellswift_ecdh_xonly(rk, k)`
+  - if initiator == true:
+    - return `tagged_hash(ellswift_k, rk, ecdh_point_x32)`
+    - else return `tagged_hash(rk, ellswift_k, ecdh_point_x32)`
+  - **Note that the ecdh result is not commutative with respect to roles! Therefore the initiator flag is needed**
+
+- `ellswift_ecdh_xonly` - see BIP324<sup>[7](#reference-7)</sup>
+- `tagged_hash(a, b, c)`:
+  - let tag = `SHA256("bip324_ellswift_xonly_ecdh")`
+  - return `SHA256(concatenate(tag, tag, a, b, c))`
+
 
 
 
