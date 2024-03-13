@@ -36,15 +36,21 @@ These primitives are chosen so that Noise Encryption layer for Stratum V2 can be
 
 #### 4.3.1.1 EC point encoding remarks
 
-Secp256k1 curve points, which includes Public Keys and ECDH results, are points with of X- and Y-coordinate, 32-bytes each. There are several possibilities how to serialize them:
+Secp256k1 curve points, i.e. Public Keys, are points with of X- and Y-coordinate.
+We serialize them in three different ways, only using the x-coordinate.
 
-1. 64-byte full X- and Y-coordinate serialization for public keys (and ECDH results) and 96 bytes for signatures.
-2. 33-byte X-coordinate with 1 parity bit serialization for public keys and similarly 65-byte for signatures.
-3. 32-byte X-coordinate only with implicit Y-coordinate for public keys and 64-byte for signatures.
+1. When signing or verifying a certificate, we use the 32 byte x-only
+encoding as defined in BIP 340.<sup>[3](#reference-3)</sup>.
 
-We choose the 32-byte serialization for public key and 64-byte for signatures with implicit Y-coordinate.
+2. When sharing keys during the handshake, whether in plain text or encrypted,
+we use the 64 byte ElligatorSwift x-only encoding as defined in BIP324<sup>[7](#reference-7)</sup> under "ElligatorSwift encoding of curve X coordinates". This encoding uses 64-bytes instead of 32-bytes in order to produce a
+pseudo-random bytesteam. This is useful because the protocol handshake starts with
+each side sending ther public key in plain text. Additionally the use of X-only
+ElligatorSwift ECDH removes the need to grind or negate private keys.
 
-The parity of Y-coordinate is always assumed to be even.
+3. The Authority public key is base58-check encoded as described in 4.7.
+
+Digital signatures are serialized in 64-bytes like in BIP340<sup>[3](#reference-3)</sup>.
 
 Key generation algorithm:
 
@@ -52,16 +58,18 @@ Key generation algorithm:
 2. let `d' = int(sk)`
 3. fail if `d = 0` or `d' > n` where `n` is group order of secp256k1 curve
 4. compute `P` as `d'⋅G`
-5. drop the Y coordinate and output keypair `(sk, bytes(P.x))`
+5. drop the Y coordinate and compute (u, t) = XElligatorSwift(P.x)
+6. ellswift_pub = bytes(u) || bytes(t)
+7. output keypair `(sk, ellswift_pub)`
 
-Such system has the following properties:
+To perform X-only ECDH we use ellswift_ecdh_xonly(ellswift_theirs, d) as described in BIP324<sup>[7](#reference-7)</sup> under "Shared secret computation". The result is 32 bytes.
 
-- for each keypair `(sk, bytes(P.x))` there is another keypair `(n - sk, bytes(P.x))`, where `n` is group order of secp256k1 curve
-- Each result of `ECDH(sk, Q)` is equal to `ECDH(n - sk, Q)` for some EC point `Q` where `n` is group order of secp256k1 curve
+No assumption is made about the parity of Y-coordinate. For the purpose of signing
+(e.g. certificate) and ECDH (handshake) it is _not_ necessary to "grind"
+the private key. The choosen algoritms take care of this by implicitly negatating
+the key, as if its public key had an even Y-coordinate.
 
-These properties don't reduce security.
-
-For more information refer to BIP340<sup>[3](#reference-3)</sup>
+For more information refer to BIP340<sup>[3](#reference-3)</sup> and BIP324<sup>[7](#reference-7)</sup>.
 
 ### 4.3.2 Hash function
 
@@ -106,8 +114,8 @@ The following functions will also be referenced:
   - Where the object returned by `generateKey` has two attributes:
     - `.public_key`, which returns an abstract object representing the public key
     - `.private_key`, which represents the private key used to generate the public key
-  - Where the object also has a single method:
-    - `.serializeImplicit()` that outputs a 32-byte serialization of the X-coordinate of EC point (implicit Y-coordinate)
+  - Where the public_key object also has a single method:
+    - `.serializeEllSwift()` that outputs a 64-byte EllSwift encoded serialization of the X-coordinate of EC point (the Y-coordinate is ignored)
 
 - `a || b` denotes the concatenation of two byte strings `a` and `b`
 
@@ -145,8 +153,30 @@ The following functions will also be referenced:
   - Calls `MixHash(ciphertext)`
   - returns `plaintext`
 
-- `ECDH(k, rk)`: performs an Elliptic-Curve Diffie-Hellman operation using `k`, which is a valid `secp256k1` private key, and `rk`, which is a valid public key
-  - The output is X-coordinate of the resulting EC point
+- `ECDH(k, rk)`: performs an Elliptic-Curve Diffie-Hellman operation
+  using `k`, which is a   valid `secp256k1` private key, and `rk`, which is a EllSwift
+  encoded public key
+  - The output is 32 bytes
+  - It is a shortcut for performing operation `v2_ecdh` defined in BIP324<sup>[7](#reference-7)</sup>:
+    - let `k, ellswift_k` be key pair created by `ellswift_create()` function
+    - let `rk` be remote public key **encoded as ellswift**.
+    - let `initiator` be bool flag that is **true** if the party performing ECDH initiated the handshake
+    - then `ECDH(k, rk) = v2_ecdh(k, ellswift_k, rk, initiator)`
+
+- `v2_ecdh(k, ellswift_k, rk, initiator)`: 
+  - let `ecdh_point_x32` = `ellswift_ecdh_xonly(rk, k)`
+  - if initiator == true:
+    - return `tagged_hash(ellswift_k, rk, ecdh_point_x32)`
+    - else return `tagged_hash(rk, ellswift_k, ecdh_point_x32)`
+  - **Note that the ecdh result is not commutative with respect to roles! Therefore the initiator flag is needed**
+
+- `ellswift_ecdh_xonly` - see BIP324<sup>[7](#reference-7)</sup>
+- `tagged_hash(a, b, c)`:
+  - let tag = `SHA256("bip324_ellswift_xonly_ecdh")`
+  - return `SHA256(concatenate(tag, tag, a, b, c))`
+
+
+
 
 ## 4.5 Authenticated Key Agreement Handshake
 
@@ -164,10 +194,11 @@ Should the decryption (i.e. authentication code validation) fail at any point, t
 
 Prior to starting first round of NX-handshake, both initiator and responder initializes handshake variables `h` (hash output), `ck` (chaining key) and `k` (encryption key):
 
-1. **hash output** `h = protocolName || <zero-padding>` or `h = HASH(protocolName)`
+1. **hash output** `h = HASH(protocolName)`
 
-- If `protocolName` is less than or equal to 32 bytes in length, use `protocolName` with zero bytes appended to make 32 bytes. Otherwise, apply `HASH` to it.
-- `protocolName` is official noise protocol name such as `Noise_NX_secp256k1_ChaChaPoly_SHA256` encoded as an ASCII string
+- Since `protocolName` more than 32 bytes in length, apply `HASH` to it.
+- `protocolName` is official noise protocol name: `Noise_NX_Secp256k1+EllSwift_ChaChaPoly_SHA256`
+  encoded as an ASCII string
 
 2. **chaining key** `ck = h`
 3. **hash output** `h = HASH(h)`
@@ -178,7 +209,7 @@ Prior to starting first round of NX-handshake, both initiator and responder init
 Initiator generates ephemeral keypair and sends the public key to the responder:
 
 1. initializes empty output buffer
-2. generates ephemeral keypair `e`, appends `e.public_key` to the buffer (32 bytes plaintext public key)
+2. generates ephemeral keypair `e`, appends `e.public_key.serializeEllSwift()` to the buffer (64 bytes plaintext EllSwift encoded public key)
 3. calls `MixHash(e.public_key)`
 4. calls `EncryptAndHash()` with empty payload and appends the ciphertext to the buffer (note that _k_ is empty at this point, so this effectively reduces down to `MixHash()` on empty data)
 5. submits the buffer for sending to the responder in the following format
@@ -189,11 +220,11 @@ Initiator generates ephemeral keypair and sends the public key to the responder:
 | ---------- | -------------------------------- |
 | PUBKEY     | Initiator's ephemeral public key |
 
-Message length: 32 bytes
+Message length: 64 bytes
 
 #### 4.5.1.2 Responder
 
-1. receives ephemeral public key message (32 bytes plaintext public key)
+1. receives ephemeral public key message (64 bytes plaintext EllSwift encoded public key)
 2. parses received public key as `re.public_key`
 3. calls `MixHash(re.public_key)`
 4. calls `DecryptAndHash()` on remaining bytes (i.e. on empty data with empty _k_, thus effectively only calls `MixHash()` on empty data)
@@ -216,10 +247,10 @@ Length: 74 bytes
 #### 4.5.2.1 Responder
 
 1. initializes empty output buffer
-2. generates ephemeral keypair `e`, appends `e.public_key` to the buffer (32 bytes plaintext public key)
+2. generates ephemeral keypair `e`, appends `e.public_key` to the buffer (64 bytes plaintext EllSwift encoded public key)
 3. calls `MixHash(e.public_key)`
 4. calls `MixKey(ECDH(e.private_key, re.public_key))`
-5. appends `EncryptAndHash(s.public_key)` (32 bytes encrypted public key, 16 bytes MAC)
+5. appends `EncryptAndHash(s.public_key)` (64 bytes encrypted EllSwift encoded public key, 16 bytes MAC)
 6. calls `MixKey(ECDH(s.private_key, re.public_key))`
 7. appends `EncryptAndHash(SIGNATURE_NOISE_MESSAGE)` to the buffer
 8. submits the buffer for sending to the initiator
@@ -244,10 +275,10 @@ Message length: 170 bytes
 #### 4.5.2.2 Initiator
 
 1. receives NX-handshake part 2 message
-2. interprets first 32 bytes as `re.public_key`
+2. interprets first 64 bytes as EllSwift encoded `re.public_key`
 3. calls `MixHash(re.public_key)`
 4. calls `MixKey(ECDH(e.private_key, re.public_key))`
-5. decrypts next 48 bytes with `DecryptAndHash()` and stores the results as `rs.public_key` which is **server's static public key** (note that 32 bytes is the public key and 16 bytes is MAC)
+5. decrypts next 80 bytes with `DecryptAndHash()` and stores the results as `rs.public_key` which is **server's static public key** (note that 64 bytes is the public key and 16 bytes is MAC)
 6. calls `MixKey(ECDH(e.private_key, rs.public_key)`
 7. decrypts next 90 bytes with `DecryptAndHash()` and deserialize plaintext into `SIGNATURE_NOISE_MESSAGE` (74 bytes data + 16 bytes MAC)
 8. return pair of CipherState objects, the first for encrypting transport messages from initiator to responder, and the second for messages in the other direction:
@@ -273,6 +304,10 @@ During the handshake, initiator receives `SIGNATURE_NOISE_MESSAGE` and **server'
 
 This message is not sent directly. Instead, it is constructed from SIGNATURE_NOISE_MESSAGE and server's static public
 key that are sent during the handshake process
+
+The PUBKEY fields are encoded using only their 32 byte x-coordinate and _not_ with
+EllSwift. For the purpose of generating and verifying the certificate, the 64 byte
+EllSwift encoded server_public_key can be decoded to its 32 byte x-coordinate.
 
 #### 4.5.3.1 Signature structure
 
@@ -383,4 +418,5 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 4. <a id="reference-4"> https://tools.ietf.org/html/rfc8439</a>
 5. <a id="reference-5"> https://www.ietf.org/rfc/rfc2104.txt</a>
 6. <a id="reference-6"> https://tools.ietf.org/html/rfc5869</a>
+7. <a id="reference-7"> https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki</a>
 ```
