@@ -305,6 +305,14 @@ Stratum Message header and stratum message payload are processed separately.
    5. `EncryptWithAd([], payload)` - variable length encrypted message
 4. concatenate resulting header and payload ciphertext
 
+- Note: The `message_length` (payload_length) in the encrypted Stratum message header always reflects the plaintext payload size. The size of the encrypted payload is implicitly understood to be message_length + MAC size for each block. This simplifies the decryption process and ensures clarity in interpreting frame data.
+
+#### Decrypting stratum message
+1. read exactly 22 bytes and decrypt into stratum frame or fail
+2.The value `frame.message_length` should first be converted to the ciphertext length, and then that amount of data should be read and decrypted into plaintext payload. If decryption fails, the process stops
+3. deserialize plaintext payload into stratum message given by `frame.extension_type` and `frame.message_type` or fail
+
+
 *converting plaintext length to ciphertext length:
 ```c
 #define MAX_CT_LEN 65535
@@ -320,15 +328,6 @@ uint pt_len_to_ct_len(uint pt_len) {
         return pt_len / MAX_PT_LEN * MAX_CT_LEN + remainder;
 }
 ```
-
-
-- Note: The `message_length` (payload_length) in the encrypted Stratum message header always reflects the plaintext payload size. The size of the encrypted payload is implicitly understood to be message_length + MAC size for each block. This simplifies the decryption process and ensures clarity in interpreting frame data.
-
-#### Decrypting stratum message
-1. read exactly 22 bytes and decrypt into stratum frame or fail
-2.The value `frame.message_length` should first be converted to the ciphertext length, and then that amount of data should be read and decrypted into plaintext payload. If decryption fails, the process stops
-3. deserialize plaintext payload into stratum message given by `frame.extension_type` and `frame.message_type` or fail
-
 
 
 #### Encrypted stratum message frame layout
