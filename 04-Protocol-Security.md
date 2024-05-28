@@ -402,7 +402,7 @@ URL example:
 
 ```
 
-stratum2+tcp://thepool.com/9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh
+stratum2+tcp://thepool.com:34254/9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh
 
 ```
 
