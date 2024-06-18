@@ -22,7 +22,7 @@ No flags are yet defined for use in `SetupConnection.Success`.
 ### 6.1.2 `AllocateMiningJobToken` (Client -> Server)
 
 A request to get an identifier for a future-submitted mining job.
-Rate limited to a rather slow rate and only available on connections where this has been negotiated. Otherwise, only `mining_job_token(s)` from `CreateMiningJob.Success` are valid.
+Rate limited to a rather slow rate and only available on connections where this has been negotiated. Otherwise, only `mining_job_token(s)` from `AllocateMiningJobToken.Success` are valid.
 
 | Field Name      | Data Type | Description                                                                                                                                                                                                                        |
 | --------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -97,18 +97,17 @@ Sent by the Client in response to an `IdentifyTransactions` message to provide t
 
 ### 6.1.9 `ProvideMissingTransactions` (Server->Client)
 
-| Field Name               | Data Type     | Description                                                                                                                                                                                                                             |
-| ------------------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| request_id               | U32           | Identifier of the original CreateMiningJob request                                                                                                                                                                                      |
+| Field Name               | Data Type     | Description                                                                                                                                                                                                                              |
+| ------------------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| request_id               | U32           | Identifier of the original AllocateMiningJobToken request                                                                                                                                                                                |
 | unknown_tx_position_list | SEQ0_64K[U16] | A list of unrecognized transactions that need to be supplied by the Job Declarator in full. They are specified by their position in the original DeclareMiningJob message, 0-indexed not including the coinbase transaction transaction. |
 
 ### 6.1.10 `ProvideMissingTransactions.Success` (Client->Server)
-
 This is a message to push transactions that the server did not recognize and requested them to be supplied in `ProvideMissingTransactions`.
 
 | Field Name       | Data Type        | Description                                                                                                                          |
 | ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| request_id       | U32              | Identifier of the original CreateMiningJob request                                                                                   |
+| request_id       | U32              | Identifier of the original  AllocateMiningJobToken request                                                                           ""|
 | transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
 
 ### 6.1.11 `SubmitSolution` (Client -> Server)
