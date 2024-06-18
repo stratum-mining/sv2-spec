@@ -5,12 +5,12 @@ It effectively replaces [BIP 22](https://github.com/bitcoin/bips/blob/master/bip
 While not recommended, the template update protocol can be a remote server, and is thus authenticated and signed in the same way as all other protocols (using the same SetupConnection handshake).
 
 Like the Job Declaration and Job Distribution protocols, all Template Distribution messages have the `channel_msg` bit unset, and there is no concept of channels.
-After the initial common handshake, the client MUST immediately send a `CoinbaseOutputDataSize` message to indicate the space it requires for coinbase output addition, to which the server MUST immediately reply with the current best block template it has available to the client.
+After the initial common handshake, the client MUST immediately send a `CoinbaseOutputConstraints` message to indicate the space it requires for coinbase output addition, to which the server MUST immediately reply with the current best block template it has available to the client.
 Thereafter, the server SHOULD push new block templates to the client whenever the total fee in the current block template increases materially, and MUST send updated block templates whenever it learns of a new block.
 
 Template Providers MUST attempt to broadcast blocks which are mined using work they provided, and thus MUST track the work which they provided to clients.
 
-## 7.1 `CoinbaseOutputDataSize` (Client -> Server)
+## 7.1 `CoinbaseOutputConstraints` (Client -> Server)
 
 Ultimately, the pool is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size, and sigops when selecting transactions for inclusion in a block (to not create an invalid, oversized block).
 Thus, this message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the pool’s use (while always assuming the pool will use the entirety of available coinbase space and sigops).

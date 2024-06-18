@@ -80,7 +80,7 @@ This repository contains the Stratum V2 protocol specification.
     - [6.1.9 ProvideMissingTransactions (Server->Client)](./06-Job-Declaration-Protocol.md#619-providemissingtransactions-server-client)
     - [6.1.10 ProvideMissingTransactions.Success (Client->Server)](./06-Job-Declaration-Protocol.md#6110-providemissingtransactionssuccess-client-server)
 - [7. Template Distribution Protocol](./07-Template-Distribution-Protocol.md)
-  - [7.1 CoinbaseOutputDataSize (Client -> Server)](./07-Template-Distribution-Protocol.md#71-coinbaseoutputdatasize-client---server)
+  - [7.1 CoinbaseOutputConstraints (Client -> Server)](./07-Template-Distribution-Protocol.md#71-coinbaseoutputdatasize-client---server)
   - [7.2 NewTemplate (Server -> Client)](./07-Template-Distribution-Protocol.md#72-newtemplate-server---client)
   - [7.3 SetNewPrevHash (Server -> Client)](./07-Template-Distribution-Protocol.md#73-setnewprevhash-server---client)
   - [7.4 RequestTransactionData (Client -> Server)](./07-Template-Distribution-Protocol.md#74-requesttransactiondata-client---server)
