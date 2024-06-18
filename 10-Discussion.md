@@ -70,7 +70,7 @@ The proxy:
 ...
 
 
-## 10.5. FAQ
+## 10.5 FAQ
 
 
 ### 10.5.1 Why is the protocol binary?
