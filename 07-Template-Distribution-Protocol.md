@@ -19,6 +19,8 @@ The Job Declarator MUST discover the maximum serialized size of the additional o
 It then MUST communicate it to the Template Provider via this message.
 The Template Provider MUST NOT provide `NewMiningJob` messages which would represent consensus-invalid blocks once this additional size and sigops — along with a maximally-sized (100 byte) coinbase script field — is added.
 Further, the Template Provider MUST consider the maximum additional bytes required in the output count variable-length integer in the coinbase transaction when complying with the size limits.
+Current sigops limit per block in bitcoin is 80_000. We are not aware of any use cases where
+coinbase have more the 65_535 so coinbase_output_max_sigops is an U16. Note that taproot outputs consume 0 sigops.
 
 | Field Name                          | Data Type | Description                                                                                     |
 | ----------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
