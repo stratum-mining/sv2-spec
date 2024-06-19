@@ -45,7 +45,7 @@ encoding as defined in BIP 340.<sup>[3](#reference-3)</sup>.
 2. When sharing keys during the handshake, whether in plain text or encrypted,
 we use the 64 byte ElligatorSwift x-only encoding as defined in BIP324<sup>[7](#reference-7)</sup> under "ElligatorSwift encoding of curve X coordinates". This encoding uses 64-bytes instead of 32-bytes in order to produce a
 pseudo-random bytesteam. This is useful because the protocol handshake starts with
-each side sending ther public key in plain text. Additionally the use of X-only
+each side sending their public key in plain text. Additionally the use of X-only
 ElligatorSwift ECDH removes the need to grind or negate private keys.
 
 3. The Authority public key is base58-check encoded as described in 4.7.
