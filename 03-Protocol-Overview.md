@@ -37,8 +37,8 @@ Meanwhile, there are five possible roles (types of software/hardware) for commun
    May optionally provide additional monitoring, receive work from a Job Declarator and use custom work with a pool, or provide other services for a farm.
 
 4. **Job Declarator (optional)**  
-   Receives custom block templates from a Template Provider and declares use of the template with the pool using the Job Declaration Protocol.
-   Further distributes the jobs to Mining Proxy (or Proxies) using the Job Distribution Protocol. This role will often be a built-in part of a Mining Proxy.
+   It is further divided into a Job Declarator Client and a Job Declarator Server.
+   The Job Declarator Client receives custom block templates from a Template Provider and declares use of them with the Job Declarator Server (which is typically Pool side) using the Job Declaration Protocol.
 
 5. **Template Provider**  
    Generates custom block templates to be passed to the Job Declarator for eventual mining.
@@ -46,11 +46,10 @@ Meanwhile, there are five possible roles (types of software/hardware) for commun
 
 The Mining Protocol is used for communication between a Mining Device and Pool Service, Mining Device and Mining Proxy, Mining Proxy and Mining Proxy, or Mining Proxy and Pool Service.
 
-The Job Declaration Protocol is used for communication between a Job Declarator and Pool Service.
+The Job Declaration Protocol is used for communication between a Job Declarator Client and a Job Declarator Server (which is typically Pool side).
 
-The Template Distribution Protocol is used for communication either between a Job Declarator and a Template Provider or between a Pool Service and Template Provider.
+The Template Distribution Protocol is used for communication either between a Job Declarator Client and a Template Provider or between a Pool Service and Template Provider.
 
-The Job Distribution Protocol is used for communication between a Job Declarator and a Mining Proxy.
 
 One type of software/hardware can fulfill more than one role (e.g. a Mining Proxy is often both a Mining Proxy and a Job Declarator and may occasionally further contain a Template Provider in the form of a full node on the same device).
 
