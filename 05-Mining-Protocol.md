@@ -365,24 +365,24 @@ Can be sent only on extended channel.
 The downstream node has a custom job declared by a trusted external Job Declarator.
 The `mining_job_token` provides the information for the pool to authorize the custom job that has been or will be declared between the Job Declarator and Pool.
 
-| Field Name                  | Data Type      | Description                                                                                                                                                           |
-| --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| channel_id                  | U32            | Extended channel identifier                                                                                                                                           |
-| request_id                  | U32            | Client-specified identifier for pairing responses                                                                                                                     |
-| mining_job_token            | B0_255         | Token provided by the pool which uniquely identifies the job that the Job Declarator has declared with the pool. See the Job Declaration Protocol for more details. |
-| version                     | U32            | Valid version field that reflects the current network consensus. The general purpose bits (as specified in BIP320) can be freely manipulated by the downstream node.  |
-| prev_hash                   | U256           | Previous block’s hash, found in the block header field                                                                                                                |
-| min_ntime                   | U32            | Smallest nTime value available for hashing                                                                                                                            |
-| nbits                       | U32            | Block header field                                                                                                                                                    |
-| coinbase_tx_version         | U32            | The coinbase transaction nVersion field                                                                                                                               |
-| coinbase_prefix             | B0_255         | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction.                              |
-| coinbase_tx_input_nSequence | U32            | The coinbase transaction input's nSequence field                                                                                                                      |
-| coinbase_tx_value_remaining | U64            | The value, in satoshis, available for spending in coinbase outputs added by the client. Includes both transaction fees and block subsidy.                             |
-| coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs to be included as the last outputs in the coinbase transaction                                                                            |
-| coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                        |
-| merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                                                                                                               |
-| extranonce_size             | U16            | Size of extranonce in bytes that will be provided by the downstream node                                                                                              |
-| min_ntime                   | OPTION[u32]    | TBD: Can custom job ever be future?                                                                                                                                   |
+| Field Name                  | Data Type      | Description                                                                                                                                                                    |
+| --------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------          |
+| channel_id                  | U32            | Extended channel identifier                                                                                                                                                    |
+| request_id                  | U32            | Client-specified identifier for pairing responses                                                                                                                              |
+| token                       | B0_255         | Mining job token provided by the pool which uniquely identifies the job that the Job Declarator has declared with the pool. See the Job Declaration Protocol for more details. |
+| version                     | U32            | Valid version field that reflects the current network consensus. The general purpose bits (as specified in BIP320) can be freely manipulated by the downstream node.           |
+| prev_hash                   | U256           | Previous block’s hash, found in the block header field                                                                                                                         |
+| min_ntime                   | U32            | Smallest nTime value available for hashing                                                                                                                                     |
+| nbits                       | U32            | Block header field                                                                                                                                                             |
+| coinbase_tx_version         | U32            | The coinbase transaction nVersion field                                                                                                                                        |
+| coinbase_prefix             | B0_255         | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction.                                       |
+| coinbase_tx_input_n_sequence| U32            | The coinbase transaction input's nSequence field                                                                                                                               |
+| coinbase_tx_value_remaining | U64            | The value, in satoshis, available for spending in coinbase outputs added by the client. Includes both transaction fees and block subsidy.                                      |
+| coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs to be included as the last outputs in the coinbase transaction                                                                                     |
+| coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                                 |
+| merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                                                                                                                        |
+| extranonce_size             | U16            | Size of extranonce in bytes that will be provided by the downstream node                                                                                                       |
+| min_ntime                   | OPTION[u32]    | TBD: Can custom job ever be future?                                                                                                                                            |
 
 ### 5.3.19 `SetCustomMiningJob.Success` (Server -> Client)
 
