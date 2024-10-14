@@ -1,6 +1,6 @@
 # 3. Protocol Overview
 
-There are technically four distinct (sub)protocols needed in order to fully use all of the features proposed in this document:
+There are technically three distinct (sub)protocols needed in order to fully use all of the features proposed in this document:
 
 1. **Mining Protocol**  
    The main protocol used for mining and the direct successor of Stratum v1.
@@ -19,10 +19,6 @@ There are technically four distinct (sub)protocols needed in order to fully use 
 3. **Template Distribution Protocol**  
    A similarly-framed protocol for getting information about the next block out of Bitcoin Core.
    Designed to replace `getblocktemplate` with something much more efficient and easy to implement for those implementing other parts of Stratum v2.
-
-4. **Job Distribution Protocol**  
-   Simple protocol for passing newly-declared work to interested nodes - either proxies or miners directly.
-   This protocol is left to be specified in a future document, as it is often unnecessary due to the Job Declaration role being a part of a larger Mining Protocol Proxy.
 
 Meanwhile, there are five possible roles (types of software/hardware) for communicating with these protocols.
 
