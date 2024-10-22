@@ -1,11 +1,10 @@
 # 6. Job Declaration Protocol
 
-As outlined above, this protocol runs between the Job Declarator and Pool and can be provided as a trusted 3rd party service for mining farms.
+The Job Declaration Protocol is used to coordinate the creation of custom work, avoiding scenarios where Pools are unilaterally imposing work on miners.
 
-Protocol flow:
+Pools that opt into this protocol are only responsible for accounting shares and distributing rewards.
 
-![5.a-Job-Declaration-Protocol-Flow](./img/5.a-Job-Declaration-Protocol-Flow.png)  
-Figure 5.a Job Declaration Protocol: Flow
+This is a key feature of Stratum V2 that improves Bitcoin decentralization.
 
 ## 6.1 Job Declaration Protocol Messages
 
