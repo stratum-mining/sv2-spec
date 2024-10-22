@@ -97,12 +97,6 @@ This protocol explicitly expects that upstream server software is able to manage
 
 ## 5.3 Mining Protocol Messages
 
-![4.3.a Mining Protocol Messages: Initialization](./img/4.3.a-Mining-Protocol-Messages-Initialization.png)  
-Figure 4.3.a Mining Protocol Messages: Initialization
-
-![4.3.b Mining Protocol Messages: Mining on Standard Channel](./img/4.3.b-Mining-Protocol-Messages-Mining-on-Standard-Channel.png)  
-Figure 4.3.b Mining Protocol Messages: Mining on Standard Channel
-
 ### 5.3.1 `SetupConnection` Flags for Mining Protocol
 
 Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, where bit 0 is the least significant bit of the u32 type:
