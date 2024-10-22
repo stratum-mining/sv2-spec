@@ -132,55 +132,55 @@ This is a key feature of Stratum V2 that improves Bitcoin decentralization. Plea
 
 ## 5.2 Channels
 
-The protocol is designed such that downstream devices (or proxies) open communication channels with upstream stratum nodes within established connections.
-The upstream stratum endpoints could be actual mining servers or proxies that pass the messages further upstream.
-Each channel identifies a dedicated mining session associated with an authorized user.
+The Mining Protocol is designed such that downstream Mining Devices open Channels with upstream Stratum Nodes within established Connections.
+These upstream Stratum Nodes could be actual Work-Providing Nodes (e.g.: Pool, or Job Declarator Client) or simply Proxies that relay messages forward.
+
+Each Channel identifies a dedicated mining session associated with an authorized user.
 Upstream stratum nodes accept work submissions and specify a mining target on a per-channel basis.
 
-There can theoretically be up to 2^32 open channels within one physical connection to an upstream stratum node.
-All channels are independent of each other, but share some messages broadcast from the server for higher efficiency (e.g. information about a new prevhash).
-Each channel is identified by its `channel_id` (`U32`), which is consistent throughout the whole life of the connection.
+There can theoretically be up to `2^32` open Channels within one Connection. This is however just a theoretical ceiling, and it does not mean that every Connection will be able to fill this full capacity (maybe the search space has already been narrowed).
 
-A proxy can either transparently allow its clients to open separate channels with the server (preferred behavior) or aggregate open connections from downstream devices into its own open channel with the server and translate the messages accordingly (present mainly for allowing v1 proxies).
+All Channels are independent of each other, but share some messages broadcast from the server for higher efficiency (e.g. information about a new `prev_hash`).
+Each Channel is identified by its `channel_id` (`U32`), which is consistent throughout the whole life of the Connection.
+
+A Proxy can either transparently allow its clients to open separate Channels with the server (preferred behavior), or aggregate open connections from downstream devices into its own open channel with the server and translate the messages accordingly (present mainly for allowing v1 proxies).
 Both options have some practical use cases.
-In either case, proxies SHOULD aggregate clients' channels into a smaller number of TCP connections.
+In either case, proxies SHOULD aggregate clients' Channels into a smaller number of Connections.
 This saves network traffic for broadcast messages sent by a server because fewer messages need to be sent in total, which leads to lower latencies as a result.
 And it further increases efficiency by allowing larger packets to be sent.
 
-The protocol defines three types of channels: **standard channels**, **extended channels** (mining sessions) and **group channels** (organizational), which are useful for different purposes.
-
-The main difference between standard and extended channels is that standard channels cannot manipulate the coinbase transaction / Merkle path, as they operate solely on provided Merkle roots.
-We call this header-only mining.
-Extended channels, on the other hand, are given extensive control over the search space so that they can implement various advanced use cases such as translation between v1 and v2 protocols, difficulty aggregation, custom search space splitting, etc.
-
-This separation vastly simplifies the protocol implementation for clients that don’t support extended channels, as they only need to implement the subset of protocol messages related to standard channels (see Mining Protocol Messages for details).
+The protocol defines three types of Channels: **Standard Channels**, **Extended Channels** and **Group Channels**, which are useful for different purposes.
 
 ### 5.2.1 Standard Channels
 
-Standard channels are intended to be used by end mining devices.
+Standard Channels are created by end Mining Devices.
 
-The size of the search space for one standard channel (header-only mining) for one particular value in the `nTime` field is `2^(NONCE_BITS + VERSION_ROLLING_BITS) = ~280Th`, where `NONCE_BITS = 32` and `VERSION_ROLLING_BITS = 16`.
-This is a guaranteed space before `nTime` rolling (or changing the Merkle root).
+When an end Mining Device opens a Standard Channel with an upstream, it is restricted to Standard Jobs (via `REQUIRES_STANDARD_JOBS` bit flag of `SetupConnection` message).
 
-The protocol dedicates all directly modifiable bits (`version`, `nonce`, and `nTime`) from the block header to one mining channel.
-This is the smallest assignable unit of search space by the protocol.
-The client which opened the particular channel owns the whole assigned space and can split it further if necessary (e.g. for multiple hashing boards and for individual chips etc.).
+However, a Proxy could also transparently relay the Standard Channels from the downstream Mining Devices into new upstream Connections. In this case, the `REQUIRES_STANDARD_JOBS` bit flag will not be set for the `SetupConnection` message. This indicates that on this Connection, the Standard Channels can be assembled into a Group Channel and receive Extended Jobs for efficient distribution downstream.
+
+Then, the Connections between the Proxy and Mining Devices will receive Standard Jobs that were efficiently distributed from the Extended Jobs. The Merkle Root of each Standard Job is calculated by the Proxy, taking in consideration the `extranonce_prefix` that was assigned to each Standard Channel, plus the `coinbase_tx_prefix` and the `coinbase_tx_suffix` that were sent on the Extended Job. No `extranonce` field is used in this scenario.
 
 ### 5.2.2 Extended Channels
 
-Extended channels are intended to be used by proxies.
-Upstream servers which accept connections and provide work MUST support extended channels.
-Clients, on the other hand, do not have to support extended channels, as they MAY be implemented more simply with only standard channels at the end-device level.
-Thus, upstream servers providing work MUST also support standard channels.
+Extended Channels are intended to be used by Proxies for a more efficient distribution of hashing space.
 
-The size of search space for an extended channel is `2^(NONCE_BITS+VERSION_ROLLING_BITS+extranonce_size*8)` per `nTime` value.
+An Extended Channel carries the following properties:
+- `extranonce_prefix`: the Extended Extranonce bytes that were already allocated by the upstream server.
+- `extranonce_size`: how many bytes are available for the locally reserved and downstream reserved areas of the Extended Extranonce.
+
+Upstream servers which accept connections and provide work MUST support Extended Channels.
+Clients, on the other hand, do not have to support Extended Channels, as they MAY be implemented more simply with only Standard Channels at the end-device level.
+Thus, upstream servers providing work MUST also support Standard Channels.
+
+The size of search space for an Extended Channel is `2^(nonce_bits + version_rolling_bits + extranonce_size*8)` per `nTime` value.
 
 ### 5.2.3 Group Channels
 
 Standard channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
 
-Whenever a standard channel is created it is always put into some channel group identified by its `group_channel_id`.
-Group channel ID namespace is the same as channel ID namespace on a particular connection but the values chosen for group channel IDs must be distinct.
+Whenever a Standard Channel is created, it is always put into some Group Channel identified by its `group_channel_id`.
+Group Channel ID namespace is the same as Channel ID namespace on a particular connection but the values chosen for Group Channel IDs must be distinct.
 
 ## 5.3 Mining Protocol Messages
 
