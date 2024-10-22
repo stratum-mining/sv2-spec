@@ -6,7 +6,131 @@ It can be used without Job Declaration and Template Distribution Protocols, wher
 
 Alternatively, it can be used in conjunction with Job Declaration and Template Distribution Protocols, where both pool and miners coordinate to decide what is valid work.
 
-## 5.1 Channels
+## 5.1 Jobs
+
+A **Job** consists of a unit of work containing all the necessary information about the hashing space over some candidate block header.
+
+Each Mining Device has to work on a unique part of the whole search space.
+The full search space is defined in part by valid values in the following block header fields:
+
+- `nonce` header field (32 bits)
+- `version` header field (16 bits, as specified by [BIP 320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki))
+- `nTime` header field (32 bits timestamp, limited under [`MAX_FUTURE_BLOCK_TIME`](https://github.com/bitcoin/bitcoin/blob/28ce159bc327e6dfec34077ff2e379b23a95db65/src/chain.h#L29))
+
+The other portion of the block header that is used to define the full search space is the Merkle Root, which is deterministically computed from:
+- Coinbase transaction
+- Transaction set
+
+All roles in Stratum v2 MUST NOT use transaction selection/ordering for additional hash space extension.
+This stems both from the concept that miners/pools should be able to choose their transaction set freely without any interference with the protocol, and also to enable future protocol modifications to Bitcoin.
+In other words, any rules imposed on transaction selection/ordering by miners not described in the rest of this document may result in invalid work.
+
+Mining servers MUST assign a unique subset of the search space to each mining device, otherwise the mining devices will waste energy with overlapping search.
+
+This protocol explicitly expects that upstream server software is able to manage the size of the hashing space correctly for its clients and can provide new and unique Jobs quickly enough, based on the hashpower of each client.
+
+The protocol defines two main types of Jobs: **Standard Jobs** and **Extended Jobs**.
+
+This separation vastly simplifies the protocol implementation for clients that don’t support Extended Jobs, as they only need to implement the subset of protocol messages related to Standard Jobs (see Mining Protocol Messages for details).
+
+Additionally, a Job (either Standard or Extended) also could be potentially labeled as a **Future Job** and/or **Custom Job**.
+
+### 5.1.1 Standard Jobs
+
+Standard Jobs are restricted to fixed Merkle Roots, where the only modifiable bits are under the `version`, `nonce`, and `nTime` fields of the block header.
+
+We call this header-only mining (HOM), and it is the smallest assignable unit of search space by the protocol.
+
+The size of the search space for one Standard Job, given a fixed `nTime` field, is `2^(NONCE_BITS + BIP320_VERSION_ROLLING_BITS) = ~280Th`, where `NONCE_BITS = 32` and `BIP320_VERSION_ROLLING_BITS = 16`.
+This is a guaranteed space before `nTime` rolling (or changing the Merkle Root by sending a new Job).
+
+Standard Jobs are distributed via the [`NewMiningJob`](#5315-newminingjob-server---client) message, which can ONLY be sent via [Standard Channels](#521-standard-channels).
+
+Note that Mining Devices with hashrate above 280 TH/s will outrun the true time when rolling the `nTime` field. This is not necessarily a problem, as long as the Job remains valid within the limits defined by the `MAX_FUTURE_BLOCK_TIME` constant of the Bitcoin protocol (2 hours).
+
+Depending on the hashrate of the Mining Device, it must receive new Standard Jobs (with a different Merkle Root) frequently enough in order to avoid rolling `nTime` too much ahead of the true time (which could result in rejected work).
+
+![](./img/standard_job.png)
+
+### 5.1.2 Extended Jobs
+
+Extended Jobs allow rolling Merkle Roots, giving extensive control over the search space so that they can implement various advanced use cases such as:
+- translation between Sv1 and Sv2 protocols
+- difficulty aggregation
+- search space splitting
+
+Extended Jobs are distributed via the [`NewExtendedMiningJob`](#5416-newextendedminingjob-server---client) message, which can be sent via:
+- [Group Channels](#523-group-channels)
+- [Extended Channels](#522-extended-channels)
+
+![](./img/extended_job.png)
+
+#### 5.1.2.1 Extended Extranonce
+
+Downstream and Upstream are relative terms. There could theoretically be multiple nested layers of Stratum Nodes (e.g.: Proxies) between a Work-Providing Node and a Mining Device.
+
+So the protocol establishes the notion of **Extended Extranonce**, which is a fundamental component of Extended Jobs.
+
+The Extended Extranonce is an array of bytes, split into three different areas:
+
+![](./img/extended_extranonce.png)
+
+- The `extranonce_prefix` bytes are reserved for the upstream layer, where fixed bytes were already established for the Extranonce and are no longer available for rolling or search space splitting.
+- The **locally reserved** bytes is where the local layer will assign unique values for its own downstream clients, according to their hashpower.
+- The **downstream reserved** bytes is where the downstream clients will further distribute the search space, or use for rolling (if they are Mining Devices).
+
+![](./img/extended_extranonce_layers.png)
+
+In order to calculate the Merkle Root, an Extended Job carries the following data:
+- `merkle_path`
+- `coinbase_tx_prefix`
+- `coinbase_tx_suffix`
+
+An [Extended Channel](#532-extended-channels) has the following properties:
+- `extranonce_prefix`: the Extended Extranonce bytes that were already allocated by the upstream server.
+- `extranonce_size`: how many bytes are available for the locally reserved and downstream reserved areas of the Extended Extranonce.
+
+And a [Standard Channel](#531-standard-channels) has the following property:
+- `extranonce_prefix` the Extended Extranonce bytes that were already allocated by the upstream server.
+
+So when some layer receives an Extended Job, it could either:
+- propagate it as an Extended Job to a downstream Extended or Group Channel (via `NewExtendedMiningJob` notification), where the Extended Extranonce will be further split.
+- convert it into multiple Standard Job notifications (`NewMiningJob`), where each downstream Standard Channel's `extranonce_prefix` is combined with `coinbase_tx_prefix` + `coinbase_tx_suffix`.
+
+For conversion into Standard Jobs, the Coinbase Transaction is constructed by concatenating these fields in this specific order: `coinbase_tx_prefix + extranonce_prefix + coinbase_tx_suffix`.
+
+The Coinbase Transaction is then combined with the `merkle_path` of the Extended Job to calculate the `merkle_root` for the Standard Job notification (`NewMiningJob`). Since Standard Jobs are HOM, there's no `extranonce_size` field on the Standard Job notification.
+
+### 5.1.3 Future Jobs
+
+A Job with an empty template or speculated non-empty template can be sent in advance to speedup Job distribution when a new block is found on the network.
+
+The mining server MAY have precomputed such a Job and is able to pre-distribute it for all active Channels.
+The only missing information to start to mine on the new block is the new `prev_hash`.
+This information can be provided independently.
+
+Such an approach improves the efficiency of the protocol where the upstream node does not waste precious time immediately after a new block is found in the network.
+
+The trade-off here is that a non-empty Future Job could potentially contain a transaction that was already included in the block that was just propagated on the network, which would lead to an invalid block if successfully mined.
+
+So mining servers that provide non-empty Future Jobs SHOULD:
+- never send a `SetNewPrevHash` for a Future Job that was later found to contain a conflicting transaction.
+- minimize the probability of Future Jobs containing conflicting transactions (which leads to Future Jobs carrying less profitable templates).
+- after a `SetNewPrevHash` is propagated for a Future Job, provide a non-Future Job for this same `prev_hash` as fast as possible (with a more profitable template).
+
+### 5.1.4 Custom Jobs
+
+A Custom Job contains a set of transactions that were chosen by the miner instead of being unilaterally imposed by the Pool.
+
+Under the Job Declaration Protocol, upon request the Job Declarator Server (JDS) sends a `mining_job_token` to the Job Declarator Client.
+
+This `mining_job_token` is used by JDC for:
+- declaring a Custom Job to JDS (via `DeclareMiningJob` message of Job Declaration Protocol)
+- notifying Pool about a Custom Job (via `SetCustomMiningJob` message of Mining Protocol)
+
+This is a key feature of Stratum V2 that improves Bitcoin decentralization. Please see Job Declaration Protocol for more details.
+
+## 5.2 Channels
 
 The protocol is designed such that downstream devices (or proxies) open communication channels with upstream stratum nodes within established connections.
 The upstream stratum endpoints could be actual mining servers or proxies that pass the messages further upstream.
@@ -31,7 +155,7 @@ Extended channels, on the other hand, are given extensive control over the searc
 
 This separation vastly simplifies the protocol implementation for clients that don’t support extended channels, as they only need to implement the subset of protocol messages related to standard channels (see Mining Protocol Messages for details).
 
-### 5.1.1 Standard Channels
+### 5.2.1 Standard Channels
 
 Standard channels are intended to be used by end mining devices.
 
@@ -42,7 +166,7 @@ The protocol dedicates all directly modifiable bits (`version`, `nonce`, and `nT
 This is the smallest assignable unit of search space by the protocol.
 The client which opened the particular channel owns the whole assigned space and can split it further if necessary (e.g. for multiple hashing boards and for individual chips etc.).
 
-### 5.1.2 Extended Channels
+### 5.2.2 Extended Channels
 
 Extended channels are intended to be used by proxies.
 Upstream servers which accept connections and provide work MUST support extended channels.
@@ -51,49 +175,12 @@ Thus, upstream servers providing work MUST also support standard channels.
 
 The size of search space for an extended channel is `2^(NONCE_BITS+VERSION_ROLLING_BITS+extranonce_size*8)` per `nTime` value.
 
-### 5.1.3 Group Channels
+### 5.2.3 Group Channels
 
 Standard channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
 
 Whenever a standard channel is created it is always put into some channel group identified by its `group_channel_id`.
 Group channel ID namespace is the same as channel ID namespace on a particular connection but the values chosen for group channel IDs must be distinct.
-
-### 5.1.4 Future Jobs
-
-An empty future block job or speculated non-empty job can be sent in advance to speedup new mining job distribution.
-The point is that the mining server MAY have precomputed such a job and is able to pre-distribute it for all active channels.
-The only missing information to start to mine on the new block is the new prevhash.
-This information can be provided independently.
-
-Such an approach improves the efficiency of the protocol where the upstream node does not waste precious time immediately after a new block is found in the network.
-
-To specify that a job is for a future prevhash, the job's `min_ntime` field is left empty.
-
-## 5.2 Hashing Space Distribution
-
-Each mining device has to work on a unique part of the whole search space.
-The full search space is defined in part by valid values in the following block header fields:
-
-- Nonce header field (32 bits)
-- Version header field (16 bits, as specified by [BIP 320](https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki))
-- Timestamp header field
-
-The other portion of the block header that’s used to define the full search space is the Merkle root hash of all transactions in the block, projected to the last variable field in the block header:
-
-- Merkle root, deterministically computed from:
-  - Coinbase transaction: typically 4-8 bytes, possibly much more.
-  - Transaction set: practically unbounded space.
-    All roles in Stratum v2 MUST NOT use transaction selection/ordering for additional hash space extension.
-    This stems both from the concept that miners/pools should be able to choose their transaction set freely without any interference with the protocol, and also to enable future protocol modifications to Bitcoin.
-    In other words, any rules imposed on transaction selection/ordering by miners not described in the rest of this document may result in invalid work/blocks.
-
-Mining servers MUST assign a unique subset of the search space to each connection/channel (and therefore each mining device) frequently and rapidly enough so that the mining devices are not running out of search space.
-Unique jobs can be generated regularly by:
-
-- Putting unique data into the coinbase for each connection/channel, and/or
-- Using unique work from a work provider, e.g. a previous work update (note that this is likely more difficult to implement, especially in light of the requirement that transaction selection/ordering not be used explicitly for additional hash space distribution).
-
-This protocol explicitly expects that upstream server software is able to manage the size of the hashing space correctly for its clients and can provide new jobs quickly enough.
 
 ## 5.3 Mining Protocol Messages
 
@@ -371,7 +458,7 @@ The `mining_job_token` provides the information for the pool to authorize the cu
 | --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | channel_id                  | U32            | Extended channel identifier                                                                                                                                           |
 | request_id                  | U32            | Client-specified identifier for pairing responses                                                                                                                     |
-| mining_job_token            | B0_255         | Token provided by the pool which uniquely identifies the job that the Job Declarator has declared with the pool. See the Job Declaration Protocol for more details. |
+| mining_job_token            | B0_255         | Token provided by JDS which uniquely identifies the Custom Job that JDC has declared. See the Job Declaration Protocol for more details.                              |
 | version                     | U32            | Valid version field that reflects the current network consensus. The general purpose bits (as specified in BIP320) can be freely manipulated by the downstream node.  |
 | prev_hash                   | U256           | Previous block’s hash, found in the block header field                                                                                                                |
 | min_ntime                   | U32            | Smallest nTime value available for hashing                                                                                                                            |
