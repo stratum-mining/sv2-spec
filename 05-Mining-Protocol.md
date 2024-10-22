@@ -1,3 +1,11 @@
+# 5. Mining Protocol
+
+The Mining Protocol is used to distribute work to Mining Devices, and it's also how they submit their proof of work.
+
+It can be used without Job Declaration and Template Distribution Protocols, where a subset of the messages are used by a pool to unilaterally distribute work to miners.
+
+Alternatively, it can be used in conjunction with Job Declaration and Template Distribution Protocols, where both pool and miners coordinate to decide what is valid work.
+
 ## 5.1 Channels
 
 The protocol is designed such that downstream devices (or proxies) open communication channels with upstream stratum nodes within established connections.
