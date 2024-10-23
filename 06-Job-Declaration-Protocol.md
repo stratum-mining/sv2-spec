@@ -133,6 +133,8 @@ Sent by the Client in response to an `IdentifyTransactions` message to provide t
 
 ### 6.3.9 `ProvideMissingTransactions` (Server->Client)
 
+If `DeclareMiningJob` includes some transactions that JDS's Bitcoin Node has not yet seen, then JDS needs to request that JDC provides those missing ones.
+
 | Field Name               | Data Type     | Description                                                                                                                                                                                                                              |
 | ------------------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | request_id               | U32           | Identifier of the original AllocateMiningJobToken request                                                                                                                                                                                |
@@ -148,6 +150,11 @@ This is a message to push transactions that the server did not recognize and req
 
 ### 6.3.11 `SubmitSolution` (Client -> Server)
 
+Sent by JDC as soon as a valid block is found, so that it can be propagated also by JDS.
+
+In the meantime, the block is also transmitted to the network by JDC through the `SubmitSolution` message under in Template Distribution Protocol.
+
+In this way, a valid solution is immediately propagated on both client and server sides, decreasing the chance of the block being orphaned by the network.
 
 | Field Name                              | Data Type | Description                                                                                                                                                                                                                                                                                |
 | --------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
