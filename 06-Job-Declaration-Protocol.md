@@ -100,12 +100,24 @@ More specifically, the `SipHash 2-4` variant is used. Aside from the preimage (w
 
 ### 6.3.5 `DeclareMiningJob.Success` (Server -> Client)
 
-| Field Name           | Data Type | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| -------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| request_id           | U32       | Identifier of the original request                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| new_mining_job_token | B0_255    | Unique identifier provided by the pool of the job that the Job Declarator has declared with the pool. It MAY be the same token as DeclareMiningJob::mining_job_token if the pool allows to start mining on not yet declared job. If the token is different from the one in the corresponding DeclareMiningJob message (irrespective of if the client is already mining using the original token), the client MUST send a SetCustomMiningJob message on each Mining Protocol client which wishes to mine using the declared job. |
+A response sent by JDS acknowledging some Custom Job declaration.
+
+The `new_mining_job_token`  MAY be the same token as `DeclareMiningJob::mining_job_token` if the Pool allows to start mining on not yet declared job  (async mode).
+
+If `new_mining_job_token != DeclareMiningJob::mining_job_token` (irrespective of if the client is already mining using the original token), the client MUST send a `SetCustomMiningJob` message on each Mining Protocol client which wishes to mine using the declared job.
+
+Since JDS could be third party (not necessarily integrated to Pool), `new_mining_job_token` MAY carry a cryptographic commitment from JDS (while also still committing to the corresponding `mining_job_token`).
+
+| Field Name           | Data Type | Description                         |
+| -------------------- | --------- |-------------------------------------|
+| request_id           | U32       | Identifier of the original request. |
+| new_mining_job_token | B0_255    | Unique custom work identifier.      |
 
 ### 6.3.6 `DeclareMiningJob.Error` (Server->Client)
+
+A response sent by JDS rejecting some Custom Job declaration.
+
+This should be a trigger for fallback into some other Pool+JDS or solo mining.
 
 | Field Name    | Data Type | Description                                            |
 | ------------- | --------- | ------------------------------------------------------ |
