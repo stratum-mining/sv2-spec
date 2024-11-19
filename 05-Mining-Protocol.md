@@ -99,15 +99,17 @@ Figure 4.3.b Mining Protocol Messages: Mining on Standard Channel
 
 Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, where bit 0 is the least significant bit of the u32 type:
 
-| Field Name               | Bit | Description                                                                         |
-| ------------------------ | --- | ----------------------------------------------------------------------------------- |
-| REQUIRES_STANDARD_JOBS   | 0   | The downstream node requires standard jobs. It does not understand group channels - |
-|                          |     | it is unable to process extended jobs sent to standard channels through a group     |
-|                          |     | channel.                                                                            |
-| REQUIRES_WORK_SELECTION  | 1   | If set to 1, the client notifies the server that it will send SetCustomMiningJob on |
-|                          |     | this connection                                                                     |
-| REQUIRES_VERSION_ROLLING | 2   | The client requires version rolling for efficiency or correct operation and the     |
-|                          |     | server MUST NOT send jobs which do not allow version rolling                        |
+| Field Name                              | Bit | Description                                                                                                                      |
+|-----------------------------------------|-----|----------------------------------------------------------------------------------------------------------------------------------|
+| REQUIRES_STANDARD_JOBS                  | 0   | The downstream node requires standard jobs. It does not understand group channels -                                              |
+|                                         |     | it is unable to process extended jobs sent to standard channels through a group                                                  |
+|                                         |     | channel.                                                                                                                         |
+| REQUIRES_WORK_SELECTION                 | 1   | If set to 1, the client notifies the server that it will send SetCustomMiningJob on                                              |
+|                                         |     | this connection                                                                                                                  |
+| REQUIRES_VERSION_ROLLING                | 2   | The client requires version rolling for efficiency or correct operation and the                                                  |
+|                                         |     | server MUST NOT send jobs which do not allow version rolling                                                                     |
+| REQUIRES_EXTENDED_SHARES_IDENTIFICATION | 3   | If set, the client requests that the server support the inclusion of a user_identity field in the SubmitSharesExtended message.  |
+|                                         |     | This allows the client to send an identity for the worker in share submissions.                                                  |
 
 Flags usable in `SetupConnection.Success.flags`:
 | Field Name | Bit | Description |
@@ -117,6 +119,7 @@ Flags usable in `SetupConnection.Success.flags`:
 | | | MUST NOT be set. Further, if this bit is set, extended jobs MUST NOT indicate |
 | | | support for version rolling. |
 | REQUIRES_EXTENDED_CHANNELS | 1 | Upstream node will not accept opening of a standard channel |
+| REQUIRES_EXTENDED_SHARES_WITHOUT_IDENTIFICATION | 3   | If set, the server indicates that it does not support tracking worker hashrates using the `user_identity` field in `SubmitSharesExtended` messages. The client MUST NOT send `user_identity` in `SubmitSharesExtended` messages. |
 
 ### 5.3.2 `OpenStandardMiningChannel` (Client -> Server)
 
@@ -252,10 +255,11 @@ Client sends result of its hashing work to the server.
 Only relevant for extended channels.
 The message is the same as `SubmitShares`, with the following additional field:
 
-| Field Name                              | Data Type | Description                                                                                                                                                                                                                                                                                |
-| --------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Field Name                              | Data Type        | Description                                                                                                                                                                                                                                                                                                 |
+| --------------------------------------- |------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `<SubmitSharesStandard message fields>` |
-| extranonce                              | B0_32     | Extranonce bytes which need to be added to coinbase to form a fully valid submission (full coinbase = coinbase_tx_prefix + extranonce_prefix + extranonce + coinbase_tx_suffix). The size of the provided extranonce MUST be equal to the negotiated extranonce size from channel opening. |
+| extranonce                              | B0_32            | Extranonce bytes which need to be added to coinbase to form a fully valid submission (full coinbase = coinbase_tx_prefix + extranonce_prefix + extranonce + coinbase_tx_suffix). The size of the provided extranonce MUST be equal to the negotiated extranonce size from channel opening.                  |
+| user_identity                           | OPTION[STR0_255] | Optional field, up to 32 bytes. The unique identity of the worker. This field will only be included if the `REQUIRES_EXTENDED_SHARES_IDENTIFICATION` flag is set in the `SetupConnection` message. If supported by the server, this feature allows for tracking the worker's specific hashrate server side. |
 
 ### 5.3.13 `SubmitShares.Success` (Server -> Client)
 
