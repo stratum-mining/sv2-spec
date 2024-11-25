@@ -126,7 +126,11 @@ If a device is aware of the semantics of a given extension type, it MUST process
 
 Messages with an unknown `extension_type` which are to be processed locally (as defined above) MUST be discarded and ignored.
 
-Extensions MUST require version negotiation with the recipient of the message to check that the extension is supported before sending non-version-negotiation messages for it.
+### 3.4.1 Implementing Extensions Support
+
+To support extensions, an implementation MUST first implement [Extension 1](./extensions/extensions-negotiation.md), which defines the basic protocol for requesting and negotiating support for extensions. This extension must be included in any protocol implementation that plans to support additional protocol extensions.
+
+Extensions MUST require negotiation with the recipient of the message to check that the extension is supported before sending non-version-negotiation messages for it.
 This prevents the needlessly wasted bandwidth and potentially serious performance degradation of extension messages when the recipient does not support them.
 
 See `ChannelEndpointChanged` message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
