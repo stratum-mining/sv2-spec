@@ -188,8 +188,8 @@ Group Channel ID namespace is the same as Channel ID namespace on a particular c
 
 Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, where bit 0 is the least significant bit of the u32 type:
 
-| Field Name               | Bit | Description                                                                         |
-| ------------------------ | --- | ----------------------------------------------------------------------------------- |
+| Flag Name                | Bit | Description                                                                         |
+|--------------------------| --- | ----------------------------------------------------------------------------------- |
 | REQUIRES_STANDARD_JOBS   | 0   | The downstream node requires standard jobs. It does not understand group channels - |
 |                          |     | it is unable to process extended jobs sent to standard channels through a group     |
 |                          |     | channel.                                                                            |
@@ -199,7 +199,7 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, wher
 |                          |     | server MUST NOT send jobs which do not allow version rolling                        |
 
 Flags usable in `SetupConnection.Success.flags`:
-| Field Name | Bit | Description |
+| Flag Name | Bit | Description |
 |----------------------------|-----|-----------------------------------------------------------------------------------|
 | REQUIRES_FIXED_VERSION | 0 | Upstream node will not accept any changes to the version field. Note that if |
 | | | REQUIRES_VERSION_ROLLING was set in the SetupConnection::flags field, this bit |
