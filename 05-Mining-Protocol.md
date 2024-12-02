@@ -141,7 +141,7 @@ Upstream stratum nodes accept work submissions and specify a mining target on a 
 There can theoretically be up to `2^32` open Channels within one Connection. This is however just a theoretical ceiling, and it does not mean that every Connection will be able to fill this full capacity (maybe the search space has already been narrowed).
 
 All Channels are independent of each other, but share some messages broadcast from the server for higher efficiency (e.g. information about a new `prev_hash`).
-Each Channel is identified by its `channel_id` (`U32`), which is consistent throughout the whole life of the Connection.
+Each Channel is identified by its `channel_id` (`U32`), which is consistent throughout the whole life of the Connection. There MUST NOT be two Channels with the same ID in the same Connection.
 
 A Proxy can either transparently allow its clients to open separate Channels with the server (preferred behavior), or aggregate open connections from downstream devices into its own open channel with the server and translate the messages accordingly (present mainly for allowing v1 proxies).
 Both options have some practical use cases.
@@ -180,7 +180,7 @@ The size of search space for an Extended Channel is `2^(nonce_bits + version_rol
 Standard channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
 
 Whenever a Standard Channel is created, it is always put into some Group Channel identified by its `group_channel_id`.
-Group Channel ID namespace is the same as Channel ID namespace on a particular connection but the values chosen for Group Channel IDs must be distinct.
+Group Channel ID namespace is the same as Standard Channel ID namespace on a particular connection.
 
 ## 5.3 Mining Protocol Messages
 
