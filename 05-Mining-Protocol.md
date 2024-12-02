@@ -1,6 +1,6 @@
 # 5. Mining Protocol
 
-The Mining Protocol is used to distribute work to Mining Devices, and it's also how they submit their proof of work.
+The Mining Protocol enables the distribution of work to mining devices and the submission of proof-of-work results.
 
 It can be used without Job Declaration and Template Distribution Protocols, where a subset of the messages are used by a pool to unilaterally distribute work to miners.
 
