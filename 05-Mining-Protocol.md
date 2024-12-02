@@ -6,7 +6,7 @@ It can be used without Job Declaration and Template Distribution Protocols, wher
 
 Alternatively, it can be used in conjunction with Job Declaration and Template Distribution Protocols, where both pool and miners coordinate to decide what is valid work.
 
-## 5.1 Jobs
+## 5.1 Job
 
 A **Job** consists of a unit of work containing all the necessary information about the hashing space over some candidate block header.
 
@@ -29,13 +29,13 @@ Mining servers MUST assign a unique subset of the search space to each mining de
 
 This protocol explicitly expects that upstream server software is able to manage the size of the hashing space correctly for its clients and can provide new and unique Jobs quickly enough, based on the hashpower of each client.
 
-The protocol defines two main types of Jobs: **Standard Jobs** and **Extended Jobs**.
+The protocol defines two main types of Jobs: **Standard Job** and **Extended Job**.
 
-This separation vastly simplifies the protocol implementation for clients that don’t support Extended Jobs, as they only need to implement the subset of protocol messages related to Standard Jobs (see Mining Protocol Messages for details).
+This separation vastly simplifies the protocol implementation for clients that don’t support Extended Job, as they only need to implement the subset of protocol messages related to Standard Job (see Mining Protocol Messages for details).
 
 Additionally, a Job (either Standard or Extended) also could be potentially labeled as a **Future Job** and/or **Custom Job**.
 
-### 5.1.1 Standard Jobs
+### 5.1.1 Standard Job
 
 Standard Jobs are restricted to fixed Merkle Roots, where the only modifiable bits are under the `version`, `nonce`, and `nTime` fields of the block header.
 
@@ -52,7 +52,7 @@ Depending on the hashrate of the Mining Device, it must receive new Standard Job
 
 ![](./img/standard_job.png)
 
-### 5.1.2 Extended Jobs
+### 5.1.2 Extended Job
 
 Extended Jobs allow rolling Merkle Roots, giving extensive control over the search space so that they can implement various advanced use cases such as:
 - translation between Sv1 and Sv2 protocols
@@ -101,7 +101,7 @@ For conversion into Standard Jobs, the Coinbase Transaction is constructed by co
 
 The Coinbase Transaction is then combined with the `merkle_path` of the Extended Job to calculate the `merkle_root` for the Standard Job notification (`NewMiningJob`). Since Standard Jobs are HOM, there's no `extranonce_size` field on the Standard Job notification.
 
-### 5.1.3 Future Jobs
+### 5.1.3 Future Job
 
 A Job with an empty template or speculated non-empty template can be sent in advance to speedup Job distribution when a new block is found on the network.
 
@@ -118,7 +118,7 @@ So mining servers that provide non-empty Future Jobs SHOULD:
 - minimize the probability of Future Jobs containing conflicting transactions (which leads to Future Jobs carrying less profitable templates).
 - after a `SetNewPrevHash` is propagated for a Future Job, provide a non-Future Job for this same `prev_hash` as fast as possible (with a more profitable template).
 
-### 5.1.4 Custom Jobs
+### 5.1.4 Custom Job
 
 A Custom Job contains a set of transactions that were chosen by the miner instead of being unilaterally imposed by the Pool.
 
@@ -130,7 +130,7 @@ This `mining_job_token` is used by JDC for:
 
 This is a key feature of Stratum V2 that improves Bitcoin decentralization. Please see Job Declaration Protocol for more details.
 
-## 5.2 Channels
+## 5.2 Channel
 
 The Mining Protocol is designed such that downstream Mining Devices open Channels with upstream Stratum Nodes within established Connections.
 These upstream Stratum Nodes could be actual Work-Providing Nodes (e.g.: Pool, or Job Declarator Client) or simply Proxies that relay messages forward.
@@ -149,9 +149,9 @@ In either case, proxies SHOULD aggregate clients' Channels into a smaller number
 This saves network traffic for broadcast messages sent by a server because fewer messages need to be sent in total, which leads to lower latencies as a result.
 And it further increases efficiency by allowing larger packets to be sent.
 
-The protocol defines three types of Channels: **Standard Channels**, **Extended Channels** and **Group Channels**, which are useful for different purposes.
+The protocol defines three types of Channels: **Standard Channel**, **Extended Channel** and **Group Channel**, which are useful for different purposes.
 
-### 5.2.1 Standard Channels
+### 5.2.1 Standard Channel
 
 Standard Channels are created by end Mining Devices.
 
@@ -161,7 +161,7 @@ However, a Proxy could also transparently relay the Standard Channels from the d
 
 Then, the Connections between the Proxy and Mining Devices will receive Standard Jobs that were efficiently distributed from the Extended Jobs. The Merkle Root of each Standard Job is calculated by the Proxy, taking in consideration the `extranonce_prefix` that was assigned to each Standard Channel, plus the `coinbase_tx_prefix` and the `coinbase_tx_suffix` that were sent on the Extended Job. No `extranonce` field is used in this scenario.
 
-### 5.2.2 Extended Channels
+### 5.2.2 Extended Channel
 
 Extended Channels are intended to be used by Proxies for a more efficient distribution of hashing space.
 
@@ -175,7 +175,7 @@ Thus, upstream servers providing work MUST also support Standard Channels.
 
 The size of search space for an Extended Channel is `2^(nonce_bits + version_rolling_bits + extranonce_size*8)` per `nTime` value.
 
-### 5.2.3 Group Channels
+### 5.2.3 Group Channel
 
 Standard channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
 
