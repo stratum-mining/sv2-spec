@@ -93,8 +93,15 @@ Clients MUST NOT use any features from extensions that are not confirmed as supp
 2. **Ordering**:
     - The `RequestExtensions` message MUST be sent immediately after `SetupConnection.Success` and before any other protocol-specific messages.
 
-3. **Backward Compatibility**:
-    - Servers that do not support this extension will ignore the `RequestExtensions` message, leading to a connection timeout.
+#### 3. **Backward Compatibility**:
+- **Server Behavior**:
+   - Servers that do not support this extension will ignore the `RequestExtensions` message, potentially leading to a connection timeout.
+
+- **Client Behavior**:
+   - Clients MUST NOT send any further protocol-specific messages until they receive a `RequestExtensions.Success` or `RequestExtensions.Error` response.
+   - If the client does not receive a response within a reasonable timeout period (e.g., X seconds, where X is implementation-defined), it SHOULD close the connection and report the timeout as an error.
+
+This ensures clients can handle servers that do not implement extensions negotiation gracefully while avoiding indefinite blocking.
 
 4. **Example Use Case**:
    A client requesting support for extensions `0x0002` and `0x0003`:
