@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" version="24.8.2">
+  <diagram id="FxWmPz-zqYVIyW4dWZh6" name="Extended Extranonce">
+    <mxGraphModel dx="1434" dy="887" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="1wnQGwD5fLxFCYtxcwfU-1" value="extranonce_prefix&lt;br&gt;(upstream reserved)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="190" y="200" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="1wnQGwD5fLxFCYtxcwfU-2" value="downstream reserved" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#808080;" parent="1" vertex="1">
+          <mxGeometry x="450" y="200" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="1wnQGwD5fLxFCYtxcwfU-3" value="locally reserved" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#B3B3B3;" parent="1" vertex="1">
+          <mxGeometry x="320" y="200" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="1wnQGwD5fLxFCYtxcwfU-4" value="&lt;b&gt;Extended Extranonce&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="312.5" y="170" width="145" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="1wnQGwD5fLxFCYtxcwfU-5" value="Generic Stratum Layer" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="30" y="215" width="140" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
