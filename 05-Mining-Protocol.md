@@ -475,8 +475,13 @@ The `mining_job_token` provides the information for the pool to authorize the cu
 
 ### 5.3.19 `SetCustomMiningJob.Success` (Server -> Client)
 
-Response from the server when it accepts the custom mining job.
-Client can start to mine on the job immediately (by using the `job_id` provided within this response).
+Response from the Pool when it accepts the custom mining job.
+
+Up until receiving this message (and after having all the necessary information to start hashing), the miner SHOULD start hashing and buffer the work optimistically.
+
+This message acts as a commitment from the Pool to rewarding this job. In case the Pool does not commit (either by timeout, or responding with `SetCustomMiningJob.Error`), the miner SHOULD fall back to a different Pool (or solo).
+
+After receiving it, the miner can start submitting shares for this job immediately (by using the `job_id` provided within this response).
 
 | Field Name         | Data Type | Description                                                               |
 | ------------------ | --------- | ------------------------------------------------------------------------- |
