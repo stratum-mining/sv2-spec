@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" version="24.8.2">
+  <diagram id="N4VejNDs0hO81L9vthc3" name="Mining Proxy Standard">
+    <mxGraphModel dx="1434" dy="1987" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="DT3knt80q17mCQlJXY2i-1" value="Mining Proxy" style="rounded=0;whiteSpace=wrap;html=1;fillOpacity=100;" parent="1" vertex="1">
+          <mxGeometry x="290" y="150" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UcTeTZU-o2jDbRS0ZS-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;shape=link;" parent="1" target="yj93N_Tji8AnoezUfCwW-3" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="370" y="160.00000000000045" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="V2UcTeTZU-o2jDbRS0ZS-6" value="&lt;font color=&quot;#ff99cc&quot;&gt;&lt;b&gt;Standard&lt;/b&gt; Channel&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#ff99cc&quot;&gt;channel_id=A&lt;br&gt;extranonce_prefix=A&lt;/font&gt;&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;shape=link;strokeColor=#FF99CC;" parent="1" source="V2UcTeTZU-o2jDbRS0ZS-3" edge="1">
+          <mxGeometry x="-0.0434" y="-30" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="327.5735931287986" y="228.2842712474676" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="V2UcTeTZU-o2jDbRS0ZS-3" value="SV2 Mining&lt;div&gt;Device A&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;strokeColor=#FF99CC;" parent="1" vertex="1">
+          <mxGeometry x="70" y="350" width="110" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UcTeTZU-o2jDbRS0ZS-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;shape=link;strokeColor=#CC99FF;" parent="1" target="DT3knt80q17mCQlJXY2i-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="370" y="240.00000000000045" as="targetPoint" />
+            <mxPoint x="370" y="230" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="V2UcTeTZU-o2jDbRS0ZS-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;shape=link;strokeColor=#B266FF;" parent="1" source="V2UcTeTZU-o2jDbRS0ZS-5" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="412.4264068712014" y="228.2842712474676" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="V2UcTeTZU-o2jDbRS0ZS-5" value="SV2 Mining&lt;div&gt;Device B&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;strokeColor=#B266FF;" parent="1" vertex="1">
+          <mxGeometry x="555" y="350" width="110" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UcTeTZU-o2jDbRS0ZS-14" value="&lt;font color=&quot;#9933ff&quot;&gt;&lt;b style=&quot;&quot;&gt;Standard&lt;/b&gt; Channel&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#9933ff&quot;&gt;channel_id=B&lt;br&gt;extranonce_prefix=B&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="1" connectable="0" vertex="1">
+          <mxGeometry x="500.00365134908645" y="229.99820592225535" as="geometry">
+            <mxPoint x="15" y="99" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;shape=link;strokeColor=#9933FF;" parent="1" source="yj93N_Tji8AnoezUfCwW-3" target="V2UcTeTZU-o2jDbRS0ZS-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;shape=link;strokeColor=#FF99CC;" parent="1" source="yj93N_Tji8AnoezUfCwW-3" target="V2UcTeTZU-o2jDbRS0ZS-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;textShadow=1;shadow=1;shadowColor=#FFFFFF;shadowOpacity=100;shadowOffsetX=1;shadowOffsetY=1;shadowBlur=1;" parent="1" source="yj93N_Tji8AnoezUfCwW-17" target="DT3knt80q17mCQlJXY2i-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="309.9999999999941" y="200.00000000000045" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-17" value="&lt;b&gt;NewExtendedMiningJob&lt;/b&gt;&lt;br&gt;channel_id=G&lt;br&gt;merkle_path=G&lt;br&gt;coinbase_prefix=G&lt;br&gt;coinbase_suffix=G" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
+          <mxGeometry x="120" y="-20" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;textShadow=1;shadow=1;shadowColor=#FFFFFF;shadowOpacity=100;shadowOffsetX=1;shadowOffsetY=1;shadowBlur=1;" parent="1" source="yj93N_Tji8AnoezUfCwW-19" target="V2UcTeTZU-o2jDbRS0ZS-3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-19" value="&lt;b&gt;NewMiningJob&lt;/b&gt;&lt;div&gt;&lt;font color=&quot;#ff99cc&quot;&gt;channel_id=A&lt;br&gt;merkle_root=A&lt;/font&gt;&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
+          <mxGeometry x="50" y="220" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;textShadow=1;shadow=1;shadowColor=#FFFFFF;shadowOpacity=100;shadowOffsetX=1;shadowOffsetY=1;shadowBlur=1;" parent="1" source="yj93N_Tji8AnoezUfCwW-20" target="V2UcTeTZU-o2jDbRS0ZS-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-20" value="&lt;b&gt;NewMiningJob&lt;/b&gt;&lt;div&gt;&lt;font color=&quot;#9933ff&quot;&gt;channel_id=B&lt;br&gt;merkle_root=B&lt;/font&gt;&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
+          <mxGeometry x="580" y="220" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;textShadow=1;shadow=1;shadowColor=#FFFFFF;shadowOpacity=100;shadowOffsetX=1;shadowOffsetY=1;shadowBlur=1;" parent="1" source="yj93N_Tji8AnoezUfCwW-26" target="DT3knt80q17mCQlJXY2i-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="430.00000000000614" y="200.00000000000045" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-26" value="&lt;b&gt;SetGroupChannel&lt;/b&gt;&lt;div&gt;group_channel_id=G&lt;/div&gt;&lt;div&gt;channel_ids=[A,B]&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
+          <mxGeometry x="425" y="30" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UcTeTZU-o2jDbRS0ZS-1" value="Connection" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="310" y="-90" width="120" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="DT3knt80q17mCQlJXY2i-3" value="Conn" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="310" y="230" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="DT3knt80q17mCQlJXY2i-8" value="Conn" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="390" y="230" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="RgBkzOm2UzhGMEhQhQTZ-1" value="Upstream&lt;br&gt;&lt;br&gt;&lt;div&gt;(Pool, JDC, or another Mining Proxy)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="185" y="-270" width="370" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="yj93N_Tji8AnoezUfCwW-3" value="Group Channel&lt;div&gt;id=G&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B3B3B3;fontColor=#333333;strokeColor=#666666;fillOpacity=100;" parent="1" vertex="1">
+          <mxGeometry x="310" y="100" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
