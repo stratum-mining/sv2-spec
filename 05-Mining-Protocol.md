@@ -253,9 +253,10 @@ Only relevant for extended channels.
 The message is the same as `SubmitShares`, with the following additional field:
 
 | Field Name                              | Data Type | Description                                                                                                                                                                                                                                                                                |
-| --------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|-----------------------------------------| --------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `<SubmitSharesStandard message fields>` |
 | extranonce                              | B0_32     | Extranonce bytes which need to be added to coinbase to form a fully valid submission (full coinbase = coinbase_tx_prefix + extranonce_prefix + extranonce + coinbase_tx_suffix). The size of the provided extranonce MUST be equal to the negotiated extranonce size from channel opening. |
+| user_identity                           | STR0_255  | Up to 32 bytes (not including the length byte), unique string identity for the worker. **This field MUST NOT be set to a length other than zero or be omitted unless the extension enabling `user_identity` has been negotiated (extension 0x0002).**                                      |
 
 ### 5.3.13 `SubmitShares.Success` (Server -> Client)
 
