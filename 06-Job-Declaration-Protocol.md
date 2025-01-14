@@ -10,12 +10,12 @@ This is a key feature of Stratum V2 that improves Bitcoin decentralization.
 
 The Job Declarator Server (JDS) is deployed on Pool side, although it could be theoretically outsourced to a third party that is trusted by the Pool.
 
-In order to fully implement the Server side of the Job Declaration Protocol, the JDC also needs to exchange RPCs with a Bitcoin Node. 
+In order to fully implement the Server side of the Job Declaration Protocol, the JDS also needs to exchange RPCs (or similar) with a Bitcoin Node. 
 
 It is responsible for:
 - Allocating tokens that JDC will use to declare Custom Jobs.
 - Acknowledging declaration of Custom Jobs associated with specific allocated tokens.
-- Maintaining an internal mempool (via RPCs to a Bitcoin Node).
+- Maintaining an internal mempool (via RPCs (or similar) to a Bitcoin Node).
 - Requesting identification for transactions on some declared Custom Job.
 - Requesting missing transactions on some declared Custom Job.
 - Publishing valid block submissions received from JDC.
@@ -24,15 +24,15 @@ It is responsible for:
 
 The Job Declarator Client (JDC) is deployed on the miner side.
 
-In order to fully implement the Client side of the Job Declaration Protocol, the JDS also needs to operate under the Template Distribution and Mining Protocols.
+In order to fully implement the Client side of the Job Declaration Protocol, the JDC also needs to operate under the Template Distribution and Mining Protocols.
 
 It is responsible for:
 - Receiving Templates from the Template Provider (via Template Distribution Protocol).
 - Declaring Custom Jobs to JDS (via Job Declaration Protocol).
 - Notifying declared Custom Jobs to Pool (via Mining Protocol).
-- Receiving Shares from downstream Mining Devices working on Custom Jobs (via Mining Protocol)..
+- Receiving Shares from downstream Mining Devices working on Custom Jobs (via Mining Protocol).
 - Submitting Shares for Custom Jobs to Pool.
-- Publishing valid blocks found by downstream Mining Devices (both to TP and JDS).
+- Publishing valid blocks found by downstream Mining Devices (both to Template Provider (TP) and JDS).
 
 Additionally, if:
 - JDS fails to respond with an `AllocateMiningJobToken.Success` in a reasonable time.
@@ -55,7 +55,7 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 
 No flags are yet defined for use in `SetupConnection.Success`.
 
-### 6.3.2 `AllocateMiningJobToken` (Client -> Server)
+### 6.3.2 `AllocateMiningJobToken` (JDC -> JDS)
 
 A request to get an identifier for a future-submitted mining job.
 Rate limited to a rather slow rate and only available on connections where this has been negotiated. Otherwise, only `mining_job_token(s)` from `AllocateMiningJobToken.Success` are valid.
@@ -102,7 +102,7 @@ More specifically, the `SipHash 2-4` variant is used. Aside from the preimage (w
 
 A response sent by JDS acknowledging some Custom Job declaration.
 
-The `new_mining_job_token`  MAY be the same token as `DeclareMiningJob::mining_job_token` if the Pool allows to start mining on not yet declared job  (async mode).
+The `new_mining_job_token` MAY be the same as `DeclareMiningJob::mining_job_token` if the Pool permits mining to begin on a job that has not yet been declared (async mode).
 
 If `new_mining_job_token != DeclareMiningJob::mining_job_token` (irrespective of if the client is already mining using the original token), the client MUST send a `SetCustomMiningJob` message on each Mining Protocol client which wishes to mine using the declared job.
 
