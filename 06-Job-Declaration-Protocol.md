@@ -43,19 +43,69 @@ JDC is also responsible for switching to a new Pool+JDS (or solo mining as a las
 
 This fallback strategy incentivizes honesty on Pool side, otherwise it will lose hashrate by rejecting Shares for Custom Job that was already acknowledged to be valid.
 
-## 6.3 Job Declaration Protocol Messages
+## 6.3 Job Declaration Modes
 
-### 6.3.1 `SetupConnection` Flags for Job Declaration Protocol
+### 6.3.1 Coinbase-only Mode
+
+Under Coinbase-only mode:
+- JDS allocates `mining_job_token` to JDC (`AllocateMiningJobToken` / `AllocateMiningJobToken.Success`).
+- Pool evaluates fee revenue of some proposed work (uniquely identified by `mining_job_token`) by looking at the coinbase.
+- JDC never reveals the `txid`s contained in the template (in other words, the transaction set).
+- proposed work is acknowledged as valid by Pool via `SetCustomMiningJob.Success`.
+- the `DeclareMiningJob` message is never used.
+- if a valid block is found, JDC propagates it unilaterally.
+
+![](./img/jd_coinbase_mode.png)
+
+As soon as JDC has:
+- a token (allocated by JDS), so it can use it to identify some unique work that it wants to advertise
+- a new template
+
+It SHOULD start sending the jobs downstream for hashing right away. The proof-of-work (shares) SHOULD be cached until JDC receives an acknowledgement via `SetCustomMiningJob.Success`.
+
+We call this **optimistic mining**.
+
+### 6.3.2 Full-Template Mode
+
+Under Full-Template mode:
+- JDS allocates `mining_job_token` to JDC (`AllocateMiningJobToken` / `AllocateMiningJobToken.Success`).
+- JDC sends `DeclareMiningJob` to JDS (containing the `txid` of every transaction in the template).
+- JDS could potentially request for JDC to reveal `txdata` (via `ProvideMissingTransactions`).
+- JDS acknowledges proposed work via `DeclareMiningJob.Success`.
+- JDC notifies work to Pool via `SetCustomMiningJob`, acknowledged via `SetCustomMiningJob.Success`.
+- if a valid block is found, both JDC and JDS propagate it.
+
+![](./img/jd_template_mode.png)
+
+Similarly to Coinbase-only, as soon as JDC has:
+- a token (allocated by JDS), so it can use it to identify some unique work that it wants to advertise
+- a new template
+
+It SHOULD do optimistic mining by sending the jobs downstream for hashing right away. The proof-of-work (shares) SHOULD be cached until JDC receives an acknowledgement via `SetCustomMiningJob.Success`.
+
+### 6.3.3 Coinbase-only vs Full-Template
+
+The table below shows a comparison between the two Sv2 Job Declation Modes:
+
+|                                     | Coinbase-only | Full-Template |
+|-------------------------------------|-|-|
+| knowledge of fee revenue            | JDC and Pool | JDC and JDS (on behalf of Pool) |
+| knowledge of txdata on the template | JDC | JDC and JDS (on behalf of Pool) |
+| block propagation                   | JDC | JDC and JDS (on behalf of Pool) |
+
+## 6.4 Job Declaration Protocol Messages
+
+### 6.4.1 `SetupConnection` Flags for Job Declaration Protocol
 
 Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 
 | Field Name                | Bit | Description                                                                                                                                                                                                                                                                                                                                                          |
 | ------------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| REQUIRES_ASYNC_JOB_MINING | 0   | The Job Declarator requires that the mining_job_token in AllocateMiningJobToken.Success can be used immediately on a mining connection in SetCustomMiningJob message, even before DeclareMiningJob and DeclareMiningJob.Success messages have been sent and received. The server MUST only send AllocateMiningJobToken.Success messages with async_mining_allowed set. |
+| DECLARE_TX_DATA | 0   | JDC agrees to reveal the template's txdata via `DeclareMiningJob` and `ProvideMissingTransactions`. |
 
 No flags are yet defined for use in `SetupConnection.Success`.
 
-### 6.3.2 `AllocateMiningJobToken` (JDC -> JDS)
+### 6.4.2 `AllocateMiningJobToken` (JDC -> JDS)
 
 A request to get an identifier for a future-submitted mining job.
 Rate limited to a rather slow rate and only available on connections where this has been negotiated. Otherwise, only `mining_job_token(s)` from `AllocateMiningJobToken.Success` are valid.
@@ -65,7 +115,7 @@ Rate limited to a rather slow rate and only available on connections where this 
 | user_identifier | STR0_255  | Unconstrained sequence of bytes. Whatever is needed by the pool to identify/authenticate the client, e.g. "braiinstest". Additional restrictions can be imposed by the pool. It is highly recommended that UTF-8 encoding is used. |
 | request_id      | U32       | Unique identifier for pairing the response                                                                                                                                                                                         |
 
-### 6.3.3 `AllocateMiningJobToken.Success` (Server -> Client)
+### 6.4.3 `AllocateMiningJobToken.Success` (Server -> Client)
 
 The Server MUST NOT change the value of `coinbase_output_max_additional_size` in `AllocateMiningJobToken.Success` messages unless required for changes to the pool’s configuration.
 Notably, if the pool intends to change the space it requires for coinbase transaction outputs regularly, it should simply prefer to use the maximum of all such output sizes as the `coinbase_output_max_additional_size` value.
@@ -76,10 +126,11 @@ Notably, if the pool intends to change the space it requires for coinbase transa
 | mining_job_token                    | B0_255    | Token that makes the client eligible for committing a mining job for approval/transaction declaration or for identifying custom mining job on mining connection.                                                                                                                                                                                                         |
 | coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs. See discussion in the Template Distribution Protocol's CoinbaseOutputConstraints message for more details.                                                                                                                                                                 |
 | coinbase_output_max_additional_sigops | U16 | The maximum additional sigops which the pool will add in coinbase transaction outputs. See discussion in the Template Distribution Protocol's CoinbaseOutputConstraints message for more details. |
-| async_mining_allowed                | BOOL      | If true, the mining_job_token can be used immediately on a mining connection in the SetCustomMiningJob message, even before DeclareMiningJob and DeclareMiningJob.Success messages have been sent and received. If false, Job Declarator MUST use this token for DeclareMiningJob only. <br>This MUST be true when SetupConnection.flags had REQUIRES_ASYNC_JOB_MINING set. |
 | coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs added by the pool                                                                            |
 
-### 6.3.4 `DeclareMiningJob` (Client -> Server)
+### 6.4.4 `DeclareMiningJob` (Client -> Server)
+
+Only used in Full-Template mode.
 
 A request sent by JDC that proposes a selected set of transactions to JDS.
 
@@ -99,22 +150,22 @@ More specifically, the `SipHash 2-4` variant is used. Aside from the preimage (w
 | tx_hash_list_hash           | U256                  | SHA256 hash of the list of full txids, concatenated in the same sequence as they are declared in the_short_hash_list                                                                                                                                                                                                                                                                                                         |
 | excess_data                 | B0_64K                | Extra data which the Pool may require to validate the work (as defined in the Template Distribution Protocol)                                                                                                                                                                                                                                                                                                                |
 
-### 6.3.5 `DeclareMiningJob.Success` (Server -> Client)
+### 6.4.5 `DeclareMiningJob.Success` (Server -> Client)
 
 A response sent by JDS acknowledging some Custom Job declaration.
 
-The `new_mining_job_token` MAY be the same as `DeclareMiningJob::mining_job_token` if the Pool permits mining to begin on a job that has not yet been declared (async mode).
+JDS MAY request txdata via `ProvideMissingTransactions` before making this commitment.
 
-If `new_mining_job_token != DeclareMiningJob::mining_job_token` (irrespective of if the client is already mining using the original token), the client MUST send a `SetCustomMiningJob` message on each Mining Protocol client which wishes to mine using the declared job.
-
-Since JDS could be third party (not necessarily integrated to Pool), `new_mining_job_token` MAY carry a cryptographic commitment from JDS (while also still committing to the corresponding `mining_job_token`).
+Since JDS could be third party (not necessarily integrated to Pool), `DeclareMiningJob.Success.new_mining_job_token` MAY carry a cryptographic commitment from JDS where:
+- JDS acknowledges that the template declared under `DeclareMiningJob.mining_job_token` is valid
+- it signals to JDC that it should use `SetCustomMininingJob.mining_job_token = DeclareMiningJob.Success.new_mining_job_token` when declaring Custom Jobs to Pool as a way to prove it went through the Full-Template declaration process
 
 | Field Name           | Data Type | Description                         |
 | -------------------- | --------- |-------------------------------------|
 | request_id           | U32       | Identifier of the original request. |
 | new_mining_job_token | B0_255    | Unique custom work identifier.      |
 
-### 6.3.6 `DeclareMiningJob.Error` (Server->Client)
+### 6.4.6 `DeclareMiningJob.Error` (Server->Client)
 
 A response sent by JDS rejecting some Custom Job declaration.
 
@@ -131,7 +182,7 @@ Possible error codes:
 - `invalid-mining-job-token`
 - `invalid-job-param-value-{}` - `{}` is replaced by a particular field name from `DeclareMiningJob` message
 
-### 6.3.7 `IdentifyTransactions` (Server->Client)
+### 6.4.7 `IdentifyTransactions` (Server->Client)
 
 Sent by the Server in response to a `DeclareMiningJob` message indicating it detected a collision in the `tx_short_hash_list`, or was unable to reconstruct the `tx_hash_list_hash`.
 
@@ -139,7 +190,7 @@ Sent by the Server in response to a `DeclareMiningJob` message indicating it det
 | ---------- | --------- | ------------------------------------------------------------------------- |
 | request_id | U32       | Unique identifier for the pairing response to the DeclareMiningJob message |
 
-### 6.3.8 `IdentifyTransactions.Success` (Client->Server)
+### 6.4.8 `IdentifyTransactions.Success` (Client->Server)
 
 Sent by the Client in response to an `IdentifyTransactions` message to provide the full set of transaction data hashes.
 
@@ -148,16 +199,18 @@ Sent by the Client in response to an `IdentifyTransactions` message to provide t
 | request_id | U32            | Unique identifier for the pairing response to the DeclareMiningJob/IdentifyTransactions message                     |
 | tx_data_hashes | SEQ0_64K[U256] | The full list of transaction data hashes used to build the mining job in the corresponding DeclareMiningJob message |
 
-### 6.3.9 `ProvideMissingTransactions` (Server->Client)
+### 6.4.9 `ProvideMissingTransactions` (Server->Client)
 
-If `DeclareMiningJob` includes some transactions that JDS's Bitcoin Node has not yet seen, then JDS needs to request that JDC provides those missing ones.
+Only used in Full-Template mode.
+
+If `DeclareMiningJob` includes some transactions that JDS's mempool has not yet seen, then JDS needs to request that JDC provides those missing ones.
 
 | Field Name               | Data Type     | Description                                                                                                                                                                                                                              |
 | ------------------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | request_id               | U32           | Identifier of the original AllocateMiningJobToken request                                                                                                                                                                                |
 | unknown_tx_position_list | SEQ0_64K[U16] | A list of unrecognized transactions that need to be supplied by the Job Declarator in full. They are specified by their position in the original DeclareMiningJob message, 0-indexed not including the coinbase transaction transaction. |
 
-### 6.3.10 `ProvideMissingTransactions.Success` (Client->Server)
+### 6.4.10 `ProvideMissingTransactions.Success` (Client->Server)
 This is a message to push transactions that the server did not recognize and requested them to be supplied in `ProvideMissingTransactions`.
 
 | Field Name       | Data Type        | Description                                                                                                                          |
@@ -165,7 +218,9 @@ This is a message to push transactions that the server did not recognize and req
 | request_id       | U32              | Identifier of the original  AllocateMiningJobToken request                                                                           ""|
 | transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
 
-### 6.3.11 `SubmitSolution` (Client -> Server)
+### 6.4.11 `SubmitSolution` (Client -> Server)
+
+Only used in Full-Template mode.
 
 Sent by JDC as soon as a valid block is found, so that it can be propagated also by JDS.
 
