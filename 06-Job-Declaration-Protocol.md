@@ -134,10 +134,6 @@ Only used in Full-Template mode.
 
 A request sent by JDC that proposes a selected set of transactions to JDS.
 
-[`SipHash`](https://www.aumasson.jp/siphash/siphash.pdf) is used for short txids as a strategy to reduce bandwidth consumption, since including full txids (transaction data hash) would make the message body excessively big.
-
-More specifically, the `SipHash 2-4` variant is used. Aside from the preimage (which is the full txid), keys `k0` and `k1` are used to avoid collisions, which is the main purpose of `tx_short_hash_nonce`.
-
 | Field Name                  | Data Type             | Description                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | --------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | request_id                  | U32                   | Unique identifier for pairing the response                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -145,9 +141,7 @@ More specifically, the `SipHash 2-4` variant is used. Aside from the preimage (w
 | version                     | U32                   | Version header field. To be later modified by BIP320-consistent changes.                                                                                                                                                                                                                                                                                                                                                     |
 | coinbase_tx_prefix         | B0_64K                 | The coinbase transaction nVersion field                                                                                                                                                                                                                                                                                                                                                                                       |
 | coinbase_tx_suffix         | B0_64K                 | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction                                                                                                                                                                                                                                                                                      |
-| tx_short_hash_nonce         | U64                   | A unique nonce used to ensure tx_short_hash collisions are uncorrelated across the network                                                                                                                                                                                                                                                                                                                                   |
-| tx_short_hash_list          | SEQ0_64K[SHORT_TX_ID] | Sequence of SHORT_TX_IDs. Inputs to the SipHash functions are transaction hashes from the mempool. Secret keys k0, k1 are derived from the first two little-endian 64-bit integers from the SHA256(tx_short_hash_nonce), respectively (see bip-0152 for more information). Upstream node checks the list against its mempool. Does not include the coinbase transaction (as there is no corresponding full data for it yet). |
-| tx_hash_list_hash           | U256                  | SHA256 hash of the list of full txids, concatenated in the same sequence as they are declared in the_short_hash_list                                                                                                                                                                                                                                                                                                         |
+| tx_hash_list               | SEQ0_64K[B0_255] | List of hashes of the transaction set contained in the template. JDS checks the list against its mempool and requests missing txs via `ProvideMissingTransactions`. Does not include the coinbase transaction (as there is no corresponding full data for it yet).                                                                                                                                                          |
 | excess_data                 | B0_64K                | Extra data which the Pool may require to validate the work (as defined in the Template Distribution Protocol)                                                                                                                                                                                                                                                                                                                |
 
 ### 6.4.5 `DeclareMiningJob.Success` (Server -> Client)
@@ -182,24 +176,7 @@ Possible error codes:
 - `invalid-mining-job-token`
 - `invalid-job-param-value-{}` - `{}` is replaced by a particular field name from `DeclareMiningJob` message
 
-### 6.4.7 `IdentifyTransactions` (Server->Client)
-
-Sent by the Server in response to a `DeclareMiningJob` message indicating it detected a collision in the `tx_short_hash_list`, or was unable to reconstruct the `tx_hash_list_hash`.
-
-| Field Name | Data Type | Description                                                               |
-| ---------- | --------- | ------------------------------------------------------------------------- |
-| request_id | U32       | Unique identifier for the pairing response to the DeclareMiningJob message |
-
-### 6.4.8 `IdentifyTransactions.Success` (Client->Server)
-
-Sent by the Client in response to an `IdentifyTransactions` message to provide the full set of transaction data hashes.
-
-| Field Name | Data Type      | Description                                                                                                        |
-| ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------ |
-| request_id | U32            | Unique identifier for the pairing response to the DeclareMiningJob/IdentifyTransactions message                     |
-| tx_data_hashes | SEQ0_64K[U256] | The full list of transaction data hashes used to build the mining job in the corresponding DeclareMiningJob message |
-
-### 6.4.9 `ProvideMissingTransactions` (Server->Client)
+### 6.4.7 `ProvideMissingTransactions` (Server->Client)
 
 Only used in Full-Template mode.
 
@@ -210,7 +187,7 @@ If `DeclareMiningJob` includes some transactions that JDS's mempool has not yet 
 | request_id               | U32           | Identifier of the original AllocateMiningJobToken request                                                                                                                                                                                |
 | unknown_tx_position_list | SEQ0_64K[U16] | A list of unrecognized transactions that need to be supplied by the Job Declarator in full. They are specified by their position in the original DeclareMiningJob message, 0-indexed not including the coinbase transaction transaction. |
 
-### 6.4.10 `ProvideMissingTransactions.Success` (Client->Server)
+### 6.4.8 `ProvideMissingTransactions.Success` (Client->Server)
 This is a message to push transactions that the server did not recognize and requested them to be supplied in `ProvideMissingTransactions`.
 
 | Field Name       | Data Type        | Description                                                                                                                          |
@@ -218,7 +195,7 @@ This is a message to push transactions that the server did not recognize and req
 | request_id       | U32              | Identifier of the original  AllocateMiningJobToken request                                                                           ""|
 | transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
 
-### 6.4.11 `SubmitSolution` (Client -> Server)
+### 6.4.9 `SubmitSolution` (Client -> Server)
 
 Only used in Full-Template mode.
 
