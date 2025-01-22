@@ -25,7 +25,7 @@ coinbase have more the 65_535 so coinbase_output_max_sigops is an U16. Note that
 | Field Name                          | Data Type | Description                                                                                     |
 | ----------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
 | coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs |
-| coinbase_output_max_sigops          | U16       | The maximum additional sigops which the pool will add in coinbase transaction outputs           |
+| coinbase_output_max_additional_sigops          | U16       | The maximum additional sigops which the pool will add in coinbase transaction outputs           |
 
 ## 7.2 `NewTemplate` (Server -> Client)
 
