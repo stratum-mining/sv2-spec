@@ -213,3 +213,4 @@ In this way, a valid solution is immediately propagated on both client and serve
 | nonce                                   | U32       | Nonce leading to the hash being submitted                                                               |
 | ntime                                   | U32       | The nTime field in the block header.                                                                    |
 | nbits                                   | U32       | Block header field                                                                                      |
+| version                                 | U32       | Version header field.                                                                                   |
