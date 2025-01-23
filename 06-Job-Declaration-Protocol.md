@@ -212,5 +212,5 @@ In this way, a valid solution is immediately propagated on both client and serve
 | prev hash                               | U256      | Hash of the last block                                                                                  |
 | nonce                                   | U32       | Nonce leading to the hash being submitted                                                               |
 | ntime                                   | U32       | The nTime field in the block header.                                                                    |
-| nbits                                   | U32       | Block header field                                                                                      |
+| nbits                                   | U32       | The nBits field in the block header.                                                                    |
 | version                                 | U32       | Version header field.                                                                                   |
