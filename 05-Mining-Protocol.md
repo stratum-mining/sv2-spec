@@ -459,7 +459,6 @@ The `mining_job_token` provides the information for the pool to authorize the cu
 | channel_id                  | U32            | Extended channel identifier                                                                                                                                           |
 | request_id                  | U32            | Client-specified identifier for pairing responses                                                                                                                     |
 | mining_job_token            | B0_255         | Token provided by JDS which uniquely identifies the Custom Job that JDC has declared. See the Job Declaration Protocol for more details.                              |
-| version                     | U32            | Valid version field that reflects the current network consensus. The general purpose bits (as specified in BIP320) can be freely manipulated by the downstream node.  |
 | prev_hash                   | U256           | Previous block’s hash, found in the block header field                                                                                                                |
 | min_ntime                   | U32            | Smallest nTime value available for hashing                                                                                                                            |
 | nbits                       | U32            | Block header field                                                                                                                                                    |
@@ -470,8 +469,6 @@ The `mining_job_token` provides the information for the pool to authorize the cu
 | coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs to be included as the last outputs in the coinbase transaction                                                                            |
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                        |
 | merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                                                                                                               |
-| extranonce_size             | U16            | Size of extranonce in bytes that will be provided by the downstream node                                                                                              |
-| min_ntime                   | OPTION[u32]    | TBD: Can custom job ever be future?                                                                                                                                   |
 
 ### 5.3.19 `SetCustomMiningJob.Success` (Server -> Client)
 
