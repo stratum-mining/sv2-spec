@@ -130,7 +130,7 @@ Messages with an unknown `extension_type` which are to be processed locally (as 
 
 To support extensions, an implementation MUST first implement **Extension 1**, which defines the basic protocol for requesting and negotiating support for extensions. This extension must be included in any protocol implementation that plans to support additional protocol extensions.
 
-Extensions MUST require version negotiation with the recipient of the message to check that the extension is supported before sending non-version-negotiation messages for it.
+Extensions MUST require negotiation with the recipient of the message to check that the extension is supported before sending non-version-negotiation messages for it.
 This prevents the needlessly wasted bandwidth and potentially serious performance degradation of extension messages when the recipient does not support them.
 
 See `ChannelEndpointChanged` message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
