@@ -152,7 +152,8 @@ Each TLV-encoded field follows this format:
 ### Usage Guidelines
 
 - **TLV fields MUST be placed at the end of the message payload.** This ensures compatibility with existing Stratum V2 messages.
-- **Order of TLV fields is not significant.** Since all extensions are negotiated beforehand, the recipient MUST scan for TLV fields using their Type identifiers rather than relying on a fixed order.
+- **Order of TLV fields from different extensions is not significant.** Since all extensions are negotiated beforehand, the recipient MUST scan for TLV fields using their Type identifiers rather than relying on a fixed order.
+- **Order of TLV fields within the same extension MUST be respected.** If an extension defines multiple TLV fields to extend a single message, they **MUST** appear in the exact order specified by the extension’s documentation.
 - **Unknown TLV fields MUST be ignored.** If a device receives a TLV field with an unrecognized Type, it MUST skip over it using the Length field.
 - **Length constraints MUST be respected.** Each extension must specify the valid length range for its TLV fields. If a TLV field exceeds the maximum length allowed by its specification, the recipient MUST reject the message.
 
