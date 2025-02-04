@@ -196,7 +196,7 @@ This is a message to push transactions that the server did not recognize and req
 | request_id       | U32              | Identifier of the original  AllocateMiningJobToken request                                                                           ""|
 | transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
 
-### 6.4.9 `SubmitSolution` (Client -> Server)
+### 6.4.9 `PushSolution` (Client -> Server)
 
 Only used in Full-Template mode.
 
