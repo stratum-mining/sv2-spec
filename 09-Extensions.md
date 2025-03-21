@@ -1,6 +1,6 @@
 # 9. Extensions
 
 There are not yet any defined extensions.
-| Extenstion Type | Extension Name | Description / BIP |
-| -------------------- | -------------- | ---------------------------------------------------------------------------- |
-| (no channel_msg bit) | | |
+| Extension Type | Extension Name         | Description / BIP                                         |
+| -------------- | ---------------------- | --------------------------------------------------------- |
+| 0x0001         | Extensions Negotiation | Definition [here](./extensions/extensions-negotiation.md) |
