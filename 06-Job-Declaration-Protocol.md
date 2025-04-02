@@ -28,7 +28,7 @@ In order to fully implement the Client side of the Job Declaration Protocol, the
 
 It is responsible for:
 - Receiving Templates from the Template Provider (via Template Distribution Protocol).
-- Declaring Custom Jobs to JDS (via Job Declaration Protocol).
+- Declaring Custom Jobs to JDS (via Job Declaration Protocol under Full-Template mode).
 - Notifying declared Custom Jobs to Pool (via Mining Protocol).
 - Receiving Shares from downstream Mining Devices working on Custom Jobs (via Mining Protocol).
 - Submitting Shares for Custom Jobs to Pool.
@@ -41,7 +41,7 @@ Additionally, if:
 
 JDC is also responsible for switching to a new Pool+JDS (or solo mining as a last resort).
 
-This fallback strategy incentivizes honesty on Pool side, otherwise it will lose hashrate by rejecting Shares for Custom Job that was already acknowledged to be valid.
+This fallback strategy incentivizes honesty on Pool side, otherwise it will lose hashrate by rejecting Shares for a Custom Job that was already acknowledged to be valid.
 
 ## 6.3 Job Declaration Modes
 
@@ -50,10 +50,20 @@ This fallback strategy incentivizes honesty on Pool side, otherwise it will lose
 Under Coinbase-only mode:
 - JDS allocates `mining_job_token` to JDC (`AllocateMiningJobToken` / `AllocateMiningJobToken.Success`).
 - Pool evaluates fee revenue of some proposed work (uniquely identified by `mining_job_token`) by looking at the coinbase.
-- JDC never reveals the `txid`s contained in the template (in other words, the transaction set).
+- JDC never reveals the tx data contained in the template (in other words, the transaction set).
 - proposed work is acknowledged as valid by Pool via `SetCustomMiningJob.Success`.
 - the `DeclareMiningJob` message is never used.
 - if a valid block is found, JDC propagates it unilaterally.
+
+In other words, Pool + JDS operating under Coinbase-only mode do not require to ever know which transactions are included in the miner template, preserving the privacy around the miner's mempool.
+
+This leaves Pool arguably vulnerable to an attack where miner declares a coinbase with some fee revenue while one of the following situations is true:
+- the template actually has a different fee revenue.
+- the template has invalid transactions.
+
+This potential attack vector has similar incentives to block-witholding, and acts as a strong disincentive for Pool + JDS to adopt Coinbase-only mode.
+
+This could however be mitigated with Zero-Knowledge-Proof based protocol extensions, where JDC proves that the fee revenue on the coinbase belongs to a valid template, without ever revealing the template itself.
 
 ![](./img/jd_coinbase_mode.png)
 
@@ -89,9 +99,9 @@ The table below shows a comparison between the two Sv2 Job Declation Modes:
 
 |                                     | Coinbase-only | Full-Template |
 |-------------------------------------|-|-|
-| knowledge of fee revenue            | JDC and Pool | JDC and JDS (on behalf of Pool) |
-| knowledge of txdata on the template | JDC | JDC and JDS (on behalf of Pool) |
-| block propagation                   | JDC | JDC and JDS (on behalf of Pool) |
+| knowledge of fee revenue            | • JDC <br> • Pool (while blind against tx data) | • JDC <br> • Pool (while blind against tx data) <br> • JDS (verifying against revealed tx data on behalf of Pool) |
+| knowledge of txdata on the template | • JDC | • JDC <br> • JDS (on behalf of Pool) |
+| ability to broadcast mined block    | • JDC | • JDC <br> • JDS (on behalf of Pool) |
 
 ## 6.4 Job Declaration Protocol Messages
 
