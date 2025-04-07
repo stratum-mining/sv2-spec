@@ -61,9 +61,9 @@ This leaves Pool arguably vulnerable to an attack where miner declares a coinbas
 - the template actually has a different fee revenue.
 - the template has invalid transactions.
 
-This potential attack vector has similar incentives to block-witholding, and acts as a strong disincentive for Pool + JDS to adopt Coinbase-only mode.
+This potential attack vector is in many ways identical to block withholding and defenses against block withholding generally apply.
 
-This could however be mitigated with Zero-Knowledge-Proof based protocol extensions, where JDC proves that the fee revenue on the coinbase belongs to a valid template, without ever revealing the template itself.
+Some pools may wish to utilize additional mitigations. For example, Zero-Knowledge-Proof based protocol extensions, where JDC proves that the fee revenue on the coinbase belongs to a valid template, without ever revealing the template itself.
 
 ![](./img/jd_coinbase_mode.png)
 
