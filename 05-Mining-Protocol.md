@@ -465,7 +465,7 @@ This message signals that JDC expects to be rewarded for working on a Custom Job
 | coinbase_tx_version         | U32            | The coinbase transaction nVersion field                                                                                                                               |
 | coinbase_prefix             | B0_255         | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction.                              |
 | coinbase_tx_input_nSequence | U32            | The coinbase transaction input's nSequence field                                                                                                                      |
-| coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs to be included as the last outputs in the coinbase transaction                                                                            |
+| coinbase_tx_outputs         | B0_64K         | Serialized outputs of the coinbase transaction                                                                            |
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                        |
 | merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                                                                                                               |
 
