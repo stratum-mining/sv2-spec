@@ -451,8 +451,7 @@ Note: There is no need for block height in this message.
 Can be sent only on extended channel.
 `SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully declared).
 
-The downstream node has a custom job declared by a trusted external Job Declarator.
-The `mining_job_token` provides the information for the pool to authorize the custom job that has been or will be declared between the Job Declarator and Pool.
+This message signals that JDC expects to be rewarded for working on a Custom Job.
 
 | Field Name                  | Data Type      | Description                                                                                                                                                           |
 | --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
