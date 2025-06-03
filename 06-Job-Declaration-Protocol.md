@@ -136,7 +136,61 @@ Notably, if the pool intends to change the space it requires for coinbase transa
 | mining_job_token                    | B0_255    | Token that makes the client eligible for committing a mining job for approval/transaction declaration or for identifying custom mining job on mining connection.                                                                                                                                                                                                         |
 | coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs. See discussion in the Template Distribution Protocol's CoinbaseOutputConstraints message for more details.                                                                                                                                                                 |
 | coinbase_output_max_additional_sigops | U16 | The maximum additional sigops which the pool will add in coinbase transaction outputs. See discussion in the Template Distribution Protocol's CoinbaseOutputConstraints message for more details. |
-| coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs added by the pool                                                                            |
+| coinbase_tx_outputs         | B0_64K         | Serialized Bitcoin transaction outputs added by the pool.                                                                            |
+
+The following rules apply to `AllocateMiningJobToken.Success.coinbase_tx_outputs`:
+- JDS MUST reserve the **first** output with a locking script where the pool payout will go. While this output is initally set with a 0 amount of sats, this convention designates this locking script as the **pool payout output**.
+- JDS MAY add more 0 value outputs in addition to the pool payout output.
+
+Once JDC receives `AllocateMiningJobToken.Success`, the following rules apply to the subsequent `DeclareMiningJob.coinbase_tx_suffix` (if under Full-Template mode) and `SetCustomMiningJob.coinbase_tx_outputs` (under both Full-Template and Coinbase-only modes) message fields:
+- JDC MUST allocate sats into the pool payout output in order to qualify for pooled mining rewards. JDS and Pool SHOULD reject custom jobs that fail to do so.
+- JDC MAY add more 0 value outputs in addition to the ones established by JDS.
+- JDC MAY add more non-0 value outputs in addition to the ones established by JDS. In doing so, the template revenue is not fully allocated to the designated pool payout output, so Pool MAY pay proportionally smaller rewards for this job.
+- JDC MAY arbitrarily reorder the outputs to something different from the original ordering of `AllocateMiningJobToken.Success.coinbase_tx_outputs`.
+- Under Full-Template mode, the order of the outputs under `DeclareMiningJob.coinbase_tx_suffix` and `SetCustomMiningJob.coinbase_tx_outputs` MUST remain the same, even if they differ from the original `AllocateMiningJobToken.Success.coinbase_tx_outputs`.
+
+In summary, the pool payout goes to one single output (standardized as the first output of `AllocateMiningJobToken.Success.coinbase_tx_outputs`), and JDC is free to add more outputs and shuffle them under any arbitrary ordering scheme.
+
+Here's a few examples for clarification:
+
+#### Example A
+
+Example A illustrates JDS and JDC adding arbitrary 0 valued outputs in addition to the pool payout output.
+
+Outputs in `AllocateMiningJobToken.Success.coinbase_tx_outputs`:
+| Script      | Amount (sats)    | Description                                                       |
+|-------------|------------------|-------------------------------------------------------------------|
+| P2WPKH      | 0                | pool payout output                                                |
+| OP_RETURN X | 0                | arbitrary unspendable output imposed by JDS                       |
+| OP_RETURN Y | 0                | arbitrary unspendable output imposed by JDS                       |
+
+Outputs in `DeclareMiningJob.coinbase_tx_suffix` and/or `SetCustomMiningJob.coinbase_tx_outputs`:
+| Script      | Amount (sats)    | Description                                                       |
+|-------------|------------------|-------------------------------------------------------------------|
+| OP_RETURN Z | 0                | arbitrary unspendable output added by JDC                         |
+| P2WPKH      | template_revenue | pool payout output                                                |
+| OP_RETURN X | 0                | arbitrary unspendable output imposed by JDS                       |
+| OP_RETURN Y | 0                | arbitrary unspendable output imposed by JDS                       |
+| OP_RETURN W | 0                | SegWit commitment added by Template Provider                      |
+
+
+#### Example B
+
+Example B illustrates JDC allocating part of the template revenue to some outputs that are not the pool payout. Here, the Pool MAY pay proportionally smaller rewards for this custom job, since the template revenue is not fully allocated to the pool payout output.
+
+Ordered outputs in `AllocateMiningJobToken.Success.coinbase_tx_outputs`:
+| Script    | Amount (sats)    | Description                                         |
+|-----------|------------------|-----------------------------------------------------|
+| P2TR      | 0                | pool payout output                                  |
+
+Ordered outputs in `DeclareMiningJob.coinbase_tx_suffix` and/or `SetCustomMiningJob.coinbase_tx_outputs`:
+| Script    | Amount (sats)            | Description                                         |
+|-----------|--------------------------|-----------------------------------------------------|
+| P2PKH     | X                        | arbitrary output added by JDC                       |
+| P2WSH     | Y                        | arbitrary output added by JDC                       |
+| P2TR      | template_revenue - X - Y | pool payout output                                  |
+| OP_RETURN | 0                        | SegWit commitment added by Template Provider        |
+
 
 ### 6.4.4 `DeclareMiningJob` (Client -> Server)
 

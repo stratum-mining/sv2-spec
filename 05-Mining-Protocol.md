@@ -451,8 +451,7 @@ Note: There is no need for block height in this message.
 Can be sent only on extended channel.
 `SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully declared).
 
-The downstream node has a custom job declared by a trusted external Job Declarator.
-The `mining_job_token` provides the information for the pool to authorize the custom job that has been or will be declared between the Job Declarator and Pool.
+This message signals that JDC expects to be rewarded for working on a Custom Job.
 
 | Field Name                  | Data Type      | Description                                                                                                                                                           |
 | --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -466,8 +465,7 @@ The `mining_job_token` provides the information for the pool to authorize the cu
 | coinbase_tx_version         | U32            | The coinbase transaction nVersion field                                                                                                                               |
 | coinbase_prefix             | B0_255         | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction.                              |
 | coinbase_tx_input_nSequence | U32            | The coinbase transaction input's nSequence field                                                                                                                      |
-| coinbase_tx_value_remaining | U64            | The value, in satoshis, available for spending in coinbase outputs added by the client. Includes both transaction fees and block subsidy.                             |
-| coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs to be included as the last outputs in the coinbase transaction                                                                            |
+| coinbase_tx_outputs         | B0_64K         | Serialized outputs of the coinbase transaction                                                                            |
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                        |
 | merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                                                                                                               |
 
