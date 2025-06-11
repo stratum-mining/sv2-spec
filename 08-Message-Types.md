@@ -33,8 +33,6 @@
 | Job Declaration Protocol       |                 |                                    |
 | 0x50                           | 0               | AllocateMiningJobToken             |
 | 0x51                           | 0               | AllocateMiningJobToken.Success     |
-| 0x53                           | 0               | IdentifyTransactions               |
-| 0x54                           | 0               | IdentifyTransactions.Success       |
 | 0x55                           | 0               | ProvideMissingTransactions         |
 | 0x56                           | 0               | ProvideMissingTransactions.Success |
 | 0x57                           | 0               | DeclareMiningJob                   |
@@ -42,7 +40,7 @@
 | 0x59                           | 0               | DeclareMiningJob.Error             |
 | 0x60                           | 1               | SubmitSolution                     |
 | Template Distribution Protocol |                 |                                    |
-| 0x70                           | 0               | CoinbaseOutputDataSize             |
+| 0x70                           | 0               | CoinbaseOutputConstraints           |
 | 0x71                           | 0               | NewTemplate                        |
 | 0x72                           | 0               | SetNewPrevHash                     |
 | 0x73                           | 0               | RequestTransactionData             |

@@ -1,6 +1,6 @@
 # 3. Protocol Overview
 
-There are technically four distinct (sub)protocols needed in order to fully use all of the features proposed in this document:
+There are technically three distinct (sub)protocols needed in order to fully use all of the features proposed in this document:
 
 1. **Mining Protocol**  
    The main protocol used for mining and the direct successor of Stratum v1.
@@ -19,10 +19,6 @@ There are technically four distinct (sub)protocols needed in order to fully use 
 3. **Template Distribution Protocol**  
    A similarly-framed protocol for getting information about the next block out of Bitcoin Core.
    Designed to replace `getblocktemplate` with something much more efficient and easy to implement for those implementing other parts of Stratum v2.
-
-4. **Job Distribution Protocol**  
-   Simple protocol for passing newly-declared work to interested nodes - either proxies or miners directly.
-   This protocol is left to be specified in a future document, as it is often unnecessary due to the Job Declaration role being a part of a larger Mining Protocol Proxy.
 
 Meanwhile, there are five possible roles (types of software/hardware) for communicating with these protocols.
 
@@ -96,11 +92,22 @@ The message framing is outlined below:
 
 | Field Name  | Type | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| extension_type | U16         | Unique identifier of the extension describing this protocol message. <br>Least significant bit (i.e.bit 15, 0-indexed, aka channel_msg) indicates a message which is specific to a channel, whereas if the most significant bit is unset, the message is to be interpreted by the immediate receiving device. <br>Note that the channel_msg bit is ignored in the extension lookup, i.e.an extension_type of 0x8ABC is for the same "extension" as 0x0ABC. <br>If the channel_msg bit is set, the first four bytes of the payload field is a U32 representing the channel_id this message is destined for (these bytes are repeated in the message framing descriptions below). <br>Note that for the Job Declaration and Template Distribution Protocols the channel_msg bit is always unset. |
-| msg_type       | U8          | Unique identifier of the extension describing this protocol message                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| extension_type | U16         | Unique identifier of the extension associated with this protocol message                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| msg_type       | U8          | Unique identifier of this protocol message                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | msg_length     | U24         | Length of the protocol message, not including this header                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | payload        | BYTES       | Message-specific payload of length msg_length. If the MSB in extension_type (the channel_msg bit) is set the first four bytes are defined as a U32 "channel_id", though this definition is repeated in the message definitions below and these 4 bytes are included in msg_length.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
+### 3.2.1 Routing Frames over Channels
+
+Some bits of the `extension_type` field can also be repurposed for signaling on how the frame should be handled across channels.
+
+The least significant bit of `extension_type` (i.e., bit 15, 0-indexed, also known as `channel_msg`) indicates a message which is specific to a channel, whereas if the most significant bit is unset, the message is to be interpreted by the immediate receiving device. 
+
+Note that the `channel_msg` bit is ignored in the extension lookup, i.e., an `extension_type` of `0x8ABC` is for the same "extension" as `0x0ABC`. 
+
+If the `channel_msg` bit is set, the first four bytes of the payload field is a `U32` representing the `channel_id` this message is destined for (these bytes are repeated in the message framing descriptions below).
+
+Note that for the Job Declaration and Template Distribution Protocols the `channel_msg` bit is always unset.
 
 ## 3.3 Reconnecting Downstream Nodes
 
@@ -126,7 +133,11 @@ If a device is aware of the semantics of a given extension type, it MUST process
 
 Messages with an unknown `extension_type` which are to be processed locally (as defined above) MUST be discarded and ignored.
 
-Extensions MUST require version negotiation with the recipient of the message to check that the extension is supported before sending non-version-negotiation messages for it.
+### 3.4.1 Implementing Extensions Support
+
+To support extensions, an implementation MUST first implement [Extension 1](./extensions/extensions-negotiation.md), which defines the basic protocol for requesting and negotiating support for extensions. This extension must be included in any protocol implementation that plans to support additional protocol extensions.
+
+Extensions MUST require negotiation with the recipient of the message to check that the extension is supported before sending non-version-negotiation messages for it.
 This prevents the needlessly wasted bandwidth and potentially serious performance degradation of extension messages when the recipient does not support them.
 
 See `ChannelEndpointChanged` message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
@@ -209,7 +220,7 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 
 | Field Name         | Data Type | Description                                                                                                                 |
 |--------------------|-----------|-----------------------------------------------------------------------------------------------------------------------------|
-| protocol           | U8        | 0 = Mining Protocol <br>1 = Job Declaration <br>2 = Template Distribution Protocol <br> 3 = Job Distribution Protocol       |
+| protocol           | U8        | 0 = Mining Protocol <br>1 = Job Declaration <br>2 = Template Distribution Protocol                                          |
 | min_version        | U16       | The minimum protocol version the client supports (currently must be 2)                                                      |
 | max_version        | U16       | The maximum protocol version the client supports (currently must be 2)                                                      |
 | flags              | U32       | Flags indicating optional protocol features the client supports. Each protocol from protocol field as its own values/flags. |
