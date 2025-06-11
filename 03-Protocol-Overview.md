@@ -142,6 +142,53 @@ This prevents the needlessly wasted bandwidth and potentially serious performanc
 
 See `ChannelEndpointChanged` message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
 
+## 3.4.1 Stratum V2 TLV Encoding Model
+
+To ensure a consistent and extensible way of adding optional fields to existing messages, **Stratum V2 supports Type-Length-Value (TLV) encoding** for protocol extensions. This model allows for structured, backward-compatible extensions while ensuring that unknown fields can be safely ignored.
+
+### TLV Structure
+
+Each TLV-encoded field follows this format:
+
+| **Field**  | **Size** | **Description** |
+|------------|---------|----------------|
+| **Type**   | 3 bytes (U16 + U8) | Identifies the TLV field. The first 2 bytes represent the `extension_type`, and the third byte represents the `field_type` within the extension context. |
+| **Length** | 2 bytes (U16) | Indicates the size (in bytes) of the Value field. |
+| **Value**  | `N` bytes  | The actual data of the extension field, of variable length. |
+
+- The **Type** field consists of **3 bytes**, where:
+   - The **first 2 bytes** (`U16`) correspond to the negotiated `extension_type`, ensuring modular and self-contained extensions.
+   - The **third byte** (`U8`) specifies the `field_type` defined in the extension, allowing multiple fields to be added within the same message.
+- The **Length** field defines the exact size of the **Value**, allowing efficient message parsing.
+- If the **Length** is `0x0000`, the **Value** field is omitted.
+- When multiple fields extend the same message type, their order **MUST** match the order defined in the extension.
+
+### Usage Guidelines
+
+- **TLV fields MUST be placed at the end of the message payload.** This ensures compatibility with existing Stratum V2 messages.
+- **TLV fields MUST be ordered by `extension_type`.** Since all extensions are negotiated beforehand, the recipient MUST process TLV fields in order of `extension_type` and use their `Type` identifiers to correctly interpret them.
+- **Order of TLV fields within the same extension MUST be respected.** If an extension defines multiple TLV fields to extend a single message, they **MUST** appear in the exact order specified by the extension’s documentation.
+- **Length constraints MUST be respected.** Each extension must specify the valid length range for its TLV fields. If a TLV field exceeds the maximum length allowed by its specification, the recipient MUST reject the message.
+
+### Example: Extending `SubmitSharesExtended`
+
+If extension **0x0002** (Worker-Specific Hashrate Tracking) is negotiated, clients must append the following TLV field to `SubmitSharesExtended`:
+```
+[TYPE: 0x0002 0x01] [LENGTH: 0x000A] [VALUE: "Worker_001"]
+```
+Encoded as:
+```
+00 02 01 00 0A 57 6F 72 6B 65 72 5F 30 30 31
+```
+
+Where:
+- `00 02 01` → TLV Type (Extension `0x0002`, Field `0x01` — `user_identity`)
+- `00 0A` → Length = 10 bytes
+- `57 6F 72 6B 65 72 5F 30 30 31` → `"Worker_001"` (UTF-8 encoded)
+
+A device processing `SubmitSharesExtended` **MUST scan for TLV fields** matching any negotiated extensions, allowing for future extensibility without breaking compatibility.
+
+
 ## 3.5 Error Codes
 
 The protocol uses string error codes.
