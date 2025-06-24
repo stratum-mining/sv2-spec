@@ -1,0 +1,16 @@
+name: Check README Table of Contents
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check README Table of Contents
+        run: ./scripts/generate-readme.sh --check
