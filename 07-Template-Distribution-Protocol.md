@@ -45,6 +45,8 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                                                                                                                                     |
 | merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                                                                                                                                                                                                                            |
 
+Please note that differently from `SetCustomMiningJob.coinbase_tx_outputs` and `AllocateMiningJobToken.Success.coinbase_tx_outputs`, `NewTemplate.coinbase_tx_outputs` MUST NOT be serialized as a CompactSize-prefixed array. This field must simply carry the ordered sequence of consensus‑serialized outputs, but the number of outputs MUST be inferred from `NewTemplate.coinbase_tx_outputs_count`. This is the equivalent of taking a CompactSize-prefixed array and dropping its (outer) prefix. 
+
 ## 7.3 `SetNewPrevHash` (Server -> Client)
 
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
