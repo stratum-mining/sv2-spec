@@ -16,7 +16,6 @@ It is responsible for:
 - Allocating tokens that JDC will use to declare Custom Jobs.
 - Acknowledging declaration of Custom Jobs associated with specific allocated tokens.
 - Maintaining an internal mempool (via RPCs (or similar) to a Bitcoin Node).
-- Requesting identification for transactions on some declared Custom Job.
 - Requesting missing transactions on some declared Custom Job (only under Full-Template mode).
 - Publishing valid block submissions received from JDC.
 
