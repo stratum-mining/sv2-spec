@@ -40,7 +40,7 @@ Additionally, if:
 
 JDC is also responsible for switching to a new Pool+JDS (or solo mining as a last resort).
 
-This fallback strategy incentivizes honesty on Pool side, otherwise it will lose hashrate by rejecting Shares for a Custom Job that was already acknowledged to be valid.
+This fallback strategy incentivizes honesty on Pool side, otherwise it will lose hashrate by rejecting Shares for a Custom Job that was already acknowledged to be valid. It also allows the miner to never stop mining on their preferred templates.
 
 ## 6.3 Job Declaration Modes
 
