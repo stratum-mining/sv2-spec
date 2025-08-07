@@ -50,9 +50,12 @@ Please note that differently from `SetCustomMiningJob.coinbase_tx_outputs` and `
 ## 7.3 `SetNewPrevHash` (Server -> Client)
 
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
-If a `NewMiningJob` message has previously been sent with an empty `min_ntime`, which is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be set to the `job_id` present in that `NewTemplate` message indicating the client MUST begin mining on that template as soon as possible.
 
-TODO: Define how many previous works the client has to track (2? 3?), and require that the server reference one of those in `SetNewPrevHash`.
+Prior to that, the server MUST send at least one, but potentially multiple `NewTemplate` messages with `future_template` flag set. The client SHOULD keep track of all of them, and convert them into `NewMiningJob` and `NewExtendedMiningJob` messages (with empty `min_ntime`) in case it's also acting as a server under the Mining Protocol.
+
+If a `NewMiningJob` or `NewExtendedMiningJob` message has previously been sent with an empty `min_ntime`, and it is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be matched to the corresponding `NewTemplate` message that generated the `NewMiningJob` or `NewExtendedMiningJob`, and a Mining Protocol `SetNewPrevHash` message SHOULD be sent indicating the client MUST begin mining on that job as soon as possible.
+
+After that, the future templates that were being kept in memory can be discarded, leaving room for future templates relative to the next `SetNewPrevHash`.
 
 | Field Name       | Data Type | Description                                                                                                                                                                                            |
 | ---------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
