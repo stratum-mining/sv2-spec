@@ -17,7 +17,7 @@ Thus, this message is used to indicate that some additional space and sigops in 
 
 The Job Declarator MUST discover the maximum serialized size of the additional outputs and sigops which will be added by the pool(s) it intends to use this work.
 It then MUST communicate it to the Template Provider via this message.
-The Template Provider MUST NOT provide `NewMiningJob` messages which would represent consensus-invalid blocks once this additional size and sigops — along with a maximally-sized (100 byte) coinbase script field — is added.
+The Template Provider MUST NOT provide `NewTemplate` messages which would represent consensus-invalid blocks once this additional size and sigops — along with a maximally-sized (100 byte) coinbase script field — is added.
 Further, the Template Provider MUST consider the maximum additional bytes required in the output count variable-length integer in the coinbase transaction when complying with the size limits.
 Current sigops limit per block in bitcoin is 80_000. We are not aware of any use cases where
 coinbase have more the 65_535 so coinbase_output_max_sigops is an U16. Note that taproot outputs consume 0 sigops.
@@ -114,7 +114,7 @@ Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or 
 | Field Name       | Data Type | Description                                                                                                                                                                                                                                    |
 | ---------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | template_id      | U64       | The template_id field as it appeared in NewTemplate                                                                                                                                                                                            |
-| version          | U32       | The version field in the block header. Bits not defined by BIP320 as additional nonce MUST be the same as they appear in the NewMiningJob message, other bits may be set to any value.                                                              |
+| version          | U32       | The version field in the block header. Bits not defined by BIP320 as additional nonce MUST be the same as they appear in the NewTemplate message, other bits may be set to any value.                                                              |
 | header_timestamp | U32       | The nTime field in the block header. This MUST be greater than or equal to the header_timestamp field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
 | header_nonce     | U32       | The nonce field in the header                                                                                                                                                                                                                  |
-| coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewMiningJob message, above                                                                                                                                           |
+| coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewTemplate message, above                                                                                                                                           |
