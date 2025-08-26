@@ -427,6 +427,8 @@ A proxy MUST translate the message for all downstream channels belonging to the 
 - For a **standard channel**: `extranonce_prefix`
 - For an **extended channel**: `extranonce_prefix + extranonce (=N bytes)`, where `N` is the negotiated extranonce space for the channel (`OpenMiningChannel.Success.extranonce_size`)
 
+\*If the original coinbase is a SegWit transaction, `coinbase_tx_prefix` and `coinbase_tx_suffix` MUST be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
+
 ### 5.3.17 `SetNewPrevHash` (Server -> Client, broadcast)
 
 Prevhash is distributed whenever a new block is detected in the network by an upstream node or when a new downstream opens a channel.

@@ -118,3 +118,5 @@ Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or 
 | header_timestamp | U32       | The nTime field in the block header. This MUST be greater than or equal to the header_timestamp field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
 | header_nonce     | U32       | The nonce field in the header                                                                                                                                                                                                                  |
 | coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewTemplate message, above                                                                                                                                           |
+
+\*Differently from `NewExtendedMiningJob`, if the original coinbase is a SegWit transaction, `coinbase_tx` MUST NOT be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
