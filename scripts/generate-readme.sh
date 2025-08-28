@@ -19,15 +19,18 @@ for file in $(ls *.md | grep -v -i 'README.md' | sort); do
             number="${BASH_REMATCH[2]}"
             title="${BASH_REMATCH[5]}"
             level=$((${#hashes} - 1))
-            indent=$(printf ' %.0s' $(seq 1 $((level * 2))))
+            indent=$(printf '%*s' $((level * 2)) " ")
             anchor=$(echo "$number-$title" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
             echo "${indent}- [$number. $title](./$file#$anchor)" >> "$INDEX_TMP"
         fi
     done < "$file"
 done
 
-# Generate the new README content
-awk -v table_of_contents="$(cat $INDEX_TMP)" '{gsub(/\[table_of_contents\]/, table_of_contents)}1' "$TEMPLATE" > "$README_TMP"
+# Replace [table_of_contents] with generated index
+sed "/\[table_of_contents\]/{
+    r $INDEX_TMP
+    d
+}" "$TEMPLATE" > "$README_TMP"
 
 if [[ "$1" == "--check" ]]; then
     if ! diff --color=auto -u "$OUTFILE" "$README_TMP"; then
@@ -47,3 +50,4 @@ else
     rm "$INDEX_TMP" "$README_TMP"
     echo -e "${GREEN}No changes made. Use --check to verify or --bless to update README.md.${NC}"
 fi
+
