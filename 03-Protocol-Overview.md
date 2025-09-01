@@ -293,6 +293,10 @@ This ensures that an attacker will not be able to redirect hashrate to an arbitr
 
 This deserves some consideration in the Stratum V2 protocol design, mainly because this affects how the Coinbase transaction is serialized across different messages.
 
+For a block that contains any SegWit transactions (in practice almost any non-empty block), the Coinbase transaction MUST have a witness as well as an `OP_RETURN` output carrying the witness commitment. For an empty block, the Coinbase transaction MAY have a witness and the `OP_RETURN` output with the witness commitment anyway.
+
+The `OP_RETURN` output with the witness commitment is provided by Sv2 Template Providers in the `coinbase_tx_outputs` field of `NewTemplate` message.
+
 On a serialized SegWit transaction, the BIP141 fields are:
 - marker
 - flag
