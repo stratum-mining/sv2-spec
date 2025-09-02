@@ -308,6 +308,7 @@ The presence or absence of these fields on a serialized Coinbase has important i
 - `NewExtendedMiningJob` of Mining Protocol
 - `DeclareMiningJob` of Job Declaration Protocol
 - `SubmitSolution` of Template Distribution Protocol
+- `NewTemplate` of Template Distribution Protocol
 
 ### 3.7.1 BIP141 on `NewExtendedMiningJob`
 
@@ -340,3 +341,10 @@ On the Template Distribution Protocol's `SubmitSolution` there is one field affe
 Differently from `NewExtendedMiningJob`, in case the Template's Coinbase is a SegWit transaction, BIP141 fields MUST NOT be stripped from `SubmitSolution`'s `coinbase_tx`.
 
 That's because the Template Distribution Server would not be able to propagate a block without that data.
+
+### 3.7.4. BIP141 on `NewTemplate`
+
+On the Template Distribution Protocol's `NewTemplate` there is one field affected by BIP141:
+- `coinbase_tx_outputs`
+
+In case of blocks containing SegWit transactions (and optionally blocks that don't as well), this field carries the `OP_RETURN` output with the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
