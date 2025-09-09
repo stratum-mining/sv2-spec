@@ -204,6 +204,8 @@ A request sent by JDC that proposes a selected set of transactions to JDS.
 | coinbase_tx_suffix         | B0_64K                 | Serialized bytes representing the final part of the coinbase transaction (after extranonce)                                                                                                                                                                                                                                                                                     |
 | tx_ids_list               | SEQ0_64K[U256] | List of hashes of the transaction set contained in the template. JDS checks the list against its mempool and requests missing txs via `ProvideMissingTransactions`. Does not include the coinbase transaction (as there is no corresponding full data for it yet).                                                                                                                                                          |
 | excess_data                 | B0_64K                | Extra data which the Pool may require to validate the work (as defined in the Template Distribution Protocol)                                                                                                                                                                                                                                                                                                                |
+\*Differently from `NewExtendedMiningJob`, if the original coinbase is a SegWit transaction, `coinbase_tx_prefix` and `coinbase_tx_suffix` MUST NOT be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
+
 
 ### 6.4.5 `DeclareMiningJob.Success` (Server -> Client)
 

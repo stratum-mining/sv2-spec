@@ -286,3 +286,65 @@ Upon receiving the message, the client re-initiates the Noise handshake and uses
 For security reasons, it is not possible to reconnect to a server with a certificate signed by a different pool authority key.
 The message intentionally does not contain a **pool public key** and thus cannot be used to reconnect to a different pool.
 This ensures that an attacker will not be able to redirect hashrate to an arbitrary server should the pool server get compromised and instructed to send reconnects to a new location.
+
+## 3.7 BIP141
+
+[BIP141](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki) introduced the notion of Segregated Witness (SegWit) into the Bitcoin protocol.
+
+This deserves some consideration in the Stratum V2 protocol design, mainly because this affects how the Coinbase transaction is serialized across different messages.
+
+For a block that contains any SegWit transactions (in practice almost any non-empty block), the Coinbase transaction MUST have a witness as well as an `OP_RETURN` output carrying the witness commitment. For an empty block, the Coinbase transaction MAY have a witness and the `OP_RETURN` output with the witness commitment anyway.
+
+The `OP_RETURN` output with the witness commitment is provided by Sv2 Template Providers in the `coinbase_tx_outputs` field of `NewTemplate` message.
+
+On a serialized SegWit transaction, the BIP141 fields are:
+- marker
+- flag
+- witness count
+- witness length
+- witness
+
+The presence or absence of these fields on a serialized Coinbase has important implications on the Stratum V2 protocol. More specifically, the following messages are affected:
+- `NewExtendedMiningJob` of Mining Protocol
+- `DeclareMiningJob` of Job Declaration Protocol
+- `SubmitSolution` of Template Distribution Protocol
+- `NewTemplate` of Template Distribution Protocol
+
+### 3.7.1 BIP141 on `NewExtendedMiningJob`
+
+On the Mining Protocol's `NewExtendedMiningJob` there are two fields affected by BIP141:
+- `coinbase_tx_prefix`
+- `coinbase_tx_suffix`
+
+When concatenated with `extranonce_prefix` + `extranonce`, these fields form a serialized Coinbase transaction that is then hashed to produce a `txid`. Together with `merkle_path`, this `txid`
+will then form the `merkle_root` of the Block Header.
+
+In case the Template's Coinbase is a SegWit transaction, BIP141 fields MUST be stripped away from `coinbase_tx_prefix` and `coinbase_tx_suffix`, otherwise clients would be calculating a `merkle_root` with the Coinbase's `wtxid`, which goes against Bitcoin Consensus.
+
+The server MUST retain the original value of those fields so that it can reconstruct the Coinbase as a SegWit transaction whenever it needs to propagate a block.
+
+### 3.7.2 BIP141 on `DeclareMiningJob`
+
+On the Job Declaration Protocol's `DeclareMiningJob` there are two fields affected by BIP141:
+- `coinbase_tx_prefix`
+- `coinbase_tx_suffix`
+
+Differently from `NewExtendedMiningJob`, in case the Template's Coinbase is a SegWit transaction, BIP141 fields MUST NOT be stripped from `DeclareMiningJob`'s `coinbase_tx_prefix` and `coinbase_tx_suffix`.
+
+That's because JDS needs to be able to reconstruct the Coinbase as a SegWit transaction whenever it needs to propagate a block.
+
+### 3.7.3 BIP141 on `SubmitSolution`
+
+On the Template Distribution Protocol's `SubmitSolution` there is one field affected by BIP141:
+- `coinbase_tx`
+
+Differently from `NewExtendedMiningJob`, in case the Template's Coinbase is a SegWit transaction, BIP141 fields MUST NOT be stripped from `SubmitSolution`'s `coinbase_tx`.
+
+That's because the Template Distribution Server would not be able to propagate a block without that data.
+
+### 3.7.4. BIP141 on `NewTemplate`
+
+On the Template Distribution Protocol's `NewTemplate` there is one field affected by BIP141:
+- `coinbase_tx_outputs`
+
+In case of blocks containing SegWit transactions (and optionally blocks that don't as well), this field carries the `OP_RETURN` output with the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).

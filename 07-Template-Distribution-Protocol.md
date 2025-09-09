@@ -47,6 +47,8 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 
 Please note that differently from `SetCustomMiningJob.coinbase_tx_outputs` and `AllocateMiningJobToken.Success.coinbase_tx_outputs`, `NewTemplate.coinbase_tx_outputs` MUST NOT be serialized as a CompactSize-prefixed array. This field must simply carry the ordered sequence of consensus‑serialized outputs, but the number of outputs MUST be inferred from `NewTemplate.coinbase_tx_outputs_count`. This is the equivalent of taking a CompactSize-prefixed array and dropping its (outer) prefix. 
 
+Please also note that in case the block contains SegWit transactions (and optionally blocks that don't as well), `NewTemplate.coinbase_tx_outputs` MUST carry the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+
 ## 7.3 `SetNewPrevHash` (Server -> Client)
 
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
@@ -118,3 +120,5 @@ Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or 
 | header_timestamp | U32       | The nTime field in the block header. This MUST be greater than or equal to the header_timestamp field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
 | header_nonce     | U32       | The nonce field in the header                                                                                                                                                                                                                  |
 | coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewTemplate message, above                                                                                                                                           |
+
+\*Differently from `NewExtendedMiningJob`, if the original coinbase is a SegWit transaction, `coinbase_tx` MUST NOT be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
