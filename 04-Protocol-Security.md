@@ -344,7 +344,7 @@ Stratum Message header and stratum message payload are processed separately.
 
 #### Decrypting stratum message
 1. read exactly 22 bytes and decrypt into stratum frame or fail
-2.The value `frame.message_length` should first be converted to the ciphertext length, and then that amount of data should be read and decrypted into plaintext payload. If decryption fails, the process stops
+2. The value `frame.message_length` should first be converted to the ciphertext length, and then that amount of data should be read and decrypted into plaintext payload. If decryption fails, the process stops
 3. deserialize plaintext payload into stratum message given by `frame.extension_type` and `frame.message_type` or fail
 
 
