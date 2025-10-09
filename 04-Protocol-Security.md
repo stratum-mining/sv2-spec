@@ -13,7 +13,7 @@ However, it is **mandatory** for remote access to the upstream nodes, whether th
 
 ## 4.1 Motivation for Authenticated Encryption with Associated Data
 
-Data transferred by the mining protocol MUST not provide adversary information that they can use to estimate the performance of any particular miner. Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username. This is unacceptable privacy leakage that needs to be addressed.
+Data transferred by the mining protocol MUST not provide an adversary with information that they can use to estimate the performance of any particular miner. Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username. This is unacceptable privacy leakage that needs to be addressed.
 
 ## 4.2 Motivation for Using the Noise Protocol Framework
 
