@@ -66,7 +66,7 @@ To perform X-only ECDH we use ellswift_ecdh_xonly(ellswift_theirs, d) as describ
 
 No assumption is made about the parity of Y-coordinate. For the purpose of signing
 (e.g. certificate) and ECDH (handshake) it is _not_ necessary to "grind"
-the private key. The choosen algoritms take care of this by implicitly negatating
+the private key. The choosen algoritms take care of this by implicitly negating
 the key, as if its public key had an even Y-coordinate.
 
 For more information refer to BIP340<sup>[3](#reference-3)</sup> and BIP324<sup>[7](#reference-7)</sup>.
