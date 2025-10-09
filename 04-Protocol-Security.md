@@ -324,7 +324,7 @@ Signature itself is concatenation of an EC point `R` and an integer `s` (note th
 
 After handshake process is finished, both initiator and responder have CipherState objects for encryption and decryption and after initiator validated server's identity, any subsequent traffic is encrypted and decrypted with `EncryptWithAd()` and `DecryptWithAd()` methods of the respective CipherState objects with zero-length associated data.
 
-Maximum transport message length (ciphertext) is for noise protocol message 65535 bytes.
+Maximum transport message length (ciphertext) for a noise protocol message is 65535 bytes.
 
 Since Stratum Message Frame consists of
 - fixed length message header: 6 bytes
