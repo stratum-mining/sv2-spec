@@ -22,10 +22,10 @@ Further, the Template Provider MUST consider the maximum additional bytes requir
 Current sigops limit per block in bitcoin is 80_000. We are not aware of any use cases where
 coinbase have more the 65_535 so coinbase_output_max_sigops is an U16. Note that taproot outputs consume 0 sigops.
 
-| Field Name                          | Data Type | Description                                                                                     |
-| ----------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
-| coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs |
-| coinbase_output_max_additional_sigops          | U16       | The maximum additional sigops which the pool will add in coinbase transaction outputs           |
+| Field Name                            | Data Type | Description                                                                                     |
+| ------------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
+| coinbase_output_max_additional_size   | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs |
+| coinbase_output_max_additional_sigops | U16       | The maximum additional sigops which the pool will add in coinbase transaction outputs           |
 
 ## 7.2 `NewTemplate` (Server -> Client)
 
