@@ -197,7 +197,7 @@ Prior to starting first round of NX-handshake, both initiator and responder init
 1. **hash output** `h = HASH(protocolName)`
 
 - Since `protocolName` more than 32 bytes in length, apply `HASH` to it.
-- `protocolName` is official noise protocol name: `Noise_NX_Secp256k1+EllSwift_ChaChaPoly_SHA256`
+- `protocolName` is official Noise Protocol name: `Noise_NX_Secp256k1+EllSwift_ChaChaPoly_SHA256`
   encoded as an ASCII string
 
 2. **chaining key** `ck = h`
@@ -267,7 +267,7 @@ Length: 74 bytes
 | PUBKEY                  | Responder's plaintext ephemeral public key                                                                                                                     |
 | PUBKEY                  | Responder's encrypted static public key                                                                                                                        |
 | MAC                     | Message authentication code for responder's static public key                                                                                                  |
-| SIGNATURE_NOISE_MESSAGE | Signed message containing Responder's static key. Signature is issued by authority that is generally known to operate the server acting as the noise responder |
+| SIGNATURE_NOISE_MESSAGE | Signed message containing Responder's static key. Signature is issued by authority that is generally known to operate the server acting as the Noise responder |
 | MAC                     | Message authentication code for SIGNATURE_NOISE_MESSAGE                                                                                                        |
 
 Message length: 170 bytes
@@ -324,7 +324,7 @@ Signature itself is concatenation of an EC point `R` and an integer `s` (note th
 
 After handshake process is finished, both initiator and responder have CipherState objects for encryption and decryption and after initiator validated server's identity, any subsequent traffic is encrypted and decrypted with `EncryptWithAd()` and `DecryptWithAd()` methods of the respective CipherState objects with zero-length associated data.
 
-Maximum transport message length (ciphertext) for a noise protocol message is 65535 bytes.
+Maximum transport message length (ciphertext) for a Noise Protocol message is 65535 bytes.
 
 Since Stratum Message Frame consists of
 - fixed length message header: 6 bytes
@@ -368,7 +368,7 @@ uint pt_len_to_ct_len(uint pt_len) {
 #### Encrypted stratum message frame layout
 ```
 +--------------------------------------------------+-------------------------------------------------------------------+
-| Extended noise header                            | Encrypted stratum-message payload                                 |
+| Extended Noise header                            | Encrypted stratum-message payload                                 |
 +--------------------------------------------------+-------------------+-------------------+---------------------------+
 | Header AEAD ciphertext                           | Noise block 1     | Noise block 2     | Last Noise block          |
 | 22 Bytes                                         | 65535 Bytes       | 65535 Bytes       | 17 - 65535 Bytes          |
