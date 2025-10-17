@@ -13,7 +13,7 @@ However, it is **mandatory** for remote access to the upstream nodes, whether th
 
 ## 4.1 Motivation for Authenticated Encryption with Associated Data
 
-Data transferred by the mining protocol MUST not provide adversary information that they can use to estimate the performance of any particular miner. Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username. This is unacceptable privacy leakage that needs to be addressed.
+Data transferred by the mining protocol MUST not provide an adversary with information that they can use to estimate the performance of any particular miner. Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username. This is unacceptable privacy leakage that needs to be addressed.
 
 ## 4.2 Motivation for Using the Noise Protocol Framework
 
@@ -66,7 +66,7 @@ To perform X-only ECDH we use ellswift_ecdh_xonly(ellswift_theirs, d) as describ
 
 No assumption is made about the parity of Y-coordinate. For the purpose of signing
 (e.g. certificate) and ECDH (handshake) it is _not_ necessary to "grind"
-the private key. The choosen algoritms take care of this by implicitly negatating
+the private key. The choosen algoritms take care of this by implicitly negating
 the key, as if its public key had an even Y-coordinate.
 
 For more information refer to BIP340<sup>[3](#reference-3)</sup> and BIP324<sup>[7](#reference-7)</sup>.
@@ -197,7 +197,7 @@ Prior to starting first round of NX-handshake, both initiator and responder init
 1. **hash output** `h = HASH(protocolName)`
 
 - Since `protocolName` more than 32 bytes in length, apply `HASH` to it.
-- `protocolName` is official noise protocol name: `Noise_NX_Secp256k1+EllSwift_ChaChaPoly_SHA256`
+- `protocolName` is official Noise Protocol name: `Noise_NX_Secp256k1+EllSwift_ChaChaPoly_SHA256`
   encoded as an ASCII string
 
 2. **chaining key** `ck = h`
@@ -267,7 +267,7 @@ Length: 74 bytes
 | PUBKEY                  | Responder's plaintext ephemeral public key                                                                                                                     |
 | PUBKEY                  | Responder's encrypted static public key                                                                                                                        |
 | MAC                     | Message authentication code for responder's static public key                                                                                                  |
-| SIGNATURE_NOISE_MESSAGE | Signed message containing Responder's static key. Signature is issued by authority that is generally known to operate the server acting as the noise responder |
+| SIGNATURE_NOISE_MESSAGE | Signed message containing Responder's static key. Signature is issued by authority that is generally known to operate the server acting as the Noise responder |
 | MAC                     | Message authentication code for SIGNATURE_NOISE_MESSAGE                                                                                                        |
 
 Message length: 170 bytes
@@ -324,7 +324,7 @@ Signature itself is concatenation of an EC point `R` and an integer `s` (note th
 
 After handshake process is finished, both initiator and responder have CipherState objects for encryption and decryption and after initiator validated server's identity, any subsequent traffic is encrypted and decrypted with `EncryptWithAd()` and `DecryptWithAd()` methods of the respective CipherState objects with zero-length associated data.
 
-Maximum transport message length (ciphertext) is for noise protocol message 65535 bytes.
+Maximum transport message length (ciphertext) for a Noise Protocol message is 65535 bytes.
 
 Since Stratum Message Frame consists of
 - fixed length message header: 6 bytes
@@ -344,7 +344,7 @@ Stratum Message header and stratum message payload are processed separately.
 
 #### Decrypting stratum message
 1. read exactly 22 bytes and decrypt into stratum frame or fail
-2.The value `frame.message_length` should first be converted to the ciphertext length, and then that amount of data should be read and decrypted into plaintext payload. If decryption fails, the process stops
+2. The value `frame.message_length` should first be converted to the ciphertext length, and then that amount of data should be read and decrypted into plaintext payload. If decryption fails, the process stops
 3. deserialize plaintext payload into stratum message given by `frame.extension_type` and `frame.message_type` or fail
 
 
@@ -368,7 +368,7 @@ uint pt_len_to_ct_len(uint pt_len) {
 #### Encrypted stratum message frame layout
 ```
 +--------------------------------------------------+-------------------------------------------------------------------+
-| Extended noise header                            | Encrypted stratum-message payload                                 |
+| Extended Noise header                            | Encrypted stratum-message payload                                 |
 +--------------------------------------------------+-------------------+-------------------+---------------------------+
 | Header AEAD ciphertext                           | Noise block 1     | Noise block 2     | Last Noise block          |
 | 22 Bytes                                         | 65535 Bytes       | 65535 Bytes       | 17 - 65535 Bytes          |
