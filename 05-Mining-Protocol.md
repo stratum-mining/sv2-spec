@@ -313,6 +313,8 @@ A proxy MUST send this message on behalf of all opened channels from a downstrea
 If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it MUST send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
 In general, proxy servers MUST keep the upstream node notified about the real state of the downstream channels.
 
+If `channel_id` is addressing a group channel, all channels belonging to such group MUST be closed.
+
 ### 5.3.10 `SetExtranoncePrefix` (Server -> Client)
 
 Changes downstream node’s extranonce prefix.
