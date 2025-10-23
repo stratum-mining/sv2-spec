@@ -526,12 +526,11 @@ When `SetTarget` is sent to a group channel, the maximum target is applicable to
 
 ### 5.3.22 `SetGroupChannel` (Server -> Client)
 
-Every standard channel is a member of a group of standard channels, addressed by the upstream server's provided identifier.
-The group channel is used mainly for efficient job distribution to multiple standard channels at once.
+The group channel is used mainly for efficient job distribution to multiple standard and extended channels at once.
 
-If we want to allow different jobs to be served to different standard channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob`, we need a more fine-grained grouping for standard channels.
+If we want to allow different jobs to be served to different standard and extended channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob` and/or `NewExtendedMiningJob`, we need a more fine-grained grouping for standard channels.
 
-This message associates a set of standard channels with a group channel.
+This message associates a set of standard and extended channels with a group channel.
 A channel (identified by particular ID) becomes a group channel when it is used by this message as `group_channel_id`.
 The server MUST ensure that a group channel has a unique channel ID within one connection. Channel reinterpretation is not allowed.
 
@@ -539,5 +538,5 @@ This message can be sent only to connections that don’t have `REQUIRES_STANDAR
 
 | Field Name       | Data Type     | Description                                                                               |
 | ---------------- | ------------- | ----------------------------------------------------------------------------------------- |
-| group_channel_id | U32           | Identifier of the group where the standard channel belongs                                |
-| channel_ids      | SEQ0_64K[U32] | A sequence of opened standard channel IDs, for which the group channel is being redefined |
+| group_channel_id | U32           | Identifier of the group where the standard or extended channel belongs                                |
+| channel_ids      | SEQ0_64K[U32] | A sequence of opened standard or extended channel IDs, for which the group channel is being redefined |
