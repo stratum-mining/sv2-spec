@@ -452,7 +452,8 @@ Note: There is no need for block height in this message.
 
 ### 5.3.18 `SetCustomMiningJob` (Client -> Server)
 
-Can be sent only on extended channel.
+Can be sent only on extended or group channel. If the group channel contains standard channels, the server MUST ignore those.
+
 `SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully declared).
 
 This message signals that JDC expects to be rewarded for working on a Custom Job.
