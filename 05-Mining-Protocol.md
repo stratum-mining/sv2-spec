@@ -177,10 +177,10 @@ The size of search space for an Extended Channel is `2^(nonce_bits + version_rol
 
 ### 5.2.3 Group Channel
 
-Standard channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
+Standard and Extended channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
 
-Whenever a Standard Channel is created, it is always put into some Group Channel identified by its `group_channel_id`.
-Group Channel ID namespace is the same as Standard Channel ID namespace on a particular connection.
+Whenever a Standard or Extended Channel is created, it is always put into some Group Channel identified by its `group_channel_id`.
+Group Channel ID namespace is the same as Standard and Extended Channel ID namespace on a particular connection.
 
 ## 5.3 Mining Protocol Messages
 
