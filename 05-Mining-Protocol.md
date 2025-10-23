@@ -257,6 +257,7 @@ Sent as a response for opening an extended channel.
 | target            | U256      | Initial target for the mining channel                                                                                                                        |
 | extranonce_size   | U16       | Extranonce size (in bytes) set for the channel                                                                                                               |
 | extranonce_prefix | B0_32     | Bytes used as implicit first part of extranonce                                                                                                              |
+| group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.                                                                           |
 
 ### 5.3.6 `OpenMiningChannel.Error` (Server -> Client)
 
