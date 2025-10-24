@@ -371,6 +371,8 @@ The illustration below assumes a mining server that acknowledges every 10 succes
 
 <img width="800" src="img/submit_shares_success.png">
 
+Please note that `new_submits_accepted_count` and `new_shares_sum` carry meaning within the batch being acknowledged, and their respective counters MUST be reset when a new batch starts being processed.
+
 ### 5.3.14 `SubmitShares.Error` (Server -> Client)
 
 An error is immediately submitted for every incorrect submit attempt.
