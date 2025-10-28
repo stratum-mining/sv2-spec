@@ -10,22 +10,84 @@ Thereafter, the server SHOULD push new block templates to the client whenever th
 
 Template Providers MUST attempt to broadcast blocks which are mined using work they provided, and thus MUST track the work which they provided to clients.
 
+When crafting a template, in order to avoid creating an invalid, oversized block, the Template Provider MUST reserve appropriate blockspace and sigops for:
+- the block header: 80 bytes, or 320 weight units
+- the block transaction count: 3 bytes (which in terms of `CompactSize` is worst case for minimally sized transactions in a block), or 12 weight units
+- the serialized coinbase transaction: which has fixed-sized and variable-sized fields, see definition of [`CoinbaseOutputConstraints`](#71-coinbaseoutputconstraints-client---server) below
+
 ## 7.1 `CoinbaseOutputConstraints` (Client -> Server)
 
-Ultimately, the pool is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size, and sigops when selecting transactions for inclusion in a block (to not create an invalid, oversized block).
-Thus, this message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the pool’s use (while always assuming the pool will use the entirety of available coinbase space and sigops).
+Here's a table with all fields of a Coinbase Transaction that have fixed size:
 
-The Job Declarator MUST discover the maximum serialized size of the additional outputs and sigops which will be added by the pool(s) it intends to use this work.
-It then MUST communicate it to the Template Provider via this message.
+| field name                                  | size                 | weight factor | weight |
+|---------------------------------------------|----------------------|---------------|--------|
+| `version`                                   | 4 bytes              | 4 WU/byte     | 16 WU  |
+| `marker` + `flag`                           | 2 bytes (if SegWit)  | 1 WU/byte     | 2 WU   |
+| `input count` (always 1)                    | 1 byte               | 4 WU/byte     | 4 WU   |
+| `prev txid`                                 | 32 bytes             | 4 WU/byte     | 128 WU |
+| `input index`                               | 4 bytes              | 4 WU/byte     | 16 WU  |
+| `scriptSig length` (100 bytes max)          | 1 byte               | 4 WU/byte     | 4 WU   |
+| `input sequence`                            | 4 bytes              | 4 WU/byte     | 16 WU  |
+| `witness stack size` (always 1)             | 1 byte (if SegWit)   | 1 WU/byte     | 1 WU   |
+| `size of witness element` (always 32 bytes) | 1 byte (if SegWit)   | 1 WU/byte     | 1 WU   |
+| `witness reserved value`                    | 32 bytes (if SegWit) | 1 WU/byte     | 32 WU  |
+| `locktime`                                  | 4 bytes              | 4 WU/byte     | 16 WU  |
+
+So a Template Provider MUST reserve 236 weight units for the fixed-size fields in case of a SegWit block, or 200 weight units in the unlikely case of a legacy block. Meanwhile, the following fields of a Coinbase Transaction have variable size:
+
+| field name     | size          | weight factor | weight     |
+|----------------|---------------|---------------|------------|
+| `scriptSig`    | 100 bytes max | 4 WU/byte     | 400 WU max |
+| `output count` | 3 bytes max   | 4 WU/byte     | 12 WU max  |
+| `outputs`      | no limit      | 4 WU/byte     | no limit   |
+
+Note: while `output count` is `CompactSize`, we can only fit ~110k minimally sized outputs into a block, so 3 bytes is the worst case value here.
+
+So a Template Provider MUST also reserve:
+- the worst-case 400 weight units for `scriptSig` field
+- the worst-case 12 weight units for `output count` field
+- 188 weight units for witness commitment output (if SegWit)
+
+But ultimately, the Pool (or JDC, in case of Job Declaration) is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size, and sigops when selecting transactions for inclusion in a block.
+
+Thus, the `CoinbaseOutputConstraints` message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the Pool or JDC use (while always assuming the entirety of available coinbase space and sigops will be used).
+
+JDC MUST discover the maximum serialized size of the additional outputs and sigops which will be added by the Pool(s) it intends to use this work with (via `AllocateMiningJobToken.Success`). It then MUST communicate it to the Template Provider via `CoinbaseOutputConstraints`.
+
 The Template Provider MUST NOT provide `NewTemplate` messages which would represent consensus-invalid blocks once this additional size and sigops — along with a maximally-sized (100 byte) coinbase script field — is added.
-Further, the Template Provider MUST consider the maximum additional bytes required in the output count variable-length integer in the coinbase transaction when complying with the size limits.
-Current sigops limit per block in bitcoin is 80_000. We are not aware of any use cases where
-coinbase have more the 65_535 so coinbase_output_max_sigops is an U16. Note that taproot outputs consume 0 sigops.
+
+Current sigops limit per block in bitcoin is `80_000`. We are not aware of any use cases where a coinbase transaction has more than `65_535` so `coinbase_output_max_sigops` is an `U16`. Note that taproot outputs consume `0` sigops.
 
 | Field Name                            | Data Type | Description                                                                                     |
 | ------------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
-| coinbase_output_max_additional_size   | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs |
-| coinbase_output_max_additional_sigops | U16       | The maximum additional sigops which the pool will add in coinbase transaction outputs           |
+| coinbase_output_max_additional_size   | U32       | The maximum additional serialized bytes which Pool or JDC will add in coinbase transaction outputs |
+| coinbase_output_max_additional_sigops | U16       | The maximum additional sigops which Pool or JDC will add in coinbase transaction outputs           |
+
+Below are the formulas that summarize the rationale around reserving blockspace presented above. In addition to reserving `coinbase_output_max_additional_sigops` sigops, the Template Provider MUST reserve the following weight unit values.
+
+For SegWit blocks:
+
+- block header: 320 weight units
+- block tx count: 12 weight units
+- coinbase tx fixed-size fields: 236 weight units
+- coinbase tx `scriptSig`: 400 weight units
+- coinbase tx `output count`: 12 weight units
+- coinbase tx witness commitment output: 188 weight units
+- coinbase tx outputs added by Pool or JDC: 4*`coinbase_output_max_additional_size` weight units
+
+total: 1168 + 4*`coinbase_output_max_additional_size` weight units
+
+For legacy blocks:
+- block header: 320 weight units
+- block tx count: 12 weight units
+- coinbase tx fixed-size fields: 200 weight units
+- coinbase tx `scriptSig`: 400 weight units
+- coinbase tx `output count`: 12 weight units
+- coinbase tx outputs added by Pool or JDC: 4*`coinbase_output_max_additional_size` weight units
+
+total: 944 + 4*`coinbase_output_max_additional_size` weight units
+
+Please note that Bitcoin Core establishes a floor value of 2000 weight units.
 
 ## 7.2 `NewTemplate` (Server -> Client)
 
