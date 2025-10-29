@@ -101,6 +101,8 @@ For conversion into Standard Jobs, the Coinbase Transaction is constructed by co
 
 The Coinbase Transaction is then combined with the `merkle_path` of the Extended Job to calculate the `merkle_root` for the Standard Job notification (`NewMiningJob`). Since Standard Jobs are HOM, there's no `extranonce_size` field on the Standard Job notification.
 
+In case of an Extended Job broadcast to a Group Channel, its `coinbase_tx_prefix` carries the transaction field `scriptSig length`. It follows that every Standard and/or Extended Channel that belongs to the same Group Channel MUST have the exact same full Extended Extranonce size, because the coinbase transaction they are working on MUST have the same `scriptSig length` that is broadcast to the Group Channel.
+
 ### 5.1.3 Future Job
 
 A Job with an empty template or speculated non-empty template can be sent in advance to speedup Job distribution when a new block is found on the network.
@@ -181,6 +183,8 @@ Standard and Extended channels opened within one particular connection can be gr
 
 Whenever a Standard or Extended Channel is created, it is always put into some Group Channel identified by its `group_channel_id`.
 Group Channel ID namespace is the same as Standard and Extended Channel ID namespace on a particular connection.
+
+All channels under the same Group Channel (Extended and Standard) MUST have the exact same size for the full Extended Extranonce (`extranonce_prefix` for Standard Channels, or `extranonce_prefix` + `extranonce` for Extended Channels).
 
 ## 5.3 Mining Protocol Messages
 
@@ -544,3 +548,5 @@ This message can be sent only to connections that don’t have `REQUIRES_STANDAR
 | ---------------- | ------------- | ----------------------------------------------------------------------------------------- |
 | group_channel_id | U32           | Identifier of the group where the standard or extended channel belongs                                |
 | channel_ids      | SEQ0_64K[U32] | A sequence of opened standard or extended channel IDs, for which the group channel is being redefined |
+
+All channels under the same Group Channel (Extended and Standard) MUST have the exact same size for the full Extended Extranonce (`extranonce_prefix` for Standard Channels, or `extranonce_prefix` + `extranonce` for Extended Channels).
