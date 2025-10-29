@@ -437,7 +437,7 @@ The full coinbase is then constructed as follows: `coinbase_tx_prefix + extranon
 
 Prevhash is distributed whenever a new block is detected in the network by an upstream node or when a new downstream opens a channel.
 
-This message MAY be shared by all downstream nodes (sent only once to each channel group).
+This message MAY be shared by all downstream nodes (sent only once to each group channel).
 Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
 The remaining jobs already queued by the client have to be made invalid.
