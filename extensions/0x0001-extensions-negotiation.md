@@ -80,6 +80,8 @@ Clients MUST NOT use any features from extensions that are not confirmed as supp
 | 0x01                 | 0               | RequestExtensions.Success |
 | 0x02                 | 0               | RequestExtensions.Error   |
 
+**Note on Message Framing:** All messages defined by this extension MUST have `extension_type = 0x0001` in their message frame headers, as this extension introduced and defined these messages. For more details on `extension_type` field usage, see [Section 3.4.1 Extension Type Field Usage](../03-Protocol-Overview.md#341-extension-type-field-usage) in the Protocol Overview.
+
 ---
 
 ## 4. Implementation Notes
