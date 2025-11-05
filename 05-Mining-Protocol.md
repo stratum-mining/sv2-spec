@@ -179,10 +179,10 @@ The size of search space for an Extended Channel is `2^(nonce_bits + version_rol
 
 ### 5.2.3 Group Channel
 
-Standard and Extended channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
+Mining and/or Standard Channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
 
-Whenever a Standard or Extended Channel is created, it is always put into some Group Channel identified by its `group_channel_id`.
-Group Channel ID namespace is the same as Standard and Extended Channel ID namespace on a particular connection.
+Every mining channel is a member of a group identified by its `group_channel_id`.
+Group Channel ID namespace is the same as Mining Channel ID namespace on a particular connection.
 
 All channels under the same Group Channel (Extended and Standard) MUST have the exact same size for the full Extended Extranonce (`extranonce_prefix` for Standard Channels, or `extranonce_prefix` + `extranonce` for Extended Channels).
 
@@ -421,7 +421,7 @@ The full coinbase is then constructed as follows: `coinbase_tx_prefix + extranon
 
 | Field Name              | Data Type      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| channel_id              | U32            | For a group channel, the message is broadcasted to all standard and extended channels belonging to the group. Otherwise, it is addressed to the specified extended channel.                                                                                                                                                                                                                                                                                                                                   |
+| channel_id              | U32            | For a group channel, the message is broadcasted to all mining channels belonging to the group. Otherwise, it is addressed to the specified extended channel.                                                                                                                                                                                                                                                                                                                                   |
 | job_id                  | U32            | Server’s identification of the mining job                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | min_ntime               | OPTION[u32]    | Smallest nTime value available for hashing for the new mining job. An empty value indicates this is a future job to be activated once a SetNewPrevHash message is received with a matching job_id. This SetNewPrevHash message provides the new prev_hash and min_ntime. If the min_ntime value is set, this mining job is active and miner must start mining on it immediately. In this case, the new mining job uses the prev_hash from the last received SetNewPrevHash message. immediately. |
 | version                 | U32            | Valid version field that reflects the current network consensus                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -534,11 +534,11 @@ When `SetTarget` is sent to a group channel, the maximum target is applicable to
 
 ### 5.3.22 `SetGroupChannel` (Server -> Client)
 
-The group channel is used mainly for efficient job distribution to multiple standard and extended channels at once.
+The group channel is used mainly for efficient job distribution to multiple mining channels (either standard and/or extended).
 
-If we want to allow different jobs to be served to different standard and extended channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob` and/or `NewExtendedMiningJob`, we need a more fine-grained grouping for standard channels.
+If we want to allow different jobs to be served to different mining channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob` and/or `NewExtendedMiningJob`, we need a more fine-grained grouping for standard channels.
 
-This message associates a set of standard and extended channels with a group channel.
+This message associates a set of mining channels with a group channel.
 A channel (identified by particular ID) becomes a group channel when it is used by this message as `group_channel_id`.
 The server MUST ensure that a group channel has a unique channel ID within one connection. Channel reinterpretation is not allowed.
 
