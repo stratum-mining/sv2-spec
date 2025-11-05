@@ -411,7 +411,7 @@ The whole search space of the job is owned by the specified channel.
 If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message.
 
 For a **group channel**:
-This acts as a broadcast message that distributes work to all channels under the same group.
+This acts as a broadcast message that distributes work to all channels under the same group with one single message, instead of one per channel.
 
 The proxy MAY transform this multicast variant for downstream standard channels into `NewMiningJob` messages by computing the derived Merkle root for them.
 A proxy MUST translate the message into `NewMiningJob` for all downstream standard channels belonging to the group in case the `SetupConnection` message had the `REQUIRES_STANDARD_JOB` flag set (intended and expected behavior for end mining devices).
