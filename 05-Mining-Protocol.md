@@ -434,6 +434,30 @@ A proxy MUST translate the message into `NewMiningJob` for all downstream standa
 
 \*If the original coinbase is a SegWit transaction, `coinbase_tx_prefix` and `coinbase_tx_suffix` MUST be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
 
+The merkle root is then calculated as follows:
+
+```
+# Build the coinbase transaction
+coinbase_tx = concatenate(
+    coinbase_tx_prefix,
+    extranonce_prefix,
+    extranonce, # null if standard channel
+    coinbase_tx_suffix
+)
+
+# txid of the coinbase transaction (not wtxid, as coinbase_tx_prefix and coinbase_tx_suffix were stripped of BIP141)
+coinbase_txid = SHA256(SHA256(coinbase_tx))
+
+# Compute the Merkle root by folding over the Merkle path
+raw_merkle_root = coinbase_txid
+for each merkle_leaf in merkle_path:
+    data = concatenate(raw_merkle_root, merkle_leaf as little_endian_bytes)
+    raw_merkle_root = SHA256(SHA256(data))
+
+# Interpret the final 32-byte hash as a 256-bit integer in little-endian form
+merkle_root = Uint256(little_endian_bytes = raw_merkle_root)
+```
+
 ### 5.3.17 `SetNewPrevHash` (Server -> Client, broadcast)
 
 Prevhash is distributed whenever a new block is detected in the network by an upstream node or when a new downstream opens a channel.
