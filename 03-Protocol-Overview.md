@@ -92,7 +92,7 @@ The message framing is outlined below:
 
 | Field Name  | Type | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| extension_type | U16         | Unique identifier of the extension associated with this protocol message                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| extension_type | U16         | Unique identifier of the extension associated with this protocol message. For messages defined in the core specification (Common, Mining, Job Declaration, and Template Distribution Protocols, which can **only** be extended via TLV fields), this field MUST be set to 0. For messages introduced by an extension, this field MUST be set to that extension's identifier. Note that even if a message is later modified by a different extension through TLV fields, the extension_type of the base frame remains set to the extension that originally defined the message structure.                                                                                                                              |
 | msg_type       | U8          | Unique identifier of this protocol message                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | msg_length     | U24         | Length of the protocol message, not including this header                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | payload        | BYTES       | Message-specific payload of length msg_length. If the MSB in extension_type (the channel_msg bit) is set the first four bytes are defined as a U32 "channel_id", though this definition is repeated in the message definitions below and these 4 bytes are included in msg_length.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -124,6 +124,30 @@ While extensions SHOULD have BIPs written describing their full functionality, `
 This is done by sending an email with a brief description of the intended use case to the Bitcoin Protocol Development List and extensions@stratumprotocol.org.
 (Note that these contacts may change in the future, please check the latest version of this BIP prior to sending such a request.)
 
+### 3.4.1 Extension Type Field Usage
+
+The `extension_type` field in the message frame header indicates which extension introduced and defined the non-TLV (Type-Length-Value) fields of a message. This is important for proper message parsing and understanding message ownership:
+
+- **Core protocol messages** (Common, Mining, Job Declaration, and Template Distribution Protocol messages) MUST have `extension_type` set to `0x0000`.
+
+- **Extension-specific messages** (new messages introduced by an extension) MUST have `extension_type` set to the identifier of the extension that introduced them.
+
+- **Messages modified via TLV fields**: When an extension adds TLV fields to an existing message (whether a core protocol message or a message from another extension), the `extension_type` field MUST NOT change. It continues to identify the extension that originally defined the message's non-TLV structure.
+
+**Important note on extension type allocation:** Extensions that introduce new messages (non-TLV extensions) and extensions that only add TLV fields to existing messages (TLV extensions) share the same namespace for `extension_type` identifiers without any categorical distinction. Both types of extensions must request allocation from the same registry (this repository), and the `extension_type` value alone does not indicate whether an extension defines new messages or only adds TLV fields.
+
+**Example scenarios:**
+
+1. Core protocol messages such as `SetupConnection`, `SubmitSharesExtended`, etc., have `extension_type = 0x0000` in their frame headers.
+
+2. The [Extensions Negotiation extension](./extensions/0x0001-extensions-negotiation.md) (`0x0001`) introduces three new messages: `RequestExtensions`, `RequestExtensions.Success`, and `RequestExtensions.Error`. These messages have `extension_type = 0x0001` in their frame headers because that extension defined their structure.
+
+3. When the [Worker-Specific Hashrate Tracking extension](./extensions/0x0002-worker-specific-hashrate-tracking.md) (`0x0002`) adds a TLV field containing `user_identity` to the existing `SubmitSharesExtended` message, the message frame still has `extension_type = 0x0000` because the core protocol defined the non-TLV fields. The TLV addition doesn't change the frame's `extension_type`.
+
+4. If a hypothetical extension `0x0003` introduces a completely new message type called `CustomNewMessageType`, that message's frame would have `extension_type = 0x0003`.
+
+5. If later, another extension `0x0004` wanted to add TLV fields to `CustomNewMessageType` from example 4, those messages would still have `extension_type = 0x0003` in their frame header, as that's the extension that defined the message's base structure.
+
 Extensions are left largely undefined in this BIP, however, there are some basic requirements that all extensions must comply with/be aware of.
 For unknown `extension_type`'s, the `channel_msg` bit in the `extension_type` field determines which device the message is intended to be processed on: if set, the channel endpoint (i.e. either an end mining device, or a pool server) is the final recipient of the message, whereas if unset, the final recipient is the endpoint of the connection on which the message is sent.
 Note that in cases where channels are aggregated across multiple devices, the proxy which is aggregating multiple devices into one channel forms the channel’s "endpoint" and processes channel messages.
@@ -133,20 +157,20 @@ If a device is aware of the semantics of a given extension type, it MUST process
 
 Messages with an unknown `extension_type` which are to be processed locally (as defined above) MUST be discarded and ignored.
 
-### 3.4.1 Implementing Extensions Support
+### 3.4.2 Implementing Extensions Support
 
-To support extensions, an implementation MUST first implement [Extension 1](./extensions/extensions-negotiation.md), which defines the basic protocol for requesting and negotiating support for extensions. This extension must be included in any protocol implementation that plans to support additional protocol extensions.
+To support extensions, an implementation MUST first implement [Extension 1](./extensions/0x0001-extensions-negotiation.md), which defines the basic protocol for requesting and negotiating support for extensions. This extension must be included in any protocol implementation that plans to support additional protocol extensions.
 
 Extensions MUST require negotiation with the recipient of the message to check that the extension is supported before sending non-version-negotiation messages for it.
 This prevents the needlessly wasted bandwidth and potentially serious performance degradation of extension messages when the recipient does not support them.
 
 See `ChannelEndpointChanged` message in Common Protocol Messages for details about how extensions interact with dynamic channel reconfiguration in proxies.
 
-## 3.4.1 Stratum V2 TLV Encoding Model
+### 3.4.3 Stratum V2 TLV Encoding Model
 
 To ensure a consistent and extensible way of adding optional fields to existing messages, **Stratum V2 supports Type-Length-Value (TLV) encoding** for protocol extensions. This model allows for structured, backward-compatible extensions while ensuring that unknown fields can be safely ignored.
 
-### TLV Structure
+#### TLV Structure
 
 Each TLV-encoded field follows this format:
 
@@ -163,14 +187,14 @@ Each TLV-encoded field follows this format:
 - If the **Length** is `0x0000`, the **Value** field is omitted.
 - When multiple fields extend the same message type, their order **MUST** match the order defined in the extension.
 
-### Usage Guidelines
+##### Usage Guidelines
 
 - **TLV fields MUST be placed at the end of the message payload.** This ensures compatibility with existing Stratum V2 messages.
 - **TLV fields MUST be ordered by `extension_type`.** Since all extensions are negotiated beforehand, the recipient MUST process TLV fields in order of `extension_type` and use their `Type` identifiers to correctly interpret them.
 - **Order of TLV fields within the same extension MUST be respected.** If an extension defines multiple TLV fields to extend a single message, they **MUST** appear in the exact order specified by the extension’s documentation.
 - **Length constraints MUST be respected.** Each extension must specify the valid length range for its TLV fields. If a TLV field exceeds the maximum length allowed by its specification, the recipient MUST reject the message.
 
-### Example: Extending `SubmitSharesExtended`
+##### Example: Extending `SubmitSharesExtended`
 
 If extension **0x0002** (Worker-Specific Hashrate Tracking) is negotiated, clients must append the following TLV field to `SubmitSharesExtended`:
 ```
