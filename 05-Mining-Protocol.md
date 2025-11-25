@@ -177,10 +177,10 @@ The size of search space for an Extended Channel is `2^(nonce_bits + version_rol
 
 ### 5.2.3 Group Channel
 
-Standard channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
+Standard and Extended channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
 
-Whenever a Standard Channel is created, it is always put into some Group Channel identified by its `group_channel_id`.
-Group Channel ID namespace is the same as Standard Channel ID namespace on a particular connection.
+Whenever a Standard or Extended Channel is created, it is always put into some Group Channel identified by its `group_channel_id`.
+Group Channel ID namespace is the same as Standard and Extended Channel ID namespace on a particular connection.
 
 ## 5.3 Mining Protocol Messages
 
@@ -257,6 +257,7 @@ Sent as a response for opening an extended channel.
 | target            | U256      | Initial target for the mining channel                                                                                                                        |
 | extranonce_size   | U16       | Extranonce size (in bytes) set for the channel                                                                                                               |
 | extranonce_prefix | B0_32     | Bytes used as implicit first part of extranonce                                                                                                              |
+| group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.                                                                           |
 
 ### 5.3.6 `OpenMiningChannel.Error` (Server -> Client)
 
@@ -312,6 +313,8 @@ A proxy MUST send this message on behalf of all opened channels from a downstrea
 If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it MUST send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
 In general, proxy servers MUST keep the upstream node notified about the real state of the downstream channels.
 
+If `channel_id` is addressing a group channel, all channels belonging to such group MUST be closed.
+
 ### 5.3.10 `SetExtranoncePrefix` (Server -> Client)
 
 Changes downstream node’s extranonce prefix.
@@ -356,17 +359,23 @@ Because it is a common case that shares submission is successful, this response 
 | channel_id                 | U32       | Channel identification                              |
 | last_sequence_number       | U32       | Most recent sequence number with a correct result   |
 | new_submits_accepted_count | U32       | Count of new submits acknowledged within this batch |
-| new_shares_sum             | U64       | Sum of shares acknowledged within this batch        |
+| new_shares_sum             | U64       | Sum of difficulty of shares acknowledged within this batch        |
 
 The server does not have to double check that the sequence numbers sent by a client are actually increasing.
 It can simply use the last one received when sending a response.
 It is the client’s responsibility to keep the sequence numbers correct/useful.
 
+The illustration below assumes a mining server that acknowledges every 10 successful submissions, and that a `SetTarget` message was sent to increase the difficulty from `Da` to `Db` in the middle of the batch submission.
+
+<img width="800" src="img/submit_shares_success.png">
+
+Please note that `new_submits_accepted_count` and `new_shares_sum` carry meaning within the batch being acknowledged, and their respective counters MUST be reset when a new batch starts being processed.
+
 ### 5.3.14 `SubmitShares.Error` (Server -> Client)
 
 An error is immediately submitted for every incorrect submit attempt.
 In case the server is not able to immediately validate the submission, the error is sent as soon as the result is known.
-This delayed validation can occur when a miner gets faster updates about a new prevhash than the server does (see `NewPrevHash` message for details).
+This delayed validation can occur when a miner gets faster updates about a new prevhash than the server does (see `SetNewPrevHash` message for details).
 
 | Field Name      | Data Type | Description                                                 |
 | --------------- | --------- | ----------------------------------------------------------- |
@@ -380,6 +389,10 @@ Possible error codes:
 - `stale-share`
 - `difficulty-too-low`
 - `invalid-job-id`
+
+The illustration below also assumes a mining server that acknowledges every 10 successful submissions.
+
+<img width="800" src="img/submit_shares_error.png">
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
 
@@ -404,16 +417,17 @@ The whole search space of the job is owned by the specified channel.
 If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message.
 
 For a **group channel**:
-This is a broadcast variant of `NewMiningJob` message with the `merkle_root` field replaced by `merkle_path` and coinbase transaction prefix and suffix, for further traffic optimization.
-The Merkle root is then defined deterministically for each channel by the common `merkle_path` and unique `extranonce_prefix` serialized into the coinbase.
-The full coinbase is then constructed as follows: `coinbase_tx_prefix + extranonce_prefix + coinbase_tx_suffix`.
+This acts as a broadcast message that distributes work to all channels under the same group.
 
 The proxy MAY transform this multicast variant for downstream standard channels into `NewMiningJob` messages by computing the derived Merkle root for them.
-A proxy MUST translate the message for all downstream channels belonging to the group which don’t signal that they accept extended mining jobs in the `SetupConnection` message (intended and expected behavior for end mining devices).
+A proxy MUST translate the message into `NewMiningJob` for all downstream standard channels belonging to the group in case the `SetupConnection` message had the `REQUIRES_STANDARD_JOB` flag set (intended and expected behavior for end mining devices).
+
+For conversion into different `NewMiningJob` messages, the Merkle root is then defined deterministically for each standard channel by the common `merkle_path` and unique `extranonce_prefix` serialized into the coinbase.
+The full coinbase is then constructed as follows: `coinbase_tx_prefix + extranonce_prefix + coinbase_tx_suffix`.
 
 | Field Name              | Data Type      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| channel_id              | U32            | For a group channel, the message is broadcasted to all standard channels belonging to the group. Otherwise, it is addressed to the specified extended channel.                                                                                                                                                                                                                                                                                                                                   |
+| channel_id              | U32            | For a group channel, the message is broadcasted to all standard and extended channels belonging to the group. Otherwise, it is addressed to the specified extended channel.                                                                                                                                                                                                                                                                                                                                   |
 | job_id                  | U32            | Server’s identification of the mining job                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | min_ntime               | OPTION[u32]    | Smallest nTime value available for hashing for the new mining job. An empty value indicates this is a future job to be activated once a SetNewPrevHash message is received with a matching job_id. This SetNewPrevHash message provides the new prev_hash and min_ntime. If the min_ntime value is set, this mining job is active and miner must start mining on it immediately. In this case, the new mining job uses the prev_hash from the last received SetNewPrevHash message. immediately. |
 | version                 | U32            | Valid version field that reflects the current network consensus                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -450,7 +464,8 @@ Note: There is no need for block height in this message.
 
 ### 5.3.18 `SetCustomMiningJob` (Client -> Server)
 
-Can be sent only on extended channel.
+Can be sent only on extended or group channel. If the group channel contains standard channels, the server MUST ignore those.
+
 `SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully declared).
 
 This message signals that JDC expects to be rewarded for working on a Custom Job.
@@ -525,12 +540,11 @@ When `SetTarget` is sent to a group channel, the maximum target is applicable to
 
 ### 5.3.22 `SetGroupChannel` (Server -> Client)
 
-Every standard channel is a member of a group of standard channels, addressed by the upstream server's provided identifier.
-The group channel is used mainly for efficient job distribution to multiple standard channels at once.
+The group channel is used mainly for efficient job distribution to multiple standard and extended channels at once.
 
-If we want to allow different jobs to be served to different standard channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob`, we need a more fine-grained grouping for standard channels.
+If we want to allow different jobs to be served to different standard and extended channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob` and/or `NewExtendedMiningJob`, we need a more fine-grained grouping for standard channels.
 
-This message associates a set of standard channels with a group channel.
+This message associates a set of standard and extended channels with a group channel.
 A channel (identified by particular ID) becomes a group channel when it is used by this message as `group_channel_id`.
 The server MUST ensure that a group channel has a unique channel ID within one connection. Channel reinterpretation is not allowed.
 
@@ -538,5 +552,5 @@ This message can be sent only to connections that don’t have `REQUIRES_STANDAR
 
 | Field Name       | Data Type     | Description                                                                               |
 | ---------------- | ------------- | ----------------------------------------------------------------------------------------- |
-| group_channel_id | U32           | Identifier of the group where the standard channel belongs                                |
-| channel_ids      | SEQ0_64K[U32] | A sequence of opened standard channel IDs, for which the group channel is being redefined |
+| group_channel_id | U32           | Identifier of the group where the standard or extended channel belongs                                |
+| channel_ids      | SEQ0_64K[U32] | A sequence of opened standard or extended channel IDs, for which the group channel is being redefined |
