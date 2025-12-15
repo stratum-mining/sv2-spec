@@ -101,6 +101,8 @@ For conversion into Standard Jobs, the Coinbase Transaction is constructed by co
 
 The Coinbase Transaction is then combined with the `merkle_path` of the Extended Job to calculate the `merkle_root` for the Standard Job notification (`NewMiningJob`). Since Standard Jobs are HOM, there's no `extranonce_size` field on the Standard Job notification.
 
+In case of an Extended Job broadcast to a Group Channel, its `coinbase_tx_prefix` carries the transaction field `scriptSig length`. It follows that every Standard and/or Extended Channel that belongs to the same Group Channel MUST have the exact same full Extended Extranonce size, because the coinbase transaction they are working on MUST have the same `scriptSig length` that is broadcast to the Group Channel.
+
 ### 5.1.3 Future Job
 
 A Job with an empty template or speculated non-empty template can be sent in advance to speedup Job distribution when a new block is found on the network.
@@ -177,10 +179,12 @@ The size of search space for an Extended Channel is `2^(nonce_bits + version_rol
 
 ### 5.2.3 Group Channel
 
-Standard channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
+Mining and/or Standard Channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
 
-Whenever a Standard Channel is created, it is always put into some Group Channel identified by its `group_channel_id`.
-Group Channel ID namespace is the same as Standard Channel ID namespace on a particular connection.
+Every mining channel is a member of a group identified by its `group_channel_id`.
+Group Channel ID namespace is the same as Mining Channel ID namespace on a particular connection. In other words, there must never be a Group Channel whose `group_channel_id` is identical to some `channel_id` of some Standard or Extended Channel within the context of the same connection.
+
+All channels under the same Group Channel (Extended and Standard) MUST have the exact same size for the full Extended Extranonce (`extranonce_prefix` for Standard Channels, or `extranonce_prefix` + `extranonce` for Extended Channels).
 
 ## 5.3 Mining Protocol Messages
 
@@ -257,6 +261,7 @@ Sent as a response for opening an extended channel.
 | target            | U256      | Initial target for the mining channel                                                                                                                        |
 | extranonce_size   | U16       | Extranonce size (in bytes) set for the channel                                                                                                               |
 | extranonce_prefix | B0_32     | Bytes used as implicit first part of extranonce                                                                                                              |
+| group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.                                                                           |
 
 ### 5.3.6 `OpenMiningChannel.Error` (Server -> Client)
 
@@ -311,6 +316,8 @@ A proxy MUST send this message on behalf of all opened channels from a downstrea
 
 If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it MUST send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
 In general, proxy servers MUST keep the upstream node notified about the real state of the downstream channels.
+
+If `channel_id` is addressing a group channel, all channels belonging to such group MUST be closed.
 
 ### 5.3.10 `SetExtranoncePrefix` (Server -> Client)
 
@@ -404,16 +411,14 @@ The whole search space of the job is owned by the specified channel.
 If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message.
 
 For a **group channel**:
-This is a broadcast variant of `NewMiningJob` message with the `merkle_root` field replaced by `merkle_path` and coinbase transaction prefix and suffix, for further traffic optimization.
-The Merkle root is then defined deterministically for each channel by the common `merkle_path` and unique `extranonce_prefix` serialized into the coinbase.
-The full coinbase is then constructed as follows: `coinbase_tx_prefix + extranonce_prefix + coinbase_tx_suffix`.
+This acts as a broadcast message that distributes work to all channels under the same group with one single message, instead of one per channel.
 
 The proxy MAY transform this multicast variant for downstream standard channels into `NewMiningJob` messages by computing the derived Merkle root for them.
-A proxy MUST translate the message for all downstream channels belonging to the group which don’t signal that they accept extended mining jobs in the `SetupConnection` message (intended and expected behavior for end mining devices).
+A proxy MUST translate the message into `NewMiningJob` for all downstream standard channels belonging to the group in case the `SetupConnection` message had the `REQUIRES_STANDARD_JOB` flag set (intended and expected behavior for end mining devices).
 
 | Field Name              | Data Type      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| channel_id              | U32            | For a group channel, the message is broadcasted to all standard channels belonging to the group. Otherwise, it is addressed to the specified extended channel.                                                                                                                                                                                                                                                                                                                                   |
+| channel_id              | U32            | For a group channel, the message is broadcasted to all mining channels belonging to the group. Otherwise, it is addressed to the specified extended channel.                                                                                                                                                                                                                                                                                                                                   |
 | job_id                  | U32            | Server’s identification of the mining job                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | min_ntime               | OPTION[u32]    | Smallest nTime value available for hashing for the new mining job. An empty value indicates this is a future job to be activated once a SetNewPrevHash message is received with a matching job_id. This SetNewPrevHash message provides the new prev_hash and min_ntime. If the min_ntime value is set, this mining job is active and miner must start mining on it immediately. In this case, the new mining job uses the prev_hash from the last received SetNewPrevHash message. immediately. |
 | version                 | U32            | Valid version field that reflects the current network consensus                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -429,11 +434,35 @@ A proxy MUST translate the message for all downstream channels belonging to the 
 
 \*If the original coinbase is a SegWit transaction, `coinbase_tx_prefix` and `coinbase_tx_suffix` MUST be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
 
+The merkle root is then calculated as follows:
+
+```
+# Build the coinbase transaction
+coinbase_tx = concatenate(
+    coinbase_tx_prefix,
+    extranonce_prefix,
+    extranonce, # null if standard channel
+    coinbase_tx_suffix
+)
+
+# txid of the coinbase transaction (not wtxid, as coinbase_tx_prefix and coinbase_tx_suffix were stripped of BIP141)
+coinbase_txid = SHA256(SHA256(coinbase_tx))
+
+# Compute the Merkle root by folding over the Merkle path
+raw_merkle_root = coinbase_txid
+for each merkle_leaf in merkle_path:
+    data = concatenate(raw_merkle_root, merkle_leaf as little_endian_bytes)
+    raw_merkle_root = SHA256(SHA256(data))
+
+# Interpret the final 32-byte hash as a 256-bit integer in little-endian form
+merkle_root = Uint256(little_endian_bytes = raw_merkle_root)
+```
+
 ### 5.3.17 `SetNewPrevHash` (Server -> Client, broadcast)
 
 Prevhash is distributed whenever a new block is detected in the network by an upstream node or when a new downstream opens a channel.
 
-This message MAY be shared by all downstream nodes (sent only once to each channel group).
+This message MAY be shared by all downstream nodes (sent only once to each group channel).
 Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
 The remaining jobs already queued by the client have to be made invalid.
@@ -450,7 +479,8 @@ Note: There is no need for block height in this message.
 
 ### 5.3.18 `SetCustomMiningJob` (Client -> Server)
 
-Can be sent only on extended channel.
+Can be sent only on extended or group channel. If the group channel contains standard channels, the server MUST ignore those.
+
 `SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully declared).
 
 This message signals that JDC expects to be rewarded for working on a Custom Job.
@@ -525,12 +555,11 @@ When `SetTarget` is sent to a group channel, the maximum target is applicable to
 
 ### 5.3.22 `SetGroupChannel` (Server -> Client)
 
-Every standard channel is a member of a group of standard channels, addressed by the upstream server's provided identifier.
-The group channel is used mainly for efficient job distribution to multiple standard channels at once.
+The group channel is used mainly for efficient job distribution to multiple mining channels (either standard and/or extended).
 
-If we want to allow different jobs to be served to different standard channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob`, we need a more fine-grained grouping for standard channels.
+If we want to allow different jobs to be served to different mining channels (e.g. because of different [BIP 8](https://github.com/bitcoin/bips/blob/master/bip-0008.mediawiki) version bits) and still be able to distribute the work by sending `NewExtendendedMiningJob` instead of a repeated `NewMiningJob` and/or `NewExtendedMiningJob`, we need a more fine-grained grouping for standard channels.
 
-This message associates a set of standard channels with a group channel.
+This message associates a set of mining channels with a group channel.
 A channel (identified by particular ID) becomes a group channel when it is used by this message as `group_channel_id`.
 The server MUST ensure that a group channel has a unique channel ID within one connection. Channel reinterpretation is not allowed.
 
@@ -538,5 +567,7 @@ This message can be sent only to connections that don’t have `REQUIRES_STANDAR
 
 | Field Name       | Data Type     | Description                                                                               |
 | ---------------- | ------------- | ----------------------------------------------------------------------------------------- |
-| group_channel_id | U32           | Identifier of the group where the standard channel belongs                                |
-| channel_ids      | SEQ0_64K[U32] | A sequence of opened standard channel IDs, for which the group channel is being redefined |
+| group_channel_id | U32           | Identifier of the group where the standard or extended channel belongs                                |
+| channel_ids      | SEQ0_64K[U32] | A sequence of opened standard or extended channel IDs, for which the group channel is being redefined |
+
+All channels under the same Group Channel (Extended and Standard) MUST have the exact same size for the full Extended Extranonce (`extranonce_prefix` for Standard Channels, or `extranonce_prefix` + `extranonce` for Extended Channels).
