@@ -195,11 +195,20 @@ Only used in Full-Template mode.
 
 A request sent by JDC that proposes a selected set of transactions to JDS.
 
+For future templates, JDC MUST delay sending this message until the corresponding `SetNewPrevHash` has been received.
+
+After optionally requesting missing txs via `ProvideMissingTransactions`, JDS reconstructs the block using the supplied `prev_hash` and transaction data. It SHOULD pass it to a full node for validation.
+
+If there is a tip mismatch, JDS MAY fail with `invalid-prevhash` but it MAY also:
+- if its tip is ahead of `prev_hash`, retry validation against the older tip
+- if `prev_hash` unknown, briefly wait for a new tip and try again
+
 | Field Name                  | Data Type             | Description                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | --------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | request_id                  | U32                   | Unique identifier for pairing the response                                                                                                                                                                                                                                                                                                                                                                                   |
 | mining_job_token            | B0_255                | Previously reserved mining job token received by AllocateMiningJobToken.Success                                                                                                                                                                                                                                                                                                                                              |
 | version                     | U32                   | Version header field. To be later modified by BIP320-consistent changes.                                                                                                                                                                                                                                                                                                                                                     |
+| prev_hash                   | U256                  | Parent block hash that the template is built on.                                                                                                                                                                                                                                                                                                                                                                             |
 | coinbase_tx_prefix         | B0_64K                 | Serialized bytes representing the initial part of the coinbase transaction (not including extranonce)                                                                                                                                                                                                                                                                                                                                                                                      |
 | coinbase_tx_suffix         | B0_64K                 | Serialized bytes representing the final part of the coinbase transaction (after extranonce)                                                                                                                                                                                                                                                                                     |
 | wtxid_list               | SEQ0_64K[U256] | List of wtxids of the transaction set contained in the template. JDS checks the list against its mempool and requests missing txs via `ProvideMissingTransactions`. Does not include the coinbase transaction (as there is no corresponding full data for it yet).                                                                                                                                                          |
@@ -239,6 +248,9 @@ Possible error codes:
 
 - `invalid-mining-job-token`
 - `invalid-job-param-value-{}` - `{}` is replaced by a particular field name from `DeclareMiningJob` message
+- `invalid-prevhash`: tip mismatch
+- `invalid-block`: the block is invalid (no missing transactions were requested)
+- `invalid-block-after-missing-txs`: after applying the result of `ProvideMissingTransactions.Success` the block is invalid
 
 ### 6.4.7 `ProvideMissingTransactions` (Server->Client)
 
