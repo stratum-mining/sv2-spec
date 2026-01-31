@@ -194,9 +194,7 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, wher
 
 | Flag Name                | Bit | Description                                                                         |
 |--------------------------| --- | ----------------------------------------------------------------------------------- |
-| REQUIRES_STANDARD_JOBS   | 0   | The downstream node requires standard jobs. It does not understand group channels - |
-|                          |     | it is unable to process extended jobs sent to standard channels through a group     |
-|                          |     | channel.                                                                            |
+| REQUIRES_STANDARD_JOBS   | 0   | The downstream node requires standard jobs, and is unable to process extended jobs. |
 | REQUIRES_WORK_SELECTION  | 1   | If set to 1, the client notifies the server that it will send SetCustomMiningJob on |
 |                          |     | this connection                                                                     |
 | REQUIRES_VERSION_ROLLING | 2   | The client requires version rolling for efficiency or correct operation and the     |
