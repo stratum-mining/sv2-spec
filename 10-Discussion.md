@@ -3,7 +3,7 @@
 TBD Describe how exactly sending of new jobs before the next block is found works. 
 
 ## 10.2 Rolling `nTime`
-- `nTime `field can be rolled once per second with the following notes:
+- `nTime` field can be rolled once per second with the following notes:
 - Mining proxy must not interpret greater than minimum `nTime` as invalid submission.
 - Device MAY roll `nTime` once per second.
 - Pool SHOULD accept `nTime` which is within the consensus limits.
@@ -74,7 +74,7 @@ The proxy:
 
 
 ### 10.5.1 Why is the protocol binary?
-The original stratum protocol uses json, which has very bad ratio between the payload size and the actual information transmitted.
+The original stratum protocol uses JSON, which has very bad ratio between the payload size and the actual information transmitted.
 Designing a binary based protocol yields better data efficiency.
 Technically, we can use the saved bandwidth for more frequent submits to further reduce the variance in measured hash rate and/or to allow individual machines to submit its work directly instead of using work-splitting mining proxy.
 
