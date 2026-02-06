@@ -9,7 +9,7 @@ At the same time, this specification proposes optional use of a particular hands
 The client and server establish secure communication using Diffie-Hellman (DH) key agreement, as described in greater detail in the Authenticated Key Agreement Handshake section below.
 
 Using the handshake protocol to establish secured communication is **optional** on the local network (e.g. local mining devices talking to a local mining proxy).
-However, it is **mandatory** for remote access to the upstream nodes, whether they be pool mining services, job declarating services or template distributors.
+However, it is **mandatory** for remote access to the upstream nodes, whether they be pool mining services, job declaring services or template distributors.
 
 ## 4.1 Motivation for Authenticated Encryption with Associated Data
 
