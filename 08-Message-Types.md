@@ -6,6 +6,7 @@
 | 0x01                           | 0               | SetupConnection.Success            |
 | 0x02                           | 0               | SetupConnection.Error              |
 | 0x03                           | 1               | ChannelEndpointChanged             |
+| 0x04                           | 0               | Reconnect                          |
 | Mining Protocol                |                 |                                    |
 | 0x10                           | 0               | OpenStandardMiningChannel          |
 | 0x11                           | 0               | OpenStandardMiningChannel.Success  |
@@ -28,20 +29,18 @@
 | 0x22                           | 0               | SetCustomMiningJob                 |
 | 0x23                           | 0               | SetCustomMiningJob.Success         |
 | 0x24                           | 0               | SetCustomMiningJob.Error           |
-| 0x25                           | 0               | Reconnect                          |
-| 0x26                           | 0               | SetGroupChannel                    |
+| 0x25                           | 0               | SetGroupChannel                    |
 | Job Declaration Protocol       |                 |                                    |
 | 0x50                           | 0               | AllocateMiningJobToken             |
 | 0x51                           | 0               | AllocateMiningJobToken.Success     |
-| 0x52                           | 0               | AllocateMiningJobToken.Error       |
-| 0x53                           | 0               | IdentifyTransactions               |
-| 0x54                           | 0               | IdentifyTransactions.Success       |
 | 0x55                           | 0               | ProvideMissingTransactions         |
 | 0x56                           | 0               | ProvideMissingTransactions.Success |
-| 0x57                           | 0               | DeclareMiningJob         |
-| 0x58                           | 0               | DeclareMiningJob.Success |
+| 0x57                           | 0               | DeclareMiningJob                   |
+| 0x58                           | 0               | DeclareMiningJob.Success           |
+| 0x59                           | 0               | DeclareMiningJob.Error             |
+| 0x60                           | 1               | PushSolution                       |
 | Template Distribution Protocol |                 |                                    |
-| 0x70                           | 0               | CoinbaseOutputDataSize             |
+| 0x70                           | 0               | CoinbaseOutputConstraints          |
 | 0x71                           | 0               | NewTemplate                        |
 | 0x72                           | 0               | SetNewPrevHash                     |
 | 0x73                           | 0               | RequestTransactionData             |

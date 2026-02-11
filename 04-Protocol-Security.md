@@ -13,7 +13,7 @@ However, it is **mandatory** for remote access to the upstream nodes, whether th
 
 ## 4.1 Motivation for Authenticated Encryption with Associated Data
 
-Data transferred by the mining protocol MUST not provide adversary information that they can use to estimate the performance of any particular miner. Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username. This is unacceptable privacy leakage that needs to be addressed.
+Data transferred by the mining protocol MUST not provide an adversary with information that they can use to estimate the performance of any particular miner. Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username. This is unacceptable privacy leakage that needs to be addressed.
 
 ## 4.2 Motivation for Using the Noise Protocol Framework
 
@@ -36,15 +36,21 @@ These primitives are chosen so that Noise Encryption layer for Stratum V2 can be
 
 #### 4.3.1.1 EC point encoding remarks
 
-Secp256k1 curve points, which includes Public Keys and ECDH results, are points with of X- and Y-coordinate, 32-bytes each. There are several possibilities how to serialize them:
+Secp256k1 curve points, i.e. Public Keys, are points with of X- and Y-coordinate.
+We serialize them in three different ways, only using the x-coordinate.
 
-1. 64-byte full X- and Y-coordinate serialization for public keys (and ECDH results) and 96 bytes for signatures.
-2. 33-byte X-coordinate with 1 parity bit serialization for public keys and similarly 65-byte for signatures.
-3. 32-byte X-coordinate only with implicit Y-coordinate for public keys and 64-byte for signatures.
+1. When signing or verifying a certificate, we use the 32 byte x-only
+encoding as defined in BIP 340.<sup>[3](#reference-3)</sup>.
 
-We choose the 32-byte serialization for public key and 64-byte for signatures with implicit Y-coordinate.
+2. When sharing keys during the handshake, whether in plain text or encrypted,
+we use the 64 byte ElligatorSwift x-only encoding as defined in BIP324<sup>[7](#reference-7)</sup> under "ElligatorSwift encoding of curve X coordinates". This encoding uses 64-bytes instead of 32-bytes in order to produce a
+pseudo-random bytesteam. This is useful because the protocol handshake starts with
+each side sending their public key in plain text. Additionally the use of X-only
+ElligatorSwift ECDH removes the need to grind or negate private keys.
 
-The parity of Y-coordinate is always assumed to be even.
+3. The Authority public key is base58-check encoded as described in 4.7.
+
+Digital signatures are serialized in 64-bytes like in BIP340<sup>[3](#reference-3)</sup>.
 
 Key generation algorithm:
 
@@ -52,16 +58,18 @@ Key generation algorithm:
 2. let `d' = int(sk)`
 3. fail if `d = 0` or `d' > n` where `n` is group order of secp256k1 curve
 4. compute `P` as `d'⋅G`
-5. drop the Y coordinate and output keypair `(sk, bytes(P.x))`
+5. drop the Y coordinate and compute (u, t) = XElligatorSwift(P.x)
+6. ellswift_pub = bytes(u) || bytes(t)
+7. output keypair `(sk, ellswift_pub)`
 
-Such system has the following properties:
+To perform X-only ECDH we use ellswift_ecdh_xonly(ellswift_theirs, d) as described in BIP324<sup>[7](#reference-7)</sup> under "Shared secret computation". The result is 32 bytes.
 
-- for each keypair `(sk, bytes(P.x))` there is another keypair `(n - sk, bytes(P.x))`, where `n` is group order of secp256k1 curve
-- Each result of `ECDH(sk, Q)` is equal to `ECDH(n - sk, Q)` for some EC point `Q` where `n` is group order of secp256k1 curve
+No assumption is made about the parity of Y-coordinate. For the purpose of signing
+(e.g. certificate) and ECDH (handshake) it is _not_ necessary to "grind"
+the private key. The choosen algoritms take care of this by implicitly negating
+the key, as if its public key had an even Y-coordinate.
 
-These properties don't reduce security.
-
-For more information refer to BIP340<sup>[3](#reference-3)</sup>
+For more information refer to BIP340<sup>[3](#reference-3)</sup> and BIP324<sup>[7](#reference-7)</sup>.
 
 ### 4.3.2 Hash function
 
@@ -84,11 +92,11 @@ CipherState has the following interface:
 - `InitializeKey(key)`:
   - Sets `k = key`, `n = 0`
 - `EncryptWithAd(ad, plaintext)`
-  - If `k` is non-empty, performs `ENCRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns `plaintext`
-  - Where `ENCRYPT` is an evaluation of `ChaCha20-Poly1305` (IETF variant) or `AES-GCM` with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a _little-endian_ 64-bit value. Note: this follows the Noise Protocol convention, rather than our normal endian.
+  - If `k` is non-empty, performs `ENCRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns `plaintext`. The `++` post-increment operator applied to `n` means: "use the current n value, then increment it".
+  - Where `ENCRYPT` is an evaluation of `ChaCha20-Poly1305` (IETF variant) with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a _little-endian_ 64-bit value. Note: this follows the Noise Protocol convention, rather than our normal endian.
 - `DecryptWithAd(ad, ciphertext)`
   - If `k` is non-empty performs `DECRYPT(k, n++, ad, plaintext)` on the underlying cipher function, otherwise returns ciphertext. If an authentication failure occurs in `DECRYPT()` then `n` is not incremented and an error is signaled to the caller.
-  - Where `DECRYPT` is an evaluation of `ChaCha20-Poly1305` (IETF variant) or `AES-GCM` with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a _little-endian_ 64-bit value.
+  - Where `DECRYPT` is an evaluation of `ChaCha20-Poly1305` (IETF variant) with the passed arguments, with nonce `n` encoded as 32 zero bits, followed by a _little-endian_ 64-bit value.
 
 ### 4.4.2 Handshake Operation
 
@@ -106,8 +114,8 @@ The following functions will also be referenced:
   - Where the object returned by `generateKey` has two attributes:
     - `.public_key`, which returns an abstract object representing the public key
     - `.private_key`, which represents the private key used to generate the public key
-  - Where the object also has a single method:
-    - `.serializeImplicit()` that outputs a 32-byte serialization of the X-coordinate of EC point (implicit Y-coordinate)
+  - Where the public_key object also has a single method:
+    - `.serializeEllSwift()` that outputs a 64-byte EllSwift encoded serialization of the X-coordinate of EC point (the Y-coordinate is ignored)
 
 - `a || b` denotes the concatenation of two byte strings `a` and `b`
 
@@ -119,14 +127,12 @@ The following functions will also be referenced:
     - calculate `temp = SHA-256((k' XOR ipad) || data)` where ipad is repeated 0x36 byte
     - output `SHA-256((k' XOR opad) || temp)` where opad is repeated 0x5c byte
 
-- `HKDF(chaining_key, input_key_material, num_output)`: a function defined in `RFC 5869`<sup>[6](#reference-6)</sup>, evaluated with a zero-length `info` field:
+- `HKDF(chaining_key, input_key_material)`: a function defined in `RFC 5869`<sup>[6](#reference-6)</sup>, evaluated with a zero-length `info` field and 2 `num_output` field:
 
   - Sets `temp_key = HMAC-HASH(chaining_key, input_key_material)`
   - Sets `output1 = HMAC-HASH(temp_key, byte(0x01))`
   - Sets `output2 = HMAC-HASH(temp_key, output1 || byte(0x02))`
-  - If `num_outputs == 2` then returns the pair `(output1, output2)`
-  - Sets `output3 = HMAC-HASH(temp_key, output2 || byte(0x03))`
-  - Returns the triple `(output1, output2, output3)`
+  - Returns the pair `(output1, output2)`
 
 - `MixKey(input_key_material)`: Executes the following steps:
 
@@ -147,20 +153,40 @@ The following functions will also be referenced:
   - Calls `MixHash(ciphertext)`
   - returns `plaintext`
 
-- `ECDH(k, rk)`: performs an Elliptic-Curve Diffie-Hellman operation using `k`, which is a valid `secp256k1` private key, and `rk`, which is a valid public key
-  - The output is X-coordinate of the resulting EC point
+- `ECDH(k, rk)`: performs an Elliptic-Curve Diffie-Hellman operation
+  using `k`, which is a   valid `secp256k1` private key, and `rk`, which is a EllSwift
+  encoded public key
+  - The output is 32 bytes
+  - It is a shortcut for performing operation `v2_ecdh` defined in BIP324<sup>[7](#reference-7)</sup>:
+    - let `k, ellswift_k` be key pair created by `ellswift_create()` function
+    - let `rk` be remote public key **encoded as ellswift**.
+    - let `initiator` be bool flag that is **true** if the party performing ECDH initiated the handshake
+    - then `ECDH(k, rk) = v2_ecdh(k, ellswift_k, rk, initiator)`
+
+- `v2_ecdh(k, ellswift_k, rk, initiator)`: 
+  - let `ecdh_point_x32` = `ellswift_ecdh_xonly(rk, k)`
+  - if initiator == true:
+    - return `tagged_hash(ellswift_k, rk, ecdh_point_x32)`
+    - else return `tagged_hash(rk, ellswift_k, ecdh_point_x32)`
+  - **Note that the ecdh result is not commutative with respect to roles! Therefore the initiator flag is needed**
+
+- `ellswift_ecdh_xonly` - see BIP324<sup>[7](#reference-7)</sup>
+- `tagged_hash(a, b, c)`:
+  - let tag = `SHA256("bip324_ellswift_xonly_ecdh")`
+  - return `SHA256(concatenate(tag, tag, a, b, c))`
+
+
+
 
 ## 4.5 Authenticated Key Agreement Handshake
 
-The handshake chosen for the authenticated key exchange is an **`Noise_NX`** augmented by algorithm negotiation prior to handshake itself and server authentication with simple 2 level public key infrastructure.
+The handshake chosen for the authenticated key exchange is an **`Noise_NX`** augmented by server authentication with simple 2 level public key infrastructure.
 
-The complete authenticated key agreement (`Noise NX`) is performed in five distinct steps (acts).
+The complete authenticated key agreement (`Noise NX`) is performed in three distinct steps (acts).
 
 1. NX-handshake part 1: `-> e`
 2. NX-handshake part 2: `<- e, ee, s, es, SIGNATURE_NOISE_MESSAGE`
 3. Server authentication: Initiator validates authenticity of server using from `SIGNATURE_NOISE_MESSAGE`
-4. Cipher upgrade part 1: Initiator provides list of alternative aead-ciphers that it supports
-5. Cipher upgrade part 2: Responder confirms or dismisses upgrade to a different aead-cipher
 
 Should the decryption (i.e. authentication code validation) fail at any point, the session must be terminated.
 
@@ -168,10 +194,11 @@ Should the decryption (i.e. authentication code validation) fail at any point, t
 
 Prior to starting first round of NX-handshake, both initiator and responder initializes handshake variables `h` (hash output), `ck` (chaining key) and `k` (encryption key):
 
-1. **hash output** `h = protocolName || <zero-padding>` or `h = HASH(protocolName)`
+1. **hash output** `h = HASH(protocolName)`
 
-- If `protocolName` is less than or equal to 32 bytes in length, use `protocolName` with zero bytes appended to make 32 bytes. Otherwise, apply `HASH` to it.
-- `protocolName` is official noise protocol name such as `Noise_NX_secp256k1_ChaChaPoly_SHA256` encoded as an ASCII string
+- Since `protocolName` more than 32 bytes in length, apply `HASH` to it.
+- `protocolName` is official Noise Protocol name: `Noise_NX_Secp256k1+EllSwift_ChaChaPoly_SHA256`
+  encoded as an ASCII string
 
 2. **chaining key** `ck = h`
 3. **hash output** `h = HASH(h)`
@@ -182,7 +209,7 @@ Prior to starting first round of NX-handshake, both initiator and responder init
 Initiator generates ephemeral keypair and sends the public key to the responder:
 
 1. initializes empty output buffer
-2. generates ephemeral keypair `e`, appends `e.public_key` to the buffer (32 bytes plaintext public key)
+2. generates ephemeral keypair `e`, appends `e.public_key.serializeEllSwift()` to the buffer (64 bytes plaintext EllSwift encoded public key)
 3. calls `MixHash(e.public_key)`
 4. calls `EncryptAndHash()` with empty payload and appends the ciphertext to the buffer (note that _k_ is empty at this point, so this effectively reduces down to `MixHash()` on empty data)
 5. submits the buffer for sending to the responder in the following format
@@ -193,11 +220,11 @@ Initiator generates ephemeral keypair and sends the public key to the responder:
 | ---------- | -------------------------------- |
 | PUBKEY     | Initiator's ephemeral public key |
 
-Message length: 32 bytes
+Message length: 64 bytes
 
 #### 4.5.1.2 Responder
 
-1. receives ephemeral public key message (32 bytes plaintext public key)
+1. receives ephemeral public key message (64 bytes plaintext EllSwift encoded public key)
 2. parses received public key as `re.public_key`
 3. calls `MixHash(re.public_key)`
 4. calls `DecryptAndHash()` on remaining bytes (i.e. on empty data with empty _k_, thus effectively only calls `MixHash()` on empty data)
@@ -220,10 +247,10 @@ Length: 74 bytes
 #### 4.5.2.1 Responder
 
 1. initializes empty output buffer
-2. generates ephemeral keypair `e`, appends `e.public_key` to the buffer (32 bytes plaintext public key)
+2. generates ephemeral keypair `e`, appends `e.public_key` to the buffer (64 bytes plaintext EllSwift encoded public key)
 3. calls `MixHash(e.public_key)`
 4. calls `MixKey(ECDH(e.private_key, re.public_key))`
-5. appends `EncryptAndHash(s.public_key)` (32 bytes encrypted public key, 16 bytes MAC)
+5. appends `EncryptAndHash(s.public_key)` (64 bytes encrypted EllSwift encoded public key, 16 bytes MAC)
 6. calls `MixKey(ECDH(s.private_key, re.public_key))`
 7. appends `EncryptAndHash(SIGNATURE_NOISE_MESSAGE)` to the buffer
 8. submits the buffer for sending to the initiator
@@ -240,7 +267,7 @@ Length: 74 bytes
 | PUBKEY                  | Responder's plaintext ephemeral public key                                                                                                                     |
 | PUBKEY                  | Responder's encrypted static public key                                                                                                                        |
 | MAC                     | Message authentication code for responder's static public key                                                                                                  |
-| SIGNATURE_NOISE_MESSAGE | Signed message containing Responder's static key. Signature is issued by authority that is generally known to operate the server acting as the noise responder |
+| SIGNATURE_NOISE_MESSAGE | Signed message containing Responder's static key. Signature is issued by authority that is generally known to operate the server acting as the Noise responder |
 | MAC                     | Message authentication code for SIGNATURE_NOISE_MESSAGE                                                                                                        |
 
 Message length: 170 bytes
@@ -248,10 +275,10 @@ Message length: 170 bytes
 #### 4.5.2.2 Initiator
 
 1. receives NX-handshake part 2 message
-2. interprets first 32 bytes as `re.public_key`
+2. interprets first 64 bytes as EllSwift encoded `re.public_key`
 3. calls `MixHash(re.public_key)`
 4. calls `MixKey(ECDH(e.private_key, re.public_key))`
-5. decrypts next 48 bytes with `DecryptAndHash()` and stores the results as `rs.public_key` which is **server's static public key** (note that 32 bytes is the public key and 16 bytes is MAC)
+5. decrypts next 80 bytes with `DecryptAndHash()` and stores the results as `rs.public_key` which is **server's static public key** (note that 64 bytes is the public key and 16 bytes is MAC)
 6. calls `MixKey(ECDH(e.private_key, rs.public_key)`
 7. decrypts next 90 bytes with `DecryptAndHash()` and deserialize plaintext into `SIGNATURE_NOISE_MESSAGE` (74 bytes data + 16 bytes MAC)
 8. return pair of CipherState objects, the first for encrypting transport messages from initiator to responder, and the second for messages in the other direction:
@@ -278,6 +305,10 @@ During the handshake, initiator receives `SIGNATURE_NOISE_MESSAGE` and **server'
 This message is not sent directly. Instead, it is constructed from SIGNATURE_NOISE_MESSAGE and server's static public
 key that are sent during the handshake process
 
+The PUBKEY fields are encoded using only their 32 byte x-coordinate and _not_ with
+EllSwift. For the purpose of generating and verifying the certificate, the 64 byte
+EllSwift encoded server_public_key can be decoded to its 32 byte x-coordinate.
+
 #### 4.5.3.1 Signature structure
 
 Schnorr signature with _key prefixing_ is used<sup>[3](#reference-3)</sup>
@@ -289,53 +320,11 @@ signature is constructed for
 
 Signature itself is concatenation of an EC point `R` and an integer `s` (note that each item is serialized as 32 bytes array) for which identity `s⋅G = R + HASH(R || P || m)⋅P` holds.
 
-### 4.5.4 Cipher upgrade part 1: `-> AEAD_CIPHERS`
-
-Initiator provides list of AEAD ciphers other than ChaChaPoly that it supports
-
-| Field name | Description |
-| ---------- | ----------- |
-| SEQ0_32[u32] | List of AEAD cipher functions other than ChaChaPoly that the client supports |
-
-Message length: 1 + _n_ \* 4 bytes, where n is the length byte of the SEQ0_32 field, at most 129
-
-possible cipher codes:
-
-| cipher code | Cipher description |
-| ----------- | ------------------ |
-| 0x47534541 (b"AESG") | AES-256 with with GCM from [7] |
-
-[\[7\]](#reference-7) - Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC
-
-### 4.5.5 Cipher upgrade part 2: `<- CIPHER_CHOICE`
-
-Responder acknowledges receiving `AEAD_CIPHERS` message with `CIPHER_CHOICE`. There are two possible cases
-
-1. `CIPHER_CHOICE` is empty: In this case continue using current established encrypted session
-2. `CIPHER_CHOICE` is non-empty - Restart encrypted session using the new AEAD-cipher
-
-##### CIPHER_CHOICE
-
-| Field name | Description |
-| ---------- | ----------- |
-| OPTION[u32] | Request to upgrade to a given AEAD-cipher |
-
-Message length: 1 or 5 bytes
-
-
-#### 4.5.5.1 Upgrade to a new AEAD-cipher
-
-If the server provides a non-empty `CIPHER_CHOICE`:
-
-1. Both initiator and responder create a new pair of CipherState objects with the negotiated cipher for encrypting transport messages from initiator to responder and in the other direction respectively
-2. New keys `key_new` are derived from the original CipherState keys `key_orig` by taking the first 32 bytes from `ENCRYPT(key_orig, maxnonce, zero_len, zeros)` using the negotiated cipher function where `maxnonce` is 2<sup>64</sup> - 1, `zerolen` is a zero-length byte sequence, and `zeros` is a sequence of 32 bytes filled with zeros. (see `Rekey(k)` function<sup>[8](#reference-8)</sup>)
-3. New CipherState objects are reinitialized: `InitializeKey(key_new)`.
-
 ## 4.6 Encrypted stratum message framing
 
 After handshake process is finished, both initiator and responder have CipherState objects for encryption and decryption and after initiator validated server's identity, any subsequent traffic is encrypted and decrypted with `EncryptWithAd()` and `DecryptWithAd()` methods of the respective CipherState objects with zero-length associated data.
 
-Maximum transport message length (ciphertext) is for noise protocol message 65535 bytes.
+Maximum transport message length (ciphertext) for a Noise Protocol message is 65535 bytes.
 
 Since Stratum Message Frame consists of
 - fixed length message header: 6 bytes
@@ -345,11 +334,19 @@ Stratum Message header and stratum message payload are processed separately.
 
 #### Encrypting stratum message
 1. serialize stratum message into a plaintext binary string (payload)
-2. prepare frame header for the stratum message with `message_length` being length of payload ciphertext*
-3. Encrypt and concatenate serialized header and payload:
+2. prepare the frame header for the Stratum message `message_length` is the length of the plaintext payload.
+3. encrypt and concatenate serialized header and payload:
    4. `EncryptWithAd([], header)` - 22 bytes
    5. `EncryptWithAd([], payload)` - variable length encrypted message
 4. concatenate resulting header and payload ciphertext
+
+- Note: The `message_length` (payload_length) in the encrypted Stratum message header always reflects the plaintext payload size. The size of the encrypted payload is implicitly understood to be message_length + MAC size for each block. This simplifies the decryption process and ensures clarity in interpreting frame data.
+
+#### Decrypting stratum message
+1. read exactly 22 bytes and decrypt into stratum frame or fail
+2. The value `frame.message_length` should first be converted to the ciphertext length, and then that amount of data should be read and decrypted into plaintext payload. If decryption fails, the process stops
+3. deserialize plaintext payload into stratum message given by `frame.extension_type` and `frame.message_type` or fail
+
 
 *converting plaintext length to ciphertext length:
 ```c
@@ -367,15 +364,11 @@ uint pt_len_to_ct_len(uint pt_len) {
 }
 ```
 
-#### Decrypting stratum message
-1. read exactly 22 bytes and decrypt into stratum frame or fail
-2. read `frame.message_length` number of bytes and decrypt into plaintext payload or fail
-3. deserialize plaintext payload into stratum message given by `frame.extension_type` and `frame.message_type` or fail
 
 #### Encrypted stratum message frame layout
 ```
 +--------------------------------------------------+-------------------------------------------------------------------+
-| Extended noise header                            | Encrypted stratum-message payload                                 |
+| Extended Noise header                            | Encrypted stratum-message payload                                 |
 +--------------------------------------------------+-------------------+-------------------+---------------------------+
 | Header AEAD ciphertext                           | Noise block 1     | Noise block 2     | Last Noise block          |
 | 22 Bytes                                         | 65535 Bytes       | 65535 Bytes       | 17 - 65535 Bytes          |
@@ -387,6 +380,7 @@ uint pt_len_to_ct_len(uint pt_len) {
 | U16            | U8       | U24        |   ing>  | 65519 B   |  ing> | 65519 B   |  ing> | 1 - 65519 B   |           |
 +----------------+----------+------------+---------+-------------------------------------------------------------------+
 
+The `pld_length` field in the Encrypted Stratum message Header now consistently represents the plaintext length of the payload.
 Serialized stratum-v2 body (payload) is split into 65519-byte chunks and encrypted to form 65535-bytes AEAD ciphertexts,
 where `ct_pld_N` is the N-th ciphertext block of payload and `pt_pld_N` is the N-th plaintext block of payload.
 ```
@@ -408,7 +402,7 @@ URL example:
 
 ```
 
-stratum2+tcp://thepool.com/9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh
+stratum2+tcp://thepool.com:34254/9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh
 
 ```
 

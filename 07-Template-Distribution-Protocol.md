@@ -5,24 +5,89 @@ It effectively replaces [BIP 22](https://github.com/bitcoin/bips/blob/master/bip
 While not recommended, the template update protocol can be a remote server, and is thus authenticated and signed in the same way as all other protocols (using the same SetupConnection handshake).
 
 Like the Job Declaration and Job Distribution protocols, all Template Distribution messages have the `channel_msg` bit unset, and there is no concept of channels.
-After the initial common handshake, the client MUST immediately send a `CoinbaseOutputDataSize` message to indicate the space it requires for coinbase output addition, to which the server MUST immediately reply with the current best block template it has available to the client.
+After the initial common handshake, the client MUST immediately send a `CoinbaseOutputConstraints` message to indicate the space it requires for coinbase output addition, to which the server MUST immediately reply with the current best block template it has available to the client.
 Thereafter, the server SHOULD push new block templates to the client whenever the total fee in the current block template increases materially, and MUST send updated block templates whenever it learns of a new block.
 
 Template Providers MUST attempt to broadcast blocks which are mined using work they provided, and thus MUST track the work which they provided to clients.
 
-## 7.1 `CoinbaseOutputDataSize` (Client -> Server)
+When crafting a template, in order to avoid creating an invalid, oversized block, the Template Provider MUST reserve appropriate blockspace and sigops for:
+- the block header: 80 bytes, or 320 weight units
+- the block transaction count: 3 bytes (which in terms of `CompactSize` is worst case for minimally sized transactions in a block), or 12 weight units
+- the serialized coinbase transaction: which has fixed-sized and variable-sized fields, see definition of [`CoinbaseOutputConstraints`](#71-coinbaseoutputconstraints-client---server) below
 
-Ultimately, the pool is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size when selecting transactions for inclusion in a block (to not create an invalid, oversized block).
-Thus, this message is used to indicate that some additional space in the block/coinbase transaction be reserved for the pool’s use (while always assuming the pool will use the entirety of available coinbase space).
+## 7.1 `CoinbaseOutputConstraints` (Client -> Server)
 
-The Job Declarator MUST discover the maximum serialized size of the additional outputs which will be added by the pool(s) it intends to use this work.
-It then MUST communicate the maximum such size to the Template Provider via this message.
-The Template Provider MUST NOT provide `NewMiningJob` messages which would represent consensus-invalid blocks once this additional size — along with a maximally-sized (100 byte) coinbase field — is added.
-Further, the Template Provider MUST consider the maximum additional bytes required in the output count variable-length integer in the coinbase transaction when complying with the size limits.
+Here's a table with all fields of a Coinbase Transaction that have fixed size:
 
-| Field Name                          | Data Type | Description                                                                                     |
-| ----------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
-| coinbase_output_max_additional_size | U32       | The maximum additional serialized bytes which the pool will add in coinbase transaction outputs |
+| field name                                  | size                 | weight factor | weight |
+|---------------------------------------------|----------------------|---------------|--------|
+| `version`                                   | 4 bytes              | 4 WU/byte     | 16 WU  |
+| `marker` + `flag`                           | 2 bytes (if SegWit)  | 1 WU/byte     | 2 WU   |
+| `input count` (always 1)                    | 1 byte               | 4 WU/byte     | 4 WU   |
+| `prev txid`                                 | 32 bytes             | 4 WU/byte     | 128 WU |
+| `input index`                               | 4 bytes              | 4 WU/byte     | 16 WU  |
+| `scriptSig length` (100 bytes max)          | 1 byte               | 4 WU/byte     | 4 WU   |
+| `input sequence`                            | 4 bytes              | 4 WU/byte     | 16 WU  |
+| `witness stack size` (always 1)             | 1 byte (if SegWit)   | 1 WU/byte     | 1 WU   |
+| `size of witness element` (always 32 bytes) | 1 byte (if SegWit)   | 1 WU/byte     | 1 WU   |
+| `witness reserved value`                    | 32 bytes (if SegWit) | 1 WU/byte     | 32 WU  |
+| `locktime`                                  | 4 bytes              | 4 WU/byte     | 16 WU  |
+
+So a Template Provider MUST reserve 236 weight units for the fixed-size fields in case of a SegWit block, or 200 weight units in the unlikely case of a legacy block. Meanwhile, the following fields of a Coinbase Transaction have variable size:
+
+| field name     | size          | weight factor | weight     |
+|----------------|---------------|---------------|------------|
+| `scriptSig`    | 100 bytes max | 4 WU/byte     | 400 WU max |
+| `output count` | 3 bytes max   | 4 WU/byte     | 12 WU max  |
+| `outputs`      | no limit      | 4 WU/byte     | no limit   |
+
+Note: while `output count` is `CompactSize`, we can only fit ~110k minimally sized outputs into a block, so 3 bytes is the worst case value here.
+
+So a Template Provider MUST also reserve:
+- the worst-case 400 weight units for `scriptSig` field
+- the worst-case 12 weight units for `output count` field
+- 188 weight units for witness commitment output (if SegWit)
+
+But ultimately, the Pool (or JDC, in case of Job Declaration) is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size, and sigops when selecting transactions for inclusion in a block.
+
+Thus, the `CoinbaseOutputConstraints` message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the Pool or JDC use (while always assuming the entirety of available coinbase space and sigops will be used).
+
+JDC MUST discover the maximum serialized size of the additional outputs and sigops which will be added by the Pool(s) it intends to use this work with (via `AllocateMiningJobToken.Success`). It then MUST communicate it to the Template Provider via `CoinbaseOutputConstraints`.
+
+The Template Provider MUST NOT provide `NewTemplate` messages which would represent consensus-invalid blocks once this additional size and sigops — along with a maximally-sized (100 byte) coinbase script field — is added.
+
+Current sigops limit per block in bitcoin is `80_000`. We are not aware of any use cases where a coinbase transaction has more than `65_535` so `coinbase_output_max_sigops` is an `U16`. Note that taproot outputs consume `0` sigops.
+
+| Field Name                            | Data Type | Description                                                                                     |
+| ------------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
+| coinbase_output_max_additional_size   | U32       | The maximum additional serialized bytes which Pool or JDC will add in coinbase transaction outputs |
+| coinbase_output_max_additional_sigops | U16       | The maximum additional sigops which Pool or JDC will add in coinbase transaction outputs           |
+
+Below are the formulas that summarize the rationale around reserving blockspace presented above. In addition to reserving `coinbase_output_max_additional_sigops` sigops, the Template Provider MUST reserve the following weight unit values.
+
+For SegWit blocks:
+
+- block header: 320 weight units
+- block tx count: 12 weight units
+- coinbase tx fixed-size fields: 236 weight units
+- coinbase tx `scriptSig`: 400 weight units
+- coinbase tx `output count`: 12 weight units
+- coinbase tx witness commitment output: 188 weight units
+- coinbase tx outputs added by Pool or JDC: 4*`coinbase_output_max_additional_size` weight units
+
+total: 1168 + 4*`coinbase_output_max_additional_size` weight units
+
+For legacy blocks:
+- block header: 320 weight units
+- block tx count: 12 weight units
+- coinbase tx fixed-size fields: 200 weight units
+- coinbase tx `scriptSig`: 400 weight units
+- coinbase tx `output count`: 12 weight units
+- coinbase tx outputs added by Pool or JDC: 4*`coinbase_output_max_additional_size` weight units
+
+total: 944 + 4*`coinbase_output_max_additional_size` weight units
+
+Please note that Bitcoin Core establishes a floor value of 2000 weight units.
 
 ## 7.2 `NewTemplate` (Server -> Client)
 
@@ -42,12 +107,19 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                                                                                                                                     |
 | merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                                                                                                                                                                                                                            |
 
+Please note that differently from `SetCustomMiningJob.coinbase_tx_outputs` and `AllocateMiningJobToken.Success.coinbase_tx_outputs`, `NewTemplate.coinbase_tx_outputs` MUST NOT be serialized as a CompactSize-prefixed array. This field must simply carry the ordered sequence of consensus‑serialized outputs, but the number of outputs MUST be inferred from `NewTemplate.coinbase_tx_outputs_count`. This is the equivalent of taking a CompactSize-prefixed array and dropping its (outer) prefix. 
+
+Please also note that in case the block contains SegWit transactions (and optionally blocks that don't as well), `NewTemplate.coinbase_tx_outputs` MUST carry the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+
 ## 7.3 `SetNewPrevHash` (Server -> Client)
 
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
-If a `NewMiningJob` message has previously been sent with an empty `min_ntime`, which is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be set to the `job_id` present in that `NewTemplate` message indicating the client MUST begin mining on that template as soon as possible.
 
-TODO: Define how many previous works the client has to track (2? 3?), and require that the server reference one of those in `SetNewPrevHash`.
+Prior to that, the server MUST send at least one, but potentially multiple `NewTemplate` messages with `future_template` flag set. The client SHOULD keep track of all of them, and convert them into `NewMiningJob` and `NewExtendedMiningJob` messages (with empty `min_ntime`) in case it's also acting as a server under the Mining Protocol.
+
+If a `NewMiningJob` or `NewExtendedMiningJob` message has previously been sent with an empty `min_ntime`, and it is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be matched to the corresponding `NewTemplate` message that generated the `NewMiningJob` or `NewExtendedMiningJob`, and a Mining Protocol `SetNewPrevHash` message SHOULD be sent indicating the client MUST begin mining on that job as soon as possible.
+
+After that, the future templates that were being kept in memory can be discarded, leaving room for future templates relative to the next `SetNewPrevHash`.
 
 | Field Name       | Data Type | Description                                                                                                                                                                                            |
 | ---------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -96,7 +168,8 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 
 Possible error codes:
 
-- `template-id-not-found`
+- `template-id-not-found` - used when the template being referenced is too old and no longer stored in the memory of the Template Provider
+- `stale-template-id` - used when the prev_hash of the corresponding template is still in the Template Provider's memory, but it no longer points to the latest tip 
 
 ## 7.7 `SubmitSolution` (Client -> Server)
 
@@ -105,7 +178,9 @@ Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or 
 | Field Name       | Data Type | Description                                                                                                                                                                                                                                    |
 | ---------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | template_id      | U64       | The template_id field as it appeared in NewTemplate                                                                                                                                                                                            |
-| version          | U32       | The version field in the block header. Bits not defined by BIP320 as additional nonce MUST be the same as they appear in the NewMiningJob message, other bits may be set to any value.                                                              |
+| version          | U32       | The version field in the block header. Bits not defined by BIP320 as additional nonce MUST be the same as they appear in the NewTemplate message, other bits may be set to any value.                                                              |
 | header_timestamp | U32       | The nTime field in the block header. This MUST be greater than or equal to the header_timestamp field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
 | header_nonce     | U32       | The nonce field in the header                                                                                                                                                                                                                  |
-| coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewMiningJob message, above                                                                                                                                           |
+| coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewTemplate message, above                                                                                                                                           |
+
+\*Differently from `NewExtendedMiningJob`, if the original coinbase is a SegWit transaction, `coinbase_tx` MUST NOT be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
