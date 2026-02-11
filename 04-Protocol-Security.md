@@ -423,12 +423,11 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 
 ## 4.8 References
 
-1. <a id="reference-1"> https://web.cs.ucdavis.edu/~rogaway/papers/ad.pdf</a>
-2. <a id="reference-2"> https://www.secg.org/sec2-v2.pdf</a>
-3. <a id="reference-3"> https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki</a>
-4. <a id="reference-4"> https://tools.ietf.org/html/rfc8439</a>
-5. <a id="reference-5"> https://www.ietf.org/rfc/rfc2104.txt</a>
-6. <a id="reference-6"> https://tools.ietf.org/html/rfc5869</a>
-7. <a id="reference-7"> https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf</a>
-8. <a id="reference-8"> https://noiseprotocol.org/noise.html#cipher-functions</a>
-```
+1. <a id="reference-1" href="https://web.cs.ucdavis.edu/~rogaway/papers/ad.pdf">https://web.cs.ucdavis.edu/~rogaway/papers/ad.pdf</a>
+2. <a id="reference-2" href="https://www.secg.org/sec2-v2.pdf">https://www.secg.org/sec2-v2.pdf</a>
+3. <a id="reference-3" href="https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki">https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki</a>
+4. <a id="reference-4" href="https://tools.ietf.org/html/rfc8439">https://tools.ietf.org/html/rfc8439</a>
+5. <a id="reference-5" href="https://www.ietf.org/rfc/rfc2104.txt">https://www.ietf.org/rfc/rfc2104.txt</a>
+6. <a id="reference-6" href="https://tools.ietf.org/html/rfc5869">https://tools.ietf.org/html/rfc5869</a>
+7. <a id="reference-7" href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf</a>
+8. <a id="reference-8" href="https://noiseprotocol.org/noise.html#cipher-functions">https://noiseprotocol.org/noise.html#cipher-functions</a>
