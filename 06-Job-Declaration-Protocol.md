@@ -248,7 +248,7 @@ If `DeclareMiningJob` includes some transactions that JDS's mempool has not yet 
 
 | Field Name               | Data Type     | Description                                                                                                                                                                                                                              |
 | ------------------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| request_id               | U32           | Identifier of the original AllocateMiningJobToken request                                                                                                                                                                                |
+| request_id               | U32           | Identifier of the original DeclareMiningJob request                                                                                                                                                                                |
 | unknown_tx_position_list | SEQ0_64K[U16] | A list of unrecognized transactions that need to be supplied by the Job Declarator in full. They are specified by their position in the original DeclareMiningJob message, 0-indexed not including the coinbase transaction transaction. |
 
 ### 6.4.8 `ProvideMissingTransactions.Success` (Client->Server)
@@ -256,7 +256,7 @@ This is a message to push transactions that the server did not recognize and req
 
 | Field Name       | Data Type        | Description                                                                                                                          |
 | ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| request_id       | U32              | Identifier of the original  AllocateMiningJobToken request                                                                           ""|
+| request_id       | U32              | Identifier of the original DeclareMiningJob request                                                                           ""|
 | transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
 
 ### 6.4.9 `PushSolution` (Client -> Server)
