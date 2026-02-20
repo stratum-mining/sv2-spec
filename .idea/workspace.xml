@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="35dfd08d-a0c2-4546-9c7a-d3efa92b9af1" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="j166f50f" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2lFEXQemlChOrQZqHzI4liAaYWC" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "git-widget-placeholder": "upgrade-jdp",
+    "last_opened_file_path": "/Users/plebhash/develop/sv2-spec",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.first.attach.projects": "true"
+  }
+}]]></component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="35dfd08d-a0c2-4546-9c7a-d3efa92b9af1" name="Changes" comment="" />
+      <created>1724767462945</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1724767462945</updated>
+      <workItem from="1724767463959" duration="6454000" />
+      <workItem from="1724787804786" duration="6987000" />
+      <workItem from="1724877602651" duration="3383000" />
+      <workItem from="1724940792219" duration="19028000" />
+      <workItem from="1725022735953" duration="2686000" />
+      <workItem from="1725481382320" duration="16496000" />
+      <workItem from="1725922458903" duration="2938000" />
+      <workItem from="1725982748228" duration="5911000" />
+      <workItem from="1727360746050" duration="6719000" />
+      <workItem from="1727791110405" duration="879000" />
+      <workItem from="1727979218244" duration="1239000" />
+      <workItem from="1728914206269" duration="62269000" />
+      <workItem from="1730124840771" duration="15925000" />
+      <workItem from="1730240704947" duration="7795000" />
+      <workItem from="1730391884120" duration="1286000" />
+      <workItem from="1730489686493" duration="2364000" />
+      <workItem from="1731450783864" duration="1089000" />
+      <workItem from="1731588723654" duration="861000" />
+      <workItem from="1731715894922" duration="1457000" />
+      <workItem from="1732585398724" duration="2146000" />
+      <workItem from="1732760882729" duration="716000" />
+      <workItem from="1733144552613" duration="1098000" />
+      <workItem from="1733145673417" duration="554000" />
+      <workItem from="1733347785510" duration="43000" />
+      <workItem from="1733433132895" duration="3178000" />
+      <workItem from="1733542745981" duration="609000" />
+      <workItem from="1733629989741" duration="3140000" />
+      <workItem from="1733669289341" duration="291000" />
+      <workItem from="1734089125633" duration="761000" />
+      <workItem from="1734430570023" duration="4689000" />
+      <workItem from="1734491143974" duration="74000" />
+      <workItem from="1736267082870" duration="1775000" />
+      <workItem from="1737151841344" duration="1986000" />
+      <workItem from="1737154171474" duration="309000" />
+      <workItem from="1737154881545" duration="1612000" />
+      <workItem from="1737470275079" duration="198000" />
+      <workItem from="1737496311248" duration="1938000" />
+      <workItem from="1737586498679" duration="2799000" />
+      <workItem from="1737640612806" duration="3573000" />
+      <workItem from="1737645464353" duration="1921000" />
+      <workItem from="1737724662662" duration="5277000" />
+      <workItem from="1737760902421" duration="790000" />
+      <workItem from="1738068109377" duration="1622000" />
+      <workItem from="1738077263493" duration="667000" />
+      <workItem from="1738691533013" duration="1463000" />
+      <workItem from="1738709350732" duration="1290000" />
+      <workItem from="1740499294896" duration="2135000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

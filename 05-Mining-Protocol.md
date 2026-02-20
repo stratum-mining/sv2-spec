@@ -361,17 +361,23 @@ Because it is a common case that shares submission is successful, this response 
 | channel_id                 | U32       | Channel identification                              |
 | last_sequence_number       | U32       | Most recent sequence number with a correct result   |
 | new_submits_accepted_count | U32       | Count of new submits acknowledged within this batch |
-| new_shares_sum             | U64       | Sum of shares acknowledged within this batch        |
+| new_shares_sum             | U64       | Sum of difficulty of shares acknowledged within this batch        |
 
 The server does not have to double check that the sequence numbers sent by a client are actually increasing.
 It can simply use the last one received when sending a response.
 It is the client’s responsibility to keep the sequence numbers correct/useful.
 
+The illustration below assumes a mining server that acknowledges every 10 successful submissions, and that a `SetTarget` message was sent to increase the difficulty from `Da` to `Db` in the middle of the batch submission.
+
+<img width="800" src="img/submit_shares_success.png">
+
+Please note that `new_submits_accepted_count` and `new_shares_sum` carry meaning within the batch being acknowledged, and their respective counters MUST be reset when a new batch starts being processed.
+
 ### 5.3.14 `SubmitShares.Error` (Server -> Client)
 
 An error is immediately submitted for every incorrect submit attempt.
 In case the server is not able to immediately validate the submission, the error is sent as soon as the result is known.
-This delayed validation can occur when a miner gets faster updates about a new prevhash than the server does (see `NewPrevHash` message for details).
+This delayed validation can occur when a miner gets faster updates about a new prevhash than the server does (see `SetNewPrevHash` message for details).
 
 | Field Name      | Data Type | Description                                                 |
 | --------------- | --------- | ----------------------------------------------------------- |
@@ -385,6 +391,10 @@ Possible error codes:
 - `stale-share`
 - `difficulty-too-low`
 - `invalid-job-id`
+
+The illustration below also assumes a mining server that acknowledges every 10 successful submissions.
+
+<img width="800" src="img/submit_shares_error.png">
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
 
