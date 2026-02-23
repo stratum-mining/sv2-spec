@@ -195,18 +195,13 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, wher
 | Flag Name                | Bit | Description                                                                         |
 |--------------------------| --- | ----------------------------------------------------------------------------------- |
 | REQUIRES_STANDARD_JOBS   | 0   | The downstream node requires standard jobs, and is unable to process extended jobs. |
-| REQUIRES_WORK_SELECTION  | 1   | If set to 1, the client notifies the server that it will send SetCustomMiningJob on |
-|                          |     | this connection                                                                     |
-| REQUIRES_VERSION_ROLLING | 2   | The client requires version rolling for efficiency or correct operation and the     |
-|                          |     | server MUST NOT send jobs which do not allow version rolling                        |
+| REQUIRES_WORK_SELECTION  | 1   | If set to 1, the client notifies the server that it will send SetCustomMiningJob on this connection |
+| REQUIRES_VERSION_ROLLING | 2   | The client requires version rolling for efficiency or correct operation and the server MUST NOT send jobs which do not allow version rolling |
 
 Flags usable in `SetupConnection.Success.flags`:
 | Flag Name | Bit | Description |
 |----------------------------|-----|-----------------------------------------------------------------------------------|
-| REQUIRES_FIXED_VERSION | 0 | Upstream node will not accept any changes to the version field. Note that if |
-| | | REQUIRES_VERSION_ROLLING was set in the SetupConnection::flags field, this bit |
-| | | MUST NOT be set. Further, if this bit is set, extended jobs MUST NOT indicate |
-| | | support for version rolling. |
+| REQUIRES_FIXED_VERSION | 0 | Upstream node will not accept any changes to the version field. Note that if REQUIRES_VERSION_ROLLING was set in the SetupConnection::flags field, this bit MUST NOT be set. Further, if this bit is set, extended jobs MUST NOT indicate support for version rolling. |
 | REQUIRES_EXTENDED_CHANNELS | 1 | Upstream node will not accept opening of a standard channel |
 
 ### 5.3.2 `OpenStandardMiningChannel` (Client -> Server)
@@ -522,8 +517,7 @@ After receiving it, the miner can start submitting shares for this job immediate
 | Field Name         | Data Type | Description                                                               |
 | ------------------ | --------- | ------------------------------------------------------------------------- |
 | channel_id         | U32       | Extended channel identifier                                               |
-| request_id         | U32       | Client-specified identifier for pairing responses. Value from the request |
-|                    |           | MUST be provided by upstream in the response message.                     |
+| request_id         | U32       | Client-specified identifier for pairing responses. Value from the request MUST be provided by upstream in the response message. |
 | job_id             | U32       | Server’s identification of the mining job                                 |
 
 \*The full coinbase is constructed by inserting one of the following:
