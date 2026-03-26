@@ -265,9 +265,15 @@ Only used in Full-Template mode.
 
 Sent by JDC as soon as a valid block is found, so that it can be propagated also by JDS.
 
-In the meantime, the block is also transmitted to the network by JDC through the `SubmitSolution` message under in Template Distribution Protocol.
+`PushSolution` is only guaranteed to be valid for the most recent `DeclareMiningJob.Success` that JDS has sent on the same connection.
 
-In this way, a valid solution is immediately propagated on both client and server sides, decreasing the chance of the block being orphaned by the network.
+When receiving `PushSolution`, JDS MUST attempt to reconstruct and propagate the block using the template data associated with its most recently sent `DeclareMiningJob.Success`.
+
+JDS MAY try to reconstruct and propagate the block using template data associated with other recently sent `DeclareMiningJob.Success`, but if the solution does not correspond to the last declared job, JDS is not expected to propagate it.
+
+Regardless of JDS-side propagation, the block is always transmitted to the network by JDC through the `SubmitSolution` message in the Template Distribution Protocol.
+
+In this way, the protocol encourages valid solutions to be immediately propagated on both client and server sides, decreasing the chance of the block being orphaned by the network.
 
 | Field Name                              | Data Type | Description                                                                                                                                                                                                                                                                                |
 | --------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
