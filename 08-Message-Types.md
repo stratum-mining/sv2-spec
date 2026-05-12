@@ -13,7 +13,7 @@
 | 0x12                           | 0               | OpenMiningChannel.Error            |
 | 0x13                           | 0               | OpenExtendedMiningChannel          |
 | 0x14                           | 0               | OpenExtendedMiningChannel.Success  |
-| 0x15                           | 0               | NewMiningJob                       |
+| 0x15                           | 1               | NewMiningJob                       |
 | 0x16                           | 1               | UpdateChannel                      |
 | 0x17                           | 1               | UpdateChannel.Error                |
 | 0x18                           | 1               | CloseChannel                       |
