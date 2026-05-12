@@ -38,7 +38,7 @@
 | 0x57                           | 0               | DeclareMiningJob                   |
 | 0x58                           | 0               | DeclareMiningJob.Success           |
 | 0x59                           | 0               | DeclareMiningJob.Error             |
-| 0x60                           | 1               | PushSolution                       |
+| 0x60                           | 0               | PushSolution                       |
 | Template Distribution Protocol |                 |                                    |
 | 0x70                           | 0               | CoinbaseOutputConstraints          |
 | 0x71                           | 0               | NewTemplate                        |
