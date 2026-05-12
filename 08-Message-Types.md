@@ -26,9 +26,9 @@
 | 0x1f                           | 1               | NewExtendedMiningJob               |
 | 0x20                           | 1               | SetNewPrevHash                     |
 | 0x21                           | 1               | SetTarget                          |
-| 0x22                           | 0               | SetCustomMiningJob                 |
-| 0x23                           | 0               | SetCustomMiningJob.Success         |
-| 0x24                           | 0               | SetCustomMiningJob.Error           |
+| 0x22                           | 1               | SetCustomMiningJob                 |
+| 0x23                           | 1               | SetCustomMiningJob.Success         |
+| 0x24                           | 1               | SetCustomMiningJob.Error           |
 | 0x25                           | 0               | SetGroupChannel                    |
 | Job Declaration Protocol       |                 |                                    |
 | 0x50                           | 0               | AllocateMiningJobToken             |
