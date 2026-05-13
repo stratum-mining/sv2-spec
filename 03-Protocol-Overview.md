@@ -219,16 +219,6 @@ Implementations MAY use error codes for automated actions. The list of error cod
 Implementations/pools SHOULD provide documentation on the meaning of error codes and error codes SHOULD use printable ASCII where possible.
 Furthermore, error codes MUST NOT include control characters.
 
-To make interoperability simpler, the following error codes are provided which implementations SHOULD consider using for the given scenarios.
-Individual error codes are also specified along with their respective error messages.
-
-- `unknown-user`
-- `too-low-difficulty`
-- `stale-share`
-- `unsupported-feature-flags`
-- `unsupported-protocol`
-- `protocol-version-mismatch`
-
 ## 3.6 Common Protocol Messages
 
 The following protocol messages are common across all of the protocols described in this BIP.
@@ -277,13 +267,7 @@ If flags is 0, the error is a result of some condition aside from unsupported fl
 | Field Name | Data Type | Description                                                 |
 | ---------- | --------- | ----------------------------------------------------------- |
 | flags      | U32       | Flags indicating features causing an error                  |
-| error_code | STR0_255  | Human-readable error code(s), see Error Codes section below |
-
-Possible error codes:
-
-- `unsupported-feature-flags`
-- `unsupported-protocol`
-- `protocol-version-mismatch`
+| error_code | STR0_255  | Human-readable error code(s) |
 
 ### 3.6.4 `ChannelEndpointChanged` (Server -> Client)
 

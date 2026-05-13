@@ -166,11 +166,6 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 | template_id | U64       | The template_id corresponding to a NewTemplate/RequestTransactionData message |
 | error_code  | STR0_255  | Reason why no transaction data has been provided                              |
 
-Possible error codes:
-
-- `template-id-not-found` - used when the template being referenced is too old and no longer stored in the memory of the Template Provider
-- `stale-template-id` - used when the prev_hash of the corresponding template is still in the Template Provider's memory, but it no longer points to the latest tip 
-
 ## 7.7 `SubmitSolution` (Client -> Server)
 
 Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or below `SetNewPrevHash::target`, the client MUST immediately send this message, and the server MUST then immediately construct the corresponding full block and attempt to propagate it to the Bitcoin network.
