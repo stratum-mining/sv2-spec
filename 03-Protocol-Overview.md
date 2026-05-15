@@ -216,7 +216,11 @@ A device processing `SubmitSharesExtended` **MUST scan for TLV fields** matching
 
 The protocol uses string error codes.
 Implementations MAY use error codes for automated actions. The list of error codes can differ between implementations, and therefore implementations MUST do a logging no-op for unknown error codes.
+
+Fallback or recovery behavior MUST be based on the overall protocol state, even when a peer sends an unknown, different, or unexpected error code.
+
 Implementations/pools SHOULD provide documentation on the meaning of error codes and error codes SHOULD use printable ASCII where possible.
+
 Furthermore, error codes MUST NOT include control characters.
 
 ## 3.6 Common Protocol Messages
@@ -354,4 +358,4 @@ That's because the Template Distribution Server would not be able to propagate a
 On the Template Distribution Protocol's `NewTemplate` there is one field affected by BIP141:
 - `coinbase_tx_outputs`
 
-In case of blocks containing SegWit transactions (and optionally blocks that don't as well), this field carries the `OP_RETURN` output with the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+In case of blocks containing SegWit transactions (and optionally blocks that don't as well), this field carries the `OP_RETURN` output with the witness commitment. The `witness reserved value` (coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
