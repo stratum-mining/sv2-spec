@@ -17,3 +17,4 @@ For a detailed explanation with examples, see [Section 3.4.1 Extension Type Fiel
 | -------------- | ---------------------- | --------------------------------------------------------- |
 | 0x0001         | Extensions Negotiation | Definition [here](./extensions/0x0001-extensions-negotiation.md) |
 | 0x0002         | Worker Specific Hashrate Tracking | Definition [here](./extensions/0x0002-worker-specific-hashrate-tracking.md) |
+| 0x0003         | Dynamic Coinbase Outputs | Definition [here](./extensions/0x0003-dynamic-coinbase-outputs.md) |
