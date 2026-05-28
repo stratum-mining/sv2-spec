@@ -13,7 +13,7 @@
 | 0x12                           | 0               | OpenMiningChannel.Error            |
 | 0x13                           | 0               | OpenExtendedMiningChannel          |
 | 0x14                           | 0               | OpenExtendedMiningChannel.Success  |
-| 0x15                           | 0               | NewMiningJob                       |
+| 0x15                           | 1               | NewMiningJob                       |
 | 0x16                           | 1               | UpdateChannel                      |
 | 0x17                           | 1               | UpdateChannel.Error                |
 | 0x18                           | 1               | CloseChannel                       |
@@ -26,9 +26,9 @@
 | 0x1f                           | 1               | NewExtendedMiningJob               |
 | 0x20                           | 1               | SetNewPrevHash                     |
 | 0x21                           | 1               | SetTarget                          |
-| 0x22                           | 0               | SetCustomMiningJob                 |
-| 0x23                           | 0               | SetCustomMiningJob.Success         |
-| 0x24                           | 0               | SetCustomMiningJob.Error           |
+| 0x22                           | 1               | SetCustomMiningJob                 |
+| 0x23                           | 1               | SetCustomMiningJob.Success         |
+| 0x24                           | 1               | SetCustomMiningJob.Error           |
 | 0x25                           | 0               | SetGroupChannel                    |
 | Job Declaration Protocol       |                 |                                    |
 | 0x50                           | 0               | AllocateMiningJobToken             |
@@ -38,7 +38,7 @@
 | 0x57                           | 0               | DeclareMiningJob                   |
 | 0x58                           | 0               | DeclareMiningJob.Success           |
 | 0x59                           | 0               | DeclareMiningJob.Error             |
-| 0x60                           | 1               | PushSolution                       |
+| 0x60                           | 0               | PushSolution                       |
 | Template Distribution Protocol |                 |                                    |
 | 0x70                           | 0               | CoinbaseOutputConstraints          |
 | 0x71                           | 0               | NewTemplate                        |
