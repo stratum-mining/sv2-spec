@@ -343,7 +343,7 @@ This deserves some consideration in the Stratum V2 protocol design, mainly becau
 
 For a block that contains any SegWit transactions (in practice almost any non-empty block), the Coinbase transaction MUST have a witness as well as an `OP_RETURN` output carrying the witness commitment. For an empty block, the Coinbase transaction MAY have a witness and the `OP_RETURN` output with the witness commitment anyway.
 
-The `OP_RETURN` output with the witness commitment is provided by Sv2 Template Providers in the `coinbase_tx_outputs` field of `NewTemplate` message.
+The `OP_RETURN` output with the witness commitment is provided by Sv2 Template Providers in the `coinbase_tx_outputs` field of `NewTemplate` message. The corresponding Coinbase witness bytes are provided in `NewTemplate.coinbase_witness` (empty when no witness commitment output is present).
 
 On a serialized SegWit transaction, the BIP141 fields are:
 - marker
@@ -392,7 +392,8 @@ That's because the Template Distribution Server would not be able to propagate a
 
 ### 3.7.4. BIP141 on `NewTemplate`
 
-On the Template Distribution Protocol's `NewTemplate` there is one field affected by BIP141:
+On the Template Distribution Protocol's `NewTemplate` there are two fields affected by BIP141:
 - `coinbase_tx_outputs`
+- `coinbase_witness`
 
-If the block contains any SegWit transactions, this field MUST carry the `OP_RETURN` output with the witness commitment. For blocks without SegWit transactions, the witness commitment output MAY still be included. The `witness reserved value` (coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+In case any transaction in a block has witness data, `coinbase_tx_outputs` carries the `OP_RETURN` output with the witness commitment, and `coinbase_witness` carries the single 32-byte coinbase witness stack element. If none of the transactions in a block have witness data, the witness commitment is optional: if omitted, `coinbase_witness` is empty, and if included, `coinbase_witness` carries the single 32-byte coinbase witness stack element. Clients MUST NOT assume `coinbase_witness` is `0x00...00`, as this [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure). This value is sent so clients can serialize the coinbase witness consistently with the provided commitment output.
