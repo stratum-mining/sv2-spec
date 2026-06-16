@@ -215,19 +215,13 @@ A device processing `SubmitSharesExtended` **MUST scan for TLV fields** matching
 ## 3.5 Error Codes
 
 The protocol uses string error codes.
-The list of error codes can differ between implementations, and thus implementations MUST NOT take any automated action(s) on the basis of an error code.
+Implementations MAY use error codes for automated actions. The list of error codes can differ between implementations, and therefore implementations MUST do a logging no-op for unknown error codes.
+
+Fallback or recovery behavior MUST be based on the overall protocol state, even when a peer sends an unknown, different, or unexpected error code.
+
 Implementations/pools SHOULD provide documentation on the meaning of error codes and error codes SHOULD use printable ASCII where possible.
+
 Furthermore, error codes MUST NOT include control characters.
-
-To make interoperability simpler, the following error codes are provided which implementations SHOULD consider using for the given scenarios.
-Individual error codes are also specified along with their respective error messages.
-
-- `unknown-user`
-- `too-low-difficulty`
-- `stale-share`
-- `unsupported-feature-flags`
-- `unsupported-protocol`
-- `protocol-version-mismatch`
 
 ## 3.6 Common Protocol Messages
 
@@ -277,13 +271,7 @@ If flags is 0, the error is a result of some condition aside from unsupported fl
 | Field Name | Data Type | Description                                                 |
 | ---------- | --------- | ----------------------------------------------------------- |
 | flags      | U32       | Flags indicating features causing an error                  |
-| error_code | STR0_255  | Human-readable error code(s), see Error Codes section below |
-
-Possible error codes:
-
-- `unsupported-feature-flags`
-- `unsupported-protocol`
-- `protocol-version-mismatch`
+| error_code | STR0_255  | Human-readable error code(s) |
 
 ### 3.6.4 `ChannelEndpointChanged` (Server -> Client)
 
@@ -370,4 +358,4 @@ That's because the Template Distribution Server would not be able to propagate a
 On the Template Distribution Protocol's `NewTemplate` there is one field affected by BIP141:
 - `coinbase_tx_outputs`
 
-In case of blocks containing SegWit transactions (and optionally blocks that don't as well), this field carries the `OP_RETURN` output with the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+In case of blocks containing SegWit transactions (and optionally blocks that don't as well), this field carries the `OP_RETURN` output with the witness commitment. The `witness reserved value` (coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).

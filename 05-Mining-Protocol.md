@@ -266,12 +266,7 @@ Sent as a response for opening an extended channel.
 | Field Name | Data Type | Description                                                 |
 | ---------- | --------- | ----------------------------------------------------------- |
 | request_id | U32       | Client-specified request ID from OpenMiningChannel message  |
-| error_code | STR0_255  | Human-readable error code(s), see Error Codes section below |
-
-Possible error codes:
-
-- `unknown-user`
-- `max-target-out-of-range`
+| error_code | STR0_255  | Human-readable error code(s) |
 
 ### 5.3.7 `UpdateChannel` (Client -> Server)
 
@@ -294,12 +289,7 @@ Sent only when `UpdateChannel` message is invalid. When it is accepted by the se
 | Field Name | Data Type | Description                                                 |
 | ---------- | --------- | ----------------------------------------------------------- |
 | channel_id | U32       | Channel identification                                      |
-| error_code | STR0_255  | Human-readable error code(s), see Error Codes section below |
-
-Possible error codes:
-
-- `max-target-out-of-range`
-- `invalid-channel-id`
+| error_code | STR0_255  | Human-readable error code(s) |
 
 ### 5.3.9 `CloseChannel` (Client -> Server, Server -> Client)
 
@@ -383,14 +373,7 @@ This delayed validation can occur when a miner gets faster updates about a new p
 | --------------- | --------- | ----------------------------------------------------------- |
 | channel_id      | U32       | Channel identifier                                          |
 | sequence_number | U32       | Submission sequence number for which this error is returned |
-| error_code      | STR0_255  | Human-readable error code(s), see Error Codes section below |
-
-Possible error codes:
-
-- `invalid-channel-id`
-- `stale-share`
-- `difficulty-too-low`
-- `invalid-job-id`
+| error_code      | STR0_255  | Human-readable error code(s) |
 
 The illustration below also assumes a mining server that acknowledges every 10 successful submissions.
 
@@ -538,12 +521,6 @@ After receiving it, the miner can start submitting shares for this job immediate
 | channel_id | U32       | Extended channel identifier                                                                                                     |
 | request_id | U32       | Client-specified identifier for pairing responses. Value from the request MUST be provided by upstream in the response message. |
 | error_code | STR0_255  | Reason why the custom job has been rejected                                                                                     |
-
-Possible errors:
-
-- `invalid-channel-id`
-- `invalid-mining-job-token`
-- `invalid-job-param-value-{}` - `{}` is replaced by a particular field name from `SetCustomMiningJob` message
 
 ### 5.3.21 `SetTarget` (Server -> Client)
 

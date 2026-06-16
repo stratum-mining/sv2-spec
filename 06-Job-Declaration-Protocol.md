@@ -232,13 +232,10 @@ This should be a trigger for fallback into some other Pool+JDS or solo mining.
 | Field Name    | Data Type | Description                                            |
 | ------------- | --------- | ------------------------------------------------------ |
 | request_id    | U32       | Identifier of the original request                     |
-| error_code    | STR0_255  |                                                        |
+| error_code    | STR0_255  | Human-readable error code(s) |
 | error_details | B0_64K    | Optional data providing further details to given error |
 
-Possible error codes:
 
-- `invalid-mining-job-token`
-- `invalid-job-param-value-{}` - `{}` is replaced by a particular field name from `DeclareMiningJob` message
 
 ### 6.4.7 `ProvideMissingTransactions` (Server->Client)
 
