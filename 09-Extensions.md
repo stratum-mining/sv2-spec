@@ -13,7 +13,8 @@ For a detailed explanation with examples, see [Section 3.4.1 Extension Type Fiel
 
 ## Extension Registry
 
-| Extension Type | Extension Name         | Description / BIP                                         |
-| -------------- | ---------------------- | --------------------------------------------------------- |
-| 0x0001         | Extensions Negotiation | Definition [here](./extensions/0x0001-extensions-negotiation.md) |
-| 0x0002         | Worker Specific Hashrate Tracking | Definition [here](./extensions/0x0002-worker-specific-hashrate-tracking.md) |
+| Extension Type | Extension Name                    | Description / BIP                                                                  |
+| -------------- | --------------------------------- | ---------------------------------------------------------------------------------- |
+| 0x0001         | Extensions Negotiation            | [Definition](./extensions/0x0001-extensions-negotiation.md)                        |
+| 0x0002         | Worker-Specific Hashrate Tracking | [Definition](./extensions/0x0002-worker-specific-hashrate-tracking.md)             |
+| 0x0003         | Non-Custodial Pool Payouts        | [Definition](./extensions/0x0003-non-custodial-pool-payouts.md)                   |
