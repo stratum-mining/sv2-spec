@@ -210,7 +210,7 @@
             <mxRectangle width="284" height="32" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="AqgI11fZNC0Qb58yE7mk-46" value="partially rollable&lt;div&gt;(BIP320)&lt;/div&gt;" style="connectable=0;recursiveResize=0;strokeColor=inherit;fillColor=#999999;align=center;whiteSpace=wrap;html=1;" parent="AqgI11fZNC0Qb58yE7mk-42" vertex="1">
+        <mxCell id="AqgI11fZNC0Qb58yE7mk-46" value="partially rollable&lt;div&gt;(BIP323)&lt;/div&gt;" style="connectable=0;recursiveResize=0;strokeColor=inherit;fillColor=#999999;align=center;whiteSpace=wrap;html=1;" parent="AqgI11fZNC0Qb58yE7mk-42" vertex="1">
           <mxGeometry x="444" width="390" height="32" as="geometry">
             <mxRectangle width="390" height="32" as="alternateBounds" />
           </mxGeometry>

@@ -84,7 +84,7 @@ Technically, we can use the saved bandwidth for more frequent submits to further
 - **channel ID**: identifies an individual mining device or proxy after the channel has been opened. Upstream endpoints perform job submission 
 - **public key**: ...
 - **signature**: signature encoded as...(?)
-- **BIP320**: this proposal identifies general purpose bits within version field of bitcoin block header. Mining devices use these bits to extend their search space.
+- **BIP323**: this proposal identifies general purpose bits within version field of bitcoin block header. Mining devices use these bits to extend their search space.
 - **Merkle root**: the root hash of a Merkle tree which contains the coinbase transaction and the transaction set consisting of all the other transactions in the block.
 
 ## 10.7 Open Questions / Issues
