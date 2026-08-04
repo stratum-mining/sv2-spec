@@ -104,12 +104,23 @@ The primary template-providing function. Note that the `coinbase_tx_outputs` byt
 | coinbase_tx_value_remaining | U64            | The value, in satoshis, available for spending in coinbase outputs added by the client. Includes both transaction fees and block subsidy.                                                                                                                                          |
 | coinbase_tx_outputs_count   | U32            | The number of transaction outputs included in coinbase_tx_outputs                                                                                                                                                                                                                  |
 | coinbase_tx_outputs         | B0_64K         | Bitcoin transaction outputs to be included as the last outputs in the coinbase transaction                                                                                                                                                                                         |
+| coinbase_witness            | OPTION[U256]   | Coinbase witness (32 bytes by consensus rules). MUST be empty if no witness commitment output is present in `coinbase_tx_outputs`.                                                                                                                                                    |
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                                                                                                                                     |
 | merkle_path                 | SEQ0_255[U256] | Merkle path hashes ordered from deepest                                                                                                                                                                                                                                            |
 
 Please note that differently from `SetCustomMiningJob.coinbase_tx_outputs` and `AllocateMiningJobToken.Success.coinbase_tx_outputs`, `NewTemplate.coinbase_tx_outputs` MUST NOT be serialized as a CompactSize-prefixed array. This field must simply carry the ordered sequence of consensus‑serialized outputs, but the number of outputs MUST be inferred from `NewTemplate.coinbase_tx_outputs_count`. This is the equivalent of taking a CompactSize-prefixed array and dropping its (outer) prefix. 
 
-Please also note that in case the block contains SegWit transactions (and optionally blocks that don't as well), `NewTemplate.coinbase_tx_outputs` MUST carry the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+The full ordered list of coinbase outputs is constructed as `<client-added-outputs> || <NewTemplate.coinbase_tx_outputs>`. Clients MUST NOT reorder or modify outputs from `NewTemplate.coinbase_tx_outputs`.
+
+Please also note that if the block contains any transactions with witness data, `NewTemplate.coinbase_tx_outputs` MUST carry the witness commitment, and `NewTemplate.coinbase_witness` MUST contain exactly 32 bytes equal to the value used in the witness commitment pre-image.
+
+If all transactions in a block do not have witness data, the witness commitment is optional. In this case, the server MAY omit the witness commitment output from `NewTemplate.coinbase_tx_outputs`, and then `NewTemplate.coinbase_witness` MUST be empty. If the server includes a witness commitment output anyway, `NewTemplate.coinbase_witness` MUST contain exactly 32 bytes equal to the value used in the witness commitment pre-image.
+
+Clients MUST NOT assume `NewTemplate.coinbase_witness` is `0x00...00`, as this [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+
+`NewTemplate.coinbase_witness` exists so clients can serialize the coinbase input witness in a way that is coherent with the witness commitment output already provided by the server. Clients are not required to recalculate the witness commitment hash.
+
+If `NewTemplate.coinbase_witness` contains 32 bytes, the client MUST serialize the coinbase transaction as SegWit and the coinbase input witness MUST contain exactly one stack element whose bytes are equal to `NewTemplate.coinbase_witness`. If `NewTemplate.coinbase_witness` is empty, the client MUST serialize the coinbase transaction without BIP141 witness fields.
 
 ## 7.3 `SetNewPrevHash` (Server -> Client)
 
