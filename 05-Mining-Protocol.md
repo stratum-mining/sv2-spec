@@ -385,6 +385,8 @@ The server provides an updated mining job to the client through a standard chann
 
 If the `min_ntime` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime.
 
+The server MUST NOT assign a `job_id` that is already in use by another currently valid job on the same channel.
+
 | Field Name  | Data Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ----------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | channel_id  | U32         | Channel identifier, this must be a standard channel                                                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -406,6 +408,8 @@ This acts as a broadcast message that distributes work to all channels under the
 
 The proxy MAY transform this multicast variant for downstream standard channels into `NewMiningJob` messages by computing the derived Merkle root for them.
 A proxy MUST translate the message into `NewMiningJob` for all downstream standard channels belonging to the group in case the `SetupConnection` message had the `REQUIRES_STANDARD_JOB` flag set (intended and expected behavior for end mining devices).
+
+The server MUST NOT assign a `job_id` that is already in use by another currently valid job on the same channel.
 
 | Field Name              | Data Type      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -457,6 +461,7 @@ This message MAY be shared by all downstream nodes (sent only once to each group
 Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
 The remaining jobs already queued by the client have to be made invalid.
+The server MUST NOT send this message referencing a `job_id` that was not previously sent as a future job (i.e. with `min_ntime` unset) on the corresponding channel.
 
 Note: There is no need for block height in this message.
 
