@@ -157,7 +157,7 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 | ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | template_id      | U64              | The template_id corresponding to a NewTemplate/RequestTransactionData message                                                        |
 | excess_data      | B0_64K           | Extra data which the Pool may require to validate the work                                                                           |
-| transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
+| transaction_list | SEQ0_64K[B0_16M] | Full transactions from the referenced template, excluding the coinbase transaction, in block order. |
 
 ## 7.6 `RequestTransactionData.Error` (Server->Client)
 
