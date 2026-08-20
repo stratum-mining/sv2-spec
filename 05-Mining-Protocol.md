@@ -302,6 +302,8 @@ A proxy MUST send this message on behalf of all opened channels from a downstrea
 | channel_id  | U32       | Channel identification         |
 | reason_code | STR0_255  | Reason for closing the channel |
 
+The `reason_code` field is subject to the same character restrictions as error codes (see Section 3.5): it MUST NOT include control characters and SHOULD use printable ASCII where possible.
+
 If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it MUST send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
 In general, proxy servers MUST keep the upstream node notified about the real state of the downstream channels.
 

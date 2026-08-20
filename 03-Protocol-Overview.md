@@ -223,6 +223,8 @@ Implementations/pools SHOULD provide documentation on the meaning of error codes
 
 Furthermore, error codes MUST NOT include control characters.
 
+These character restrictions apply equally to other human-readable string codes, such as the `reason_code` field of `CloseChannel` (see Section 5.3.9).
+
 ## 3.6 Common Protocol Messages
 
 The following protocol messages are common across all of the protocols described in this BIP.
