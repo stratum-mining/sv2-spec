@@ -248,7 +248,7 @@ Similar to [5.3.2 `OpenStandardMiningChannel`](#532-openstandardminingchannel-cl
 | Field Name                                    | Data Type | Description                                           |
 | --------------------------------------------- | --------- | ----------------------------------------------------- |
 | `<All fields from OpenStandardMiningChannel>` |
-| min_extranonce_size                           | U16       | Minimum size of extranonce needed by the device/node. |
+| min_extranonce_size                           | U16       | Minimum size of extranonce needed by the device/node. Server MUST satisfy the `min_extranonce_size` or respond with `OpenMiningChannel.Error`. The resulting `extranonce_size` MUST be at most 32 bytes. |
 
 ### 5.3.5 `OpenExtendedMiningChannel.Success` (Server -> Client)
 
