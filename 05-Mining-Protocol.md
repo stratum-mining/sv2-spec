@@ -466,6 +466,7 @@ This message MAY be shared by all downstream nodes (sent only once to each group
 Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
 The remaining jobs already queued by the client have to be made invalid.
+Shares submitted for jobs invalidated by a previous `SetNewPrevHash` (stale shares) SHOULD be rejected by the server.
 The server MUST NOT send this message referencing a `job_id` that was not previously sent as a future job (i.e. with `min_ntime` unset) on the corresponding channel.
 
 Note: There is no need for block height in this message.
