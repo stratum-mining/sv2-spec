@@ -237,6 +237,7 @@ This MUST be the first message sent by the client on the newly opened connection
 The server MUST NOT send any message before its `SetupConnection` response.
 Server MUST respond with either a `SetupConnection.Success` or `SetupConnection.Error` message.
 If the `protocol` field contains a value other than 0, 1, or 2, the server MUST respond with `SetupConnection.Error`.
+If `min_version` is greater than `max_version`, or if `max_version` is less than 2, or if `min_version` is greater than 2, the server MUST respond with `SetupConnection.Error`.
 Clients that are not configured to provide telemetry data to the upstream node SHOULD set `device_id` to 0-length strings.
 However, they MUST always set vendor to a string describing the manufacturer/developer and firmware version and SHOULD always set `hardware_version` to a string describing, at least, the particular hardware/software package in use.
 
