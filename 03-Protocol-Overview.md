@@ -233,6 +233,7 @@ The following protocol messages are common across all of the protocols described
 
 Initiates the connection.
 This MUST be the first message sent by the client on the newly opened connection.
+The server MUST NOT send any message before its `SetupConnection` response.
 Server MUST respond with either a `SetupConnection.Success` or `SetupConnection.Error` message.
 If the `protocol` field contains a value other than 0, 1, or 2, the server MUST respond with `SetupConnection.Error`.
 Clients that are not configured to provide telemetry data to the upstream node SHOULD set `device_id` to 0-length strings.
