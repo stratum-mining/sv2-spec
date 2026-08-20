@@ -211,6 +211,10 @@ Flags usable in `SetupConnection.Success.flags`:
 | | | support for version rolling. |
 | REQUIRES_EXTENDED_CHANNELS | 1 | Upstream node will not accept opening of a standard channel |
 
+A server MAY require Extended Channels on a connection by setting `REQUIRES_EXTENDED_CHANNELS`, overriding the general requirement of §5.2.2. A client receiving this flag MUST NOT request a Standard Channel on that connection. If it does, the server MUST respond with `OpenMiningChannel.Error`.
+
+`REQUIRES_EXTENDED_CHANNELS` cannot be honored for a client that set `REQUIRES_STANDARD_JOBS` in `SetupConnection.flags`, as such a client cannot work on Extended Channels. A server that does not serve Standard Channels MUST instead reject that client's `SetupConnection` with `SetupConnection.Error`, with `REQUIRES_STANDARD_JOBS` set in the error's `flags` field, consistent with the unsupported-flags reporting rule in §3.6.3.
+
 ### 5.3.2 `OpenStandardMiningChannel` (Client -> Server)
 
 This message requests to open a standard channel to the upstream node.
