@@ -41,7 +41,7 @@ Clients MUST NOT use any features from extensions that are not confirmed as supp
     Client <--- RequestExtensions.Success (list of supported U16) ---- Server
 
     If an error occurs:
-    Client <--- RequestExtensions.Error (unsupported U16, requested U16) ---- Server
+    Client <--- RequestExtensions.Error (unsupported_extensions, required_extensions) ---- Server
     ```
   
 ---
@@ -88,7 +88,7 @@ Clients MUST NOT use any features from extensions that are not confirmed as supp
 
 1. **Error Handling**:
     - Servers MUST respond with `RequestExtensions.Error` if none of the requested extensions are supported.
-    - If the server **requires** certain extensions but they were not included in the request, it MUST list them in the `requested_extensions` field of `RequestExtensions.Error`.
+    - If the server **requires** certain extensions but they were not included in the request, it MUST list them in the `required_extensions` field of `RequestExtensions.Error`.
 
 2. **Ordering**:
     - The `RequestExtensions` message MUST be sent immediately after `SetupConnection.Success` and before any other protocol-specific messages.

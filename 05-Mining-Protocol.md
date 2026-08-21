@@ -209,6 +209,8 @@ Flags usable in `SetupConnection.Success.flags`:
 | | | support for version rolling. |
 | REQUIRES_EXTENDED_CHANNELS | 1 | Upstream node will not accept opening of a standard channel |
 
+A server that sets `REQUIRES_EXTENDED_CHANNELS` in its `SetupConnection.Success` flags MAY refuse standard channels on that connection, overriding the general requirement of §5.2.2.
+
 ### 5.3.2 `OpenStandardMiningChannel` (Client -> Server)
 
 This message requests to open a standard channel to the upstream node.
@@ -246,7 +248,7 @@ Similar to [5.3.2 `OpenStandardMiningChannel`](#532-openstandardminingchannel-cl
 | Field Name                                    | Data Type | Description                                           |
 | --------------------------------------------- | --------- | ----------------------------------------------------- |
 | `<All fields from OpenStandardMiningChannel>` |
-| min_extranonce_size                           | U16       | Minimum size of extranonce needed by the device/node. |
+| min_extranonce_size                           | U16       | Minimum size of extranonce needed by the device/node. Server MUST satisfy the `min_extranonce_size` or respond with `OpenMiningChannel.Error`. The resulting `extranonce_size` MUST be at most 32 bytes. |
 
 ### 5.3.5 `OpenExtendedMiningChannel.Success` (Server -> Client)
 
@@ -330,23 +332,25 @@ Client sends result of its hashing work to the server.
 | sequence_number | U32       | Unique sequential identifier of the submit within the channel                                                                                                                                                                                  |
 | job_id          | U32       | Identifier of the job as provided by NewMiningJob or NewExtendedMiningJob message                                                                                                                                                              |
 | nonce           | U32       | Nonce leading to the hash being submitted                                                                                                                                                                                                      |
-| ntime           | U32       | The nTime field in the block header. This MUST be greater than or equal to the header_timestamp field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
+| ntime           | U32       | The nTime field in the block header. This MUST be greater than or equal to the `min_ntime` of the referenced job and lower than or equal to that value plus the number of seconds since receipt of the message that supplied it. For a future job, the `min_ntime` is supplied by the `SetNewPrevHash` that activated it. For an immediately active job, the `min_ntime` is the value in the `NewMiningJob` message itself. |
 | version         | U32       | Full nVersion field                                                                                                                                                                                                                            |
 
 ### 5.3.12 `SubmitSharesExtended` (Client -> Server)
 
 Only relevant for extended channels.
-The message is the same as `SubmitShares`, with the following additional field:
+The message is the same as `SubmitSharesStandard`, with the following additional field:
 
 | Field Name                              | Data Type | Description                                                                                                                                                                                                                                                                                |
 |-----------------------------------------| --------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `<SubmitSharesStandard message fields>` |
 | extranonce                              | B0_32     | Extranonce bytes which need to be added to coinbase to form a fully valid submission (full coinbase = coinbase_tx_prefix + extranonce_prefix + extranonce + coinbase_tx_suffix). The size of the provided extranonce MUST be equal to the negotiated extranonce size from channel opening. |
 
+For extended channels, the `ntime` constraint from `SubmitSharesStandard` also applies, with the `min_ntime` potentially supplied by `NewExtendedMiningJob` (for immediately active jobs) or `SetCustomMiningJob`.
+
 ### 5.3.13 `SubmitShares.Success` (Server -> Client)
 
-Response to `SubmitShares` or `SubmitSharesExtended`, accepting results from the miner.
-Because it is a common case that shares submission is successful, this response can be provided for multiple `SubmitShare` messages aggregated together.
+Response to `SubmitSharesStandard` or `SubmitSharesExtended`, accepting results from the miner.
+A server MAY aggregate acknowledgements for multiple successful share-submission messages from the same channel into a single `SubmitShares.Success` response.
 
 | Field Name                 | Data Type | Description                                         |
 | -------------------------- | --------- | --------------------------------------------------- |
@@ -383,7 +387,7 @@ The illustration below also assumes a mining server that acknowledges every 10 s
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
 
-The server provides an updated mining job to the client through a standard channel. This MUST be the first message after the channel has been successfully opened. This first message will have min_ntime unset (future job).
+The server provides an updated mining job to the client through a standard channel. This MUST be the first message after the channel has been successfully opened. This first message MUST have `min_ntime` unset (a future job).
 
 If the `min_ntime` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime.
 
@@ -404,6 +408,7 @@ The server MUST NOT assign a `job_id` that is already in use by another currentl
 For an **extended channel**:
 The whole search space of the job is owned by the specified channel.
 If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message.
+This MUST be the first message after an extended channel has been successfully opened. This first message MUST have `min_ntime` unset (future job).
 
 For a **group channel**:
 This acts as a broadcast message that distributes work to all channels under the same group with one single message, instead of one per channel.
@@ -463,6 +468,7 @@ This message MAY be shared by all downstream nodes (sent only once to each group
 Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
 The remaining jobs already queued by the client have to be made invalid.
+Shares submitted for jobs invalidated by a previous `SetNewPrevHash` (stale shares) SHOULD be rejected by the server.
 The server MUST NOT send this message referencing a `job_id` that was not previously sent as a future job (i.e. with `min_ntime` unset) on the corresponding channel.
 
 Note: There is no need for block height in this message.
@@ -493,7 +499,7 @@ This message signals that JDC expects to be rewarded for working on a Custom Job
 | min_ntime                   | U32            | Smallest nTime value available for hashing                                                                                                                            |
 | nbits                       | U32            | Block header field                                                                                                                                                    |
 | coinbase_tx_version         | U32            | The coinbase transaction nVersion field                                                                                                                               |
-| coinbase_prefix             | B0_255         | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction.                              |
+| coinbase_prefix             | B0_255         | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction. The sender MUST NOT send a `coinbase_prefix` longer than 8 bytes.                              |
 | coinbase_tx_input_nSequence | U32            | The coinbase transaction input's nSequence field                                                                                                                      |
 | coinbase_tx_outputs         | B0_64K         | Outputs of the coinbase transaction. CompactSize‑prefixed array of consensus‑serialized outputs.                                                                            |
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                        |
