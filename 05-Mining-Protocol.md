@@ -485,7 +485,7 @@ This message signals that JDC expects to be rewarded for working on a Custom Job
 
 | Field Name                  | Data Type      | Description                                                                                                                                                           |
 | --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| channel_id                  | U32            | Extended channel identifier                                                                                                                                           |
+| channel_id                  | U32            | Extended or Group Channel identifier                                                                                                                                  |
 | request_id                  | U32            | Client-specified identifier for pairing responses                                                                                                                     |
 | mining_job_token            | B0_255         | Token provided by JDS which uniquely identifies the Custom Job that JDC has declared. See the Job Declaration Protocol for more details.                              |
 | version                     | U32            | Valid version field that reflects the current network consensus. The general purpose bits (as specified in BIP323) can be freely manipulated by the downstream node.  |
@@ -511,7 +511,7 @@ After receiving it, the miner can start submitting shares for this job immediate
 
 | Field Name         | Data Type | Description                                                               |
 | ------------------ | --------- | ------------------------------------------------------------------------- |
-| channel_id         | U32       | Extended channel identifier                                               |
+| channel_id         | U32       | Extended or Group Channel identifier                                      |
 | request_id         | U32       | Client-specified identifier for pairing responses. Value from the request |
 |                    |           | MUST be provided by upstream in the response message.                     |
 | job_id             | U32       | Server’s identification of the mining job                                 |
@@ -525,7 +525,7 @@ After receiving it, the miner can start submitting shares for this job immediate
 
 | Field Name | Data Type | Description                                                                                                                     |
 | ---------- | --------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| channel_id | U32       | Extended channel identifier                                                                                                     |
+| channel_id | U32       | Extended or Group Channel identifier                                                                                            |
 | request_id | U32       | Client-specified identifier for pairing responses. Value from the request MUST be provided by upstream in the response message. |
 | error_code | STR0_255  | Reason why the custom job has been rejected                                                                                     |
 
