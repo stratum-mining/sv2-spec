@@ -128,9 +128,9 @@ After receiving a request to reconnect, the downstream node MUST run the handsha
 
 Protocol extensions may be defined by using a non-0 `extension_type` field in the message header (not including the `channel_msg` bit).
 The value used MUST either be in the range `0x4000` - `0x7fff` (inclusive, i.e. have the second-to-most-significant-bit set) denoting an "experimental" extension and not be present in production equipment, or have been allocated for the purpose at [http://stratumprotocol.org](http://stratumprotocol.org).
-While extensions SHOULD have BIPs written describing their full functionality, `extension_type` allocations MAY also be requested for vendor-specific proprietary extensions to be used in production hardware.
+While extensions SHOULD have a specification written describing their full functionality, `extension_type` allocations MAY also be requested for vendor-specific proprietary extensions to be used in production hardware.
 This is done by sending an email with a brief description of the intended use case to the Bitcoin Protocol Development List and extensions@stratumprotocol.org.
-(Note that these contacts may change in the future, please check the latest version of this BIP prior to sending such a request.)
+(Note that these contacts may change in the future, please check the latest version of this document prior to sending such a request.)
 
 ### 3.4.1 Extension Type Field Usage
 
@@ -156,7 +156,7 @@ The `extension_type` field in the message frame header indicates which extension
 
 5. If later, another extension `0x0004` wanted to add TLV fields to `CustomNewMessageType` from example 4, those messages would still have `extension_type = 0x0003` in their frame header, as that's the extension that defined the message's base structure.
 
-Extensions are left largely undefined in this BIP, however, there are some basic requirements that all extensions must comply with/be aware of.
+Extensions are left largely undefined in this document, however, there are some basic requirements that all extensions must comply with/be aware of.
 For unknown `extension_type`'s, the `channel_msg` bit in the `extension_type` field determines which device the message is intended to be processed on: if set, the channel endpoint (i.e. either an end mining device, or a pool server) is the final recipient of the message, whereas if unset, the final recipient is the endpoint of the connection on which the message is sent.
 Note that in cases where channels are aggregated across multiple devices, the proxy which is aggregating multiple devices into one channel forms the channel’s "endpoint" and processes channel messages.
 Thus, any proxy devices which receive a message with the `channel_msg` bit set and an unknown `extension_type` value MUST forward that message to the downstream/upstream device which corresponds with the `channel_id` specified in the first four bytes of the message payload.
@@ -236,7 +236,7 @@ These character restrictions apply equally to other human-readable string codes,
 
 ## 3.6 Common Protocol Messages
 
-The following protocol messages are common across all of the protocols described in this BIP.
+The following protocol messages are common across all of the protocols described in this document.
 
 ### 3.6.1 `SetupConnection` (Client -> Server)
 
