@@ -19,7 +19,7 @@ The full search space is defined in part by valid values in the following block 
 
 The other portion of the block header that is used to define the full search space is the Merkle Root, which is deterministically computed from:
 - Coinbase transaction
-- Transaction set
+- Transaction (ordered) list
 
 All roles in Stratum v2 MUST NOT use transaction selection/ordering for additional hash space extension.
 This stems both from the concept that miners/pools should be able to choose their transaction set freely without any interference with the protocol, and also to enable future protocol modifications to Bitcoin.
