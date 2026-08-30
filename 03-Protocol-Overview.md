@@ -17,7 +17,7 @@ There are technically three distinct (sub)protocols needed in order to fully use
    Further, such connections have very different concerns from share submissions - work declaration likely requires, at a minimum, some spot-checking of work validity, as well as potentially substantial rate-limiting (without the inherent rate-limiting of share difficulty).
 
 3. **Template Distribution Protocol**  
-   A protocol that shares the same message framing (see §3.2) as the other sub-protocols, used for getting information about the next block out of Bitcoin Core.
+   A protocol that shares the same message framing (see §3.2) as the other sub-protocols, used for getting information about the next block from a Template Provider.
    Designed to replace `getblocktemplate` with something much more efficient and easy to implement for those implementing other parts of Stratum v2.
 
 Meanwhile, there are five possible roles (types of software/hardware) for communicating with these protocols.
