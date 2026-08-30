@@ -147,7 +147,7 @@ There can theoretically be up to `2^32` open Channels within one Connection. Thi
 All Channels are independent of each other, but share some messages broadcast from the server for higher efficiency (e.g. information about a new `prev_hash`).
 Each Channel is identified by its `channel_id` (`U32`), which is consistent throughout the whole life of the Connection. There MUST NOT be two Channels with the same ID in the same Connection.
 
-A Proxy can either transparently allow its clients to open separate Channels with the server (preferred behavior), or aggregate open connections from downstream devices into its own open channel with the server and translate the messages accordingly (present mainly for allowing v1 proxies).
+A Proxy can either transparently allow its clients to open separate Channels with the server (preferred behavior), or aggregate open connections from downstream devices into its own open channel with the server and translate the messages accordingly (present mainly to support proxies that translate between Sv1 and Sv2, since Stratum v1 devices cannot open channels themselves).
 Both options have some practical use cases.
 In either case, proxies SHOULD aggregate clients' Channels into a smaller number of Connections.
 This saves network traffic for broadcast messages sent by a server because fewer messages need to be sent in total, which leads to lower latencies as a result.
@@ -219,7 +219,7 @@ After receiving a `SetupConnection.Success` message, the client SHOULD respond b
 If no channels are opened within a reasonable period the server SHOULD close the connection for inactivity.
 
 Every client SHOULD start its communication with an upstream node by opening a channel, which is necessary for almost all later communication.
-The upstream node either passes opening the channel further or has enough local information to handle channel opening on its own (this is mainly intended for v1 proxies).
+The upstream node either passes opening the channel further or has enough local information to handle channel opening on its own (this is mainly intended for proxies that translate between Sv1 and Sv2 on behalf of Stratum v1 downstream devices).
 Clients must also communicate information about their hashing power in order to receive well-calibrated job assignments.
 
 | Field Name        | Data Type | Description                                                                                                                                                                                                                                                                                                                  |
