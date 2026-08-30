@@ -101,7 +101,7 @@ The message framing is outlined below:
 
 Some bits of the `extension_type` field can also be repurposed for signaling on how the frame should be handled across channels.
 
-The least significant bit of `extension_type` (i.e., bit 15, 0-indexed, also known as `channel_msg`) indicates a message which is specific to a channel, whereas if the most significant bit is unset, the message is to be interpreted by the immediate receiving device. 
+The most significant bit of `extension_type` (i.e., bit 15, 0-indexed, also known as `channel_msg`), when set, indicates a message which is specific to a channel, whereas if it is unset, the message is to be interpreted by the immediate receiving device. 
 
 Note that the `channel_msg` bit is ignored in the extension lookup, i.e., an `extension_type` of `0x8ABC` is for the same "extension" as `0x0ABC`. 
 
