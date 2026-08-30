@@ -229,11 +229,9 @@ Implementations MAY use error codes for automated actions. The list of error cod
 
 Fallback or recovery behavior MUST be based on the overall protocol state, even when a peer sends an unknown, different, or unexpected error code.
 
-Implementations/pools SHOULD provide documentation on the meaning of error codes and error codes SHOULD use printable ASCII where possible.
+Implementations/pools MUST provide documentation on the meaning of error codes. Error codes MUST consist only of printable ASCII characters.
 
-Furthermore, error codes MUST NOT include control characters.
-
-These character restrictions apply equally to other human-readable string codes, such as the `reason_code` field of `CloseChannel` (see Section 5.3.9).
+This character restriction applies equally to other human-readable string codes, such as the `reason_code` field of `CloseChannel` (see Section 5.3.9).
 
 ## 3.6 Common Protocol Messages
 
