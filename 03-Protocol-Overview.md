@@ -23,7 +23,7 @@ There are technically three distinct (sub)protocols needed in order to fully use
 Meanwhile, there are five possible roles (types of software/hardware) for communicating with these protocols.
 
 1. **Mining Device**  
-   The actual device computing the hashes. This can be further divided into header-only mining devices and standard mining devices, though most devices will likely support both modes.
+   The actual device computing the hashes. This can be further divided into header-only mining devices and extranonce-rolling mining devices, though most devices will likely support both modes.
 
 2. **Pool Service**  
    Produces jobs (for those not declaring jobs via the Job Declaration Protocol), validates shares, and ensures blocks found by clients are propagated through the network (though clients which have full block templates MUST also propagate blocks into the Bitcoin P2P network).
