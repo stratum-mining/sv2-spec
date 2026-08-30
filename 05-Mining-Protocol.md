@@ -33,7 +33,7 @@ The protocol defines two main types of Jobs: **Standard Job** and **Extended Job
 
 This separation vastly simplifies the protocol implementation for clients that don’t support Extended Job, as they only need to implement the subset of protocol messages related to Standard Job (see Mining Protocol Messages for details).
 
-Additionally, a Job (either Standard or Extended) also could be potentially labeled as a **Future Job** and/or **Custom Job**.
+Additionally, a Job (either Standard or Extended) also can be labeled as a **Future Job** and/or **Custom Job**.
 
 ### 5.1.1 Standard Job
 
