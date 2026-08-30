@@ -427,7 +427,7 @@ The server MUST NOT assign a `job_id` that is already in use by another currentl
 \*The full coinbase is constructed by inserting one of the following:
 
 - For a **standard channel**: `extranonce_prefix`
-- For an **extended channel**: `extranonce_prefix + extranonce (=N bytes)`, where `N` is the negotiated extranonce space for the channel (`OpenMiningChannel.Success.extranonce_size`)
+- For an **extended channel**: `extranonce_prefix + extranonce (=N bytes)`, where `N` is the negotiated extranonce space for the channel (`OpenExtendedMiningChannel.Success.extranonce_size`)
 
 \*If the original coinbase is a SegWit transaction, `coinbase_tx_prefix` and `coinbase_tx_suffix` MUST be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
 
@@ -519,7 +519,7 @@ After receiving it, the miner can start submitting shares for this job immediate
 \*The full coinbase is constructed by inserting one of the following:
 
 - For a **standard channel**: `extranonce_prefix`
-- For an **extended channel**: `extranonce_prefix + extranonce (=N bytes)`, where `N` is the negotiated extranonce space for the channel (`OpenMiningChannel.Success.extranonce_size`)
+- For an **extended channel**: `extranonce_prefix + extranonce (=N bytes)`, where `N` is the negotiated extranonce space for the channel (`OpenExtendedMiningChannel.Success.extranonce_size`)
 
 ### 5.3.20 `SetCustomMiningJob.Error` (Server -> Client)
 
