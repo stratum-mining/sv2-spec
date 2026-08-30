@@ -10,6 +10,8 @@ Alternatively, it can be used in conjunction with Job Declaration and Template D
 
 A **Job** consists of a unit of work containing all the necessary information about the hashing space over some candidate block header.
 
+Note that the messages distributing Jobs (`NewMiningJob`, `NewExtendedMiningJob`) do not carry all of this information on their own: some fundamental properties of a Job are inherited from the state of the Channel it is distributed on — e.g. the current target, the `prev_hash` being worked on, and the `extranonce_prefix` (see §5.2 Channels).
+
 Each Mining Device has to work on a unique part of the whole search space.
 The full search space is defined in part by valid values in the following block header fields:
 
