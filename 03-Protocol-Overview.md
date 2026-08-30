@@ -97,6 +97,14 @@ The message framing is outlined below:
 | msg_length     | U24         | Length of the protocol message, not including this header                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | payload        | BYTES       | Message-specific payload of length msg_length. If the MSB in extension_type (the channel_msg bit) is set the first four bytes are defined as a U32 "channel_id", though this definition is repeated in the message definitions below and these 4 bytes are included in msg_length.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
+The layout of a frame on the wire is illustrated below:
+
+![](./img/sv2_frame.png)
+
+- Bytes are transmitted left to right: the first byte of `extension_type` is the first byte on the wire.
+- Multibyte header fields (`extension_type`, `msg_length`) are serialized as little-endian (see §3.1): their least significant byte is transmitted first.
+- Consequently, the `channel_msg` bit (bit 15 of `extension_type`, see §3.2.1) is carried in the most significant bit of the second byte of the frame.
+
 ### 3.2.1 Routing Frames over Channels
 
 Some bits of the `extension_type` field can also be repurposed for signaling on how the frame should be handled across channels.
