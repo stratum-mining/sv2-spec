@@ -246,6 +246,7 @@ The server MUST NOT send any message before its `SetupConnection` response.
 Server MUST respond with either a `SetupConnection.Success` or `SetupConnection.Error` message.
 If the server does not support the requested `protocol`, it MUST respond with `SetupConnection.Error`.
 If the server supports no protocol version between `min_version` and `max_version` inclusive, it MUST respond with `SetupConnection.Error`.
+The feature set in effect for a connection is the combination of both sides' declared requirements: by responding with `SetupConnection.Success` the server commits to satisfying the client's flags, and by proceeding on the connection the client commits to the server's.
 Clients that are not configured to provide telemetry data to the upstream node SHOULD set `device_id` to 0-length strings.
 However, they MUST always set vendor to a string describing the manufacturer/developer and firmware version and SHOULD always set `hardware_version` to a string describing, at least, the particular hardware/software package in use.
 
