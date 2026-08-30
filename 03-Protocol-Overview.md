@@ -4,7 +4,7 @@ There are technically three distinct (sub)protocols needed in order to fully use
 
 1. **Mining Protocol**  
    The main protocol used for mining and the direct successor of Stratum v1.
-   A mining device uses it to communicate with its upstream node, pool, or a proxy.
+   A mining device uses it to communicate with its upstream role: a pool or a proxy.
    A proxy uses it to communicate with a pool (or another proxy).
    This protocol needs to be implemented in all scenarios.
    For cases in which a miner or pool does not support transaction selection, this is the only protocol used.
