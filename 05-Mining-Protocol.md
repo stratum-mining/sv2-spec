@@ -179,7 +179,7 @@ The size of search space for an Extended Channel is `2^(nonce_bits + version_rol
 
 ### 5.2.3 Group Channel
 
-Mining and/or Standard Channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
+Extended or Standard Channels opened within one particular connection can be grouped together to be addressable by a common communication group channel.
 
 Every mining channel is a member of a group identified by its `group_channel_id`.
 Group Channel ID namespace is the same as Mining Channel ID namespace on a particular connection. In other words, there must never be a Group Channel whose `group_channel_id` is identical to some `channel_id` of some Standard or Extended Channel within the context of the same connection.
