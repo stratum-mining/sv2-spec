@@ -224,7 +224,7 @@ A device processing `SubmitSharesExtended` **MUST scan for TLV fields** matching
 ## 3.5 Error Codes
 
 The protocol uses string error codes.
-Implementations MAY use error codes for automated actions. The list of error codes can differ between implementations, and therefore implementations MUST do a logging no-op for unknown error codes.
+Implementations MAY use error codes for automated actions. The list of error codes can differ between implementations, and therefore implementations MUST log unknown error codes and otherwise ignore them.
 
 Fallback or recovery behavior MUST be based on the overall protocol state, even when a peer sends an unknown, different, or unexpected error code.
 
