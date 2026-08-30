@@ -13,7 +13,7 @@ There are technically three distinct (sub)protocols needed in order to fully use
    Used by a miner (a whole mining farm) to declare a block template with a pool.
    Results of this declaration can be re-used for all mining connections to the pool to reduce computational intensity.
    In other words, a single declaration can be used by an entire mining farm or even multiple farms with hundreds of thousands of devices, making it far more efficient.
-   This is separate to allow pools to terminate such connections on separate infrastructure from mining protocol connections (i.e. share submissions).
+   This is a separate protocol so that pools can handle job-declaration connections on separate infrastructure from Mining Protocol connections (i.e. share submissions).
    Further, such connections have very different concerns from share submissions - work declaration likely requires, at a minimum, some spot-checking of work validity, as well as potentially substantial rate-limiting (without the inherent rate-limiting of share difficulty).
 
 3. **Template Distribution Protocol**  
