@@ -121,7 +121,7 @@ Rate limited to a rather slow rate and only available on connections where this 
 
 | Field Name      | Data Type | Description                                                                                                                                                                                                                        |
 | --------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| user_identifier | STR0_255  | Unconstrained sequence of bytes. Whatever is needed by the pool to identify/authenticate the client, e.g. "braiinstest". Additional restrictions can be imposed by the pool. It is highly recommended that UTF-8 encoding is used. |
+| user_identifier | STR0_255  | Opaque byte sequence used by the pool to identify/authenticate the client, e.g. "username". Its content is not interpreted by the protocol; the pool MAY impose additional restrictions. UTF-8 encoding SHOULD be used.            |
 | request_id      | U32       | Unique identifier for pairing the response                                                                                                                                                                                         |
 
 ### 6.4.3 `AllocateMiningJobToken.Success` (Server -> Client)
