@@ -56,7 +56,7 @@ JDC MUST discover the maximum serialized size of the additional outputs and sigo
 
 The Template Provider MUST NOT provide `NewTemplate` messages which would represent consensus-invalid blocks once this additional size and sigops — along with a maximally-sized (100 byte) coinbase script field — is added.
 
-Current sigops limit per block in bitcoin is `80_000`. We are not aware of any use cases where a coinbase transaction has more than `65_535` so `coinbase_output_max_additional_sigops` is an `U16`. Note that taproot outputs consume `0` sigops.
+Current sigops limit per block in bitcoin is `80_000` (as defined in BIP141). We are not aware of any use cases where a coinbase transaction has more than `65_535` sigops, so `coinbase_output_max_additional_sigops` is an `U16`. Note that taproot outputs consume `0` sigops.
 
 | Field Name                            | Data Type | Description                                                                                     |
 | ------------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
