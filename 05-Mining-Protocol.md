@@ -241,7 +241,7 @@ Sent as a response for opening a standard channel, if successful.
 | ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | request_id        | U32       | Client-specified request ID from OpenStandardMiningChannel message, so that the client can pair responses with open channel requests                                           |
 | channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the connection, e.g. it is used for broadcasting new jobs by NewExtendedMiningJob                   |
-| target            | U256      | Initial target for the mining channel                                                                                                                                          |
+| target            | U256      | Initial target for the mining channel. MUST NOT exceed `OpenStandardMiningChannel.max_target`; a server that cannot satisfy this MUST respond with `OpenMiningChannel.Error` instead. |
 | extranonce_prefix | B0_32     | Bytes used as implicit first part of extranonce for the scenario when extended job is served by the upstream node for a set of standard channels that belong to the same group |
 | group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.                                                                                             |
 
@@ -262,7 +262,7 @@ Sent as a response for opening an extended channel.
 | ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | request_id        | U32       | Client-specified request ID from OpenExtendedMiningChannel message, so that the client can pair responses with open channel requests                         |
 | channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the connection, e.g. it is used for broadcasting new jobs by NewExtendedMiningJob |
-| target            | U256      | Initial target for the mining channel                                                                                                                        |
+| target            | U256      | Initial target for the mining channel. MUST NOT exceed `OpenExtendedMiningChannel.max_target`; a server that cannot satisfy this MUST respond with `OpenMiningChannel.Error` instead. |
 | extranonce_size   | U16       | Extranonce size (in bytes) set for the channel                                                                                                               |
 | extranonce_prefix | B0_32     | Bytes used as implicit first part of extranonce                                                                                                              |
 | group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.                                                                           |
