@@ -52,7 +52,7 @@ But ultimately, the Pool (or JDC, in case of Job Declaration) is responsible for
 
 Thus, the `CoinbaseOutputConstraints` message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the Pool or JDC use (while always assuming the entirety of available coinbase space and sigops will be used).
 
-JDC MUST discover the maximum serialized size of the additional outputs and sigops which will be added by the Pool(s) it intends to use this work with (via `AllocateMiningJobToken.Success`). It then MUST communicate it to the Template Provider via `CoinbaseOutputConstraints`.
+Client MUST discover the maximum serialized size of the additional outputs and sigops which will be added by the Pool(s) it intends to use this work with (in case of Job Declaration, discovered via `AllocateMiningJobToken.Success`). It then MUST communicate it to the Template Provider via `CoinbaseOutputConstraints`.
 
 The Template Provider MUST NOT provide `NewTemplate` messages which would represent consensus-invalid blocks once this additional size and sigops — along with a maximally-sized (100 byte) coinbase script field — is added.
 
