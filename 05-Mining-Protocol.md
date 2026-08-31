@@ -364,7 +364,7 @@ A server MAY aggregate acknowledgements for multiple successful share-submission
 | channel_id                 | U32       | Channel identification                              |
 | last_sequence_number       | U32       | Most recent sequence number with a correct result   |
 | new_submits_accepted_count | U32       | Count of new submits acknowledged within this batch |
-| new_shares_sum             | U64       | Sum of difficulty of shares acknowledged within this batch        |
+| new_shares_sum             | U64       | Sum, over the shares acknowledged within this batch, of the difficulty of the job each share was submitted against |
 
 The server does not have to double check that the sequence numbers sent by a client are actually increasing.
 It can simply use the last one received when sending a response.
