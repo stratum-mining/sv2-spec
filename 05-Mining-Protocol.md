@@ -280,9 +280,9 @@ This update can be debounced so that it is not sent more often than once in a se
 | ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | channel_id        | U32       | Channel identification                                                                                                                                                                                                                |
 | nominal_hash_rate | F32       | See Open\*Channel for details                                                                                                                                                                                                         |
-| maximum_target    | U256      | Maximum target is changed by server by sending SetTarget. This field is understood as device's request. There can be some delay between UpdateChannel and corresponding SetTarget messages, based on new job readiness on the server. |
+| max_target        | U256      | The channel target is changed by the server by sending SetTarget. This field is understood as device's request. There can be some delay between UpdateChannel and corresponding SetTarget messages, based on new job readiness on the server. |
 
-When `maximum_target` is smaller than currently used maximum target for the channel, upstream node MUST reflect the client’s request (and send appropriate `SetTarget` message).
+When `max_target` is smaller than the channel’s current target, the upstream node MUST reflect the client’s request (and send an appropriate `SetTarget` message).
 
 ### 5.3.8 `UpdateChannel.Error` (Server -> Client)
 
@@ -544,15 +544,15 @@ After receiving it, the miner can start submitting shares for this job immediate
 The server controls the submission rate by adjusting the difficulty target on a specified channel.
 All submits leading to hashes higher than the specified target will be rejected by the server.
 
-Maximum target is valid until the next `SetTarget` message is sent and is applicable for all jobs received on the channel in the future or already received with an empty `min_ntime`.
-The message is not applicable for already received jobs with `min_ntime=nTime`, as their maximum target remains stable.
+The target is valid until the next `SetTarget` message is sent and is applicable for all jobs received on the channel in the future or already received with an empty `min_ntime`.
+The message is not applicable for already received jobs with `min_ntime=nTime`, as their target remains stable.
 
 | Field Name     | Data Type | Description                                                                       |
 | -------------- | --------- | --------------------------------------------------------------------------------- |
 | channel_id     | U32       | Channel identifier                                                                |
-| maximum_target | U256      | Maximum value of produced hash that will be accepted by a server to accept shares |
+| target         | U256      | Maximum value of produced hash that will be accepted by a server to accept shares |
 
-When `SetTarget` is sent to a group channel, the maximum target is applicable to all channels in the group.
+When `SetTarget` is sent to a group channel, the target is applicable to all channels in the group.
 
 
 ### 5.3.22 `SetGroupChannel` (Server -> Client)
