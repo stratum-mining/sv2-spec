@@ -320,6 +320,7 @@ If `channel_id` is addressing a group channel, all channels belonging to such gr
 Changes channel’s extranonce prefix.
 It is applicable for all jobs sent after this message on a given channel (both jobs provided by the upstream or jobs introduced by `SetCustomMiningJob` message).
 This message is applicable only for explicitly opened extended channels or standard channels (not group channels).
+A client receiving `SetExtranoncePrefix` addressed to a group channel MUST ignore it.
 
 | Field Name        | Data Type | Description                                     |
 | ----------------- | --------- | ----------------------------------------------- |
