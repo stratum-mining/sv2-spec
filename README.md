@@ -92,7 +92,7 @@ This repository contains the Stratum V2 protocol specification.
     - [6.3.3. Coinbase-only vs Full-Template](./06-Job-Declaration-Protocol.md#633-coinbase-only-vs-full-template)
   - [6.4. Job Declaration Protocol Messages](./06-Job-Declaration-Protocol.md#64-job-declaration-protocol-messages)
     - [6.4.1. `SetupConnection` Flags for Job Declaration Protocol](./06-Job-Declaration-Protocol.md#641-setupconnection-flags-for-job-declaration-protocol)
-    - [6.4.2. `AllocateMiningJobToken` (JDC -> JDS)](./06-Job-Declaration-Protocol.md#642-allocateminingjobtoken-jdc---jds)
+    - [6.4.2. `AllocateMiningJobToken` (Client -> Server)](./06-Job-Declaration-Protocol.md#642-allocateminingjobtoken-client---server)
     - [6.4.3. `AllocateMiningJobToken.Success` (Server -> Client)](./06-Job-Declaration-Protocol.md#643-allocateminingjobtokensuccess-server---client)
     - [6.4.4. `DeclareMiningJob` (Client -> Server)](./06-Job-Declaration-Protocol.md#644-declareminingjob-client---server)
     - [6.4.5. `DeclareMiningJob.Success` (Server -> Client)](./06-Job-Declaration-Protocol.md#645-declareminingjobsuccess-server---client)

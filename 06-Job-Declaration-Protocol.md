@@ -34,11 +34,11 @@ It is responsible for:
 - Publishing valid blocks found by downstream Mining Devices (both to Template Provider (TP) and JDS).
 
 Additionally, if:
-- JDS fails to respond with an `AllocateMiningJobToken.Success` in a reasonable time.
-- JDS rejects some Custom Job declaration via `DeclareMiningJob.Error`.
-- Pool rejects valid shares under a Custom Job that was previously acknowledged via `SetCustomMiningJob.Success` and/or `DeclareMiningJob.Success`.
+- JDS fails to respond with an `AllocateMiningJobToken.Success` in a reasonable time;
+- or JDS rejects some Custom Job declaration via `DeclareMiningJob.Error`;
+- or Pool rejects valid shares under a Custom Job that was previously acknowledged via `SetCustomMiningJob.Success` and/or `DeclareMiningJob.Success`;
 
-JDC is also responsible for switching to a new Pool+JDS (or solo mining as a last resort).
+then JDC is also responsible for switching to a new Pool+JDS (or solo mining as a last resort).
 
 This fallback strategy incentivizes honesty on Pool side, otherwise it will lose hashrate by rejecting Shares for a Custom Job that was already acknowledged to be valid. It also allows the miner to never stop mining on their preferred templates.
 
@@ -60,7 +60,7 @@ This leaves Pool arguably vulnerable to an attack where miner declares a coinbas
 - the template actually has a different fee revenue.
 - the template has invalid transactions.
 
-This potential attack vector is in many ways identical to block withholding and defenses against block withholding generally apply.
+This potential attack vector is in many ways equivalent to block withholding and defenses against block withholding generally apply.
 
 Some pools may wish to utilize additional mitigations. For example, Zero-Knowledge-Proof based protocol extensions, where JDC proves that the fee revenue on the coinbase belongs to a valid template, without ever revealing the template itself.
 
@@ -94,7 +94,7 @@ It SHOULD do optimistic mining by sending the jobs downstream for hashing right 
 
 ### 6.3.3 Coinbase-only vs Full-Template
 
-The table below shows a comparison between the two Sv2 Job Declation Modes:
+The table below shows a comparison between the two Sv2 Job Declaration Modes:
 
 |                                     | Coinbase-only | Full-Template |
 |-------------------------------------|-|-|
@@ -110,11 +110,11 @@ Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
 
 | Field Name                | Bit | Description                                                                                                                                                                                                                                                                                                                                                          |
 | ------------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DECLARE_TX_DATA | 0   | JDC agrees to reveal the template's txdata via `DeclareMiningJob` and `ProvideMissingTransactions`. |
+| DECLARE_TX_DATA | 0   | When the bit is set, JDC agrees to reveal the template's txdata via `DeclareMiningJob` and `ProvideMissingTransactions`. Essentially sets Coinbase-only vs Full-Template mode. |
 
 No flags are yet defined for use in `SetupConnection.Success`.
 
-### 6.4.2 `AllocateMiningJobToken` (JDC -> JDS)
+### 6.4.2 `AllocateMiningJobToken` (Client -> Server)
 
 A request to get an identifier for a future-submitted mining job.
 Rate limited to a rather slow rate and only available on connections where this has been negotiated. Otherwise, only `mining_job_token(s)` from `AllocateMiningJobToken.Success` are valid.
