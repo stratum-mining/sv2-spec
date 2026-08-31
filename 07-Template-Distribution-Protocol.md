@@ -48,7 +48,7 @@ So a Template Provider MUST also reserve:
 - the worst-case 12 weight units for `output count` field
 - 188 weight units for witness commitment output (if SegWit)
 
-But ultimately, the Pool (or JDC, in case of Job Declaration) is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size, and sigops when selecting transactions for inclusion in a block.
+But ultimately, the Pool (or JDC, in case of Job Declaration) is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size and sigops when selecting transactions for inclusion in a block.
 
 Thus, the `CoinbaseOutputConstraints` message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the Pool or JDC use (while always assuming the entirety of available coinbase space and sigops will be used).
 
