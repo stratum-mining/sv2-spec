@@ -126,8 +126,8 @@ Rate limited to a rather slow rate and only available on connections where this 
 
 ### 6.4.3 `AllocateMiningJobToken.Success` (Server -> Client)
 
-The Server MUST NOT change the value of `coinbase_output_max_additional_size` in `AllocateMiningJobToken.Success` messages unless required for changes to the pool’s configuration.
-Notably, if the pool intends to change the space it requires for coinbase transaction outputs regularly, it should simply prefer to use the maximum of all such output sizes as the `coinbase_output_max_additional_size` value.
+The Server MUST NOT change the value of `coinbase_output_max_additional_size` between `AllocateMiningJobToken.Success` messages unless a change in the pool’s configuration actually requires it.
+Notably, a pool whose required coinbase output space changes regularly SHOULD instead advertise the maximum of all such sizes as the `coinbase_output_max_additional_size` value, rather than varying it per message.
 
 | Field Name                          | Data Type | Description                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
