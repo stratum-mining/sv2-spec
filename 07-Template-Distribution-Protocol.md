@@ -109,7 +109,7 @@ The primary template-providing message. Note that the `coinbase_tx_outputs` byte
 
 Please note that differently from `SetCustomMiningJob.coinbase_tx_outputs` and `AllocateMiningJobToken.Success.coinbase_tx_outputs`, `NewTemplate.coinbase_tx_outputs` MUST NOT be serialized as a CompactSize-prefixed array. This field must simply carry the ordered sequence of consensus‑serialized outputs, but the number of outputs MUST be inferred from `NewTemplate.coinbase_tx_outputs_count`. This is the equivalent of taking a CompactSize-prefixed array and dropping its (outer) prefix. 
 
-Please also note that in case the block contains SegWit transactions (and optionally blocks that don't as well), `NewTemplate.coinbase_tx_outputs` MUST carry the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+Please also note that if the block contains any SegWit transactions, `NewTemplate.coinbase_tx_outputs` MUST carry the `OP_RETURN` output with the witness commitment. For blocks without SegWit transactions, the witness commitment output MAY still be included. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
 
 ## 7.3 `SetNewPrevHash` (Server -> Client)
 
