@@ -146,7 +146,7 @@ Once JDC receives `AllocateMiningJobToken.Success`, the following rules apply to
 - JDC MAY arbitrarily reorder the outputs to something different from the original ordering of `AllocateMiningJobToken.Success.coinbase_tx_outputs`.
 - Under Full-Template mode, the order of the outputs under `DeclareMiningJob.coinbase_tx_suffix` and `SetCustomMiningJob.coinbase_tx_outputs` MUST remain the same, even if they differ from the original `AllocateMiningJobToken.Success.coinbase_tx_outputs`.
 
-In summary, the pool payout goes to one single output (standardized as the first output of `AllocateMiningJobToken.Success.coinbase_tx_outputs`), and JDC is free to add more outputs and shuffle them under any arbitrary ordering scheme.
+In summary, JDC is free to add more outputs and shuffle them under any arbitrary ordering scheme (while respecting BIP141).
 
 Here's a few examples for clarification:
 
