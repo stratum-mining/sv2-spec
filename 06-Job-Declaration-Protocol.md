@@ -137,12 +137,12 @@ Notably, if the pool intends to change the space it requires for coinbase transa
 
 The following rules apply to `AllocateMiningJobToken.Success.coinbase_tx_outputs`:
 - JDS MUST reserve the **first** output with a locking script where the pool payout will go. While this output is initally set with a 0 amount of sats, this convention designates this locking script as the **pool payout output**.
-- JDS MAY add more 0 value outputs in addition to the pool payout output.
+- JDS MAY add more zero-valued outputs in addition to the pool payout output.
 
 Once JDC receives `AllocateMiningJobToken.Success`, the following rules apply to the subsequent `DeclareMiningJob.coinbase_tx_suffix` (if under Full-Template mode) and `SetCustomMiningJob.coinbase_tx_outputs` (under both Full-Template and Coinbase-only modes) message fields:
 - JDC MUST allocate sats into the pool payout output in order to qualify for pooled mining rewards. JDS and Pool SHOULD reject custom jobs that fail to do so.
-- JDC MAY add more 0 value outputs in addition to the ones established by JDS.
-- JDC MAY add more non-0 value outputs in addition to the ones established by JDS. In doing so, the template revenue is not fully allocated to the designated pool payout output, so Pool MAY pay proportionally smaller rewards for this job.
+- JDC MAY add more zero-valued outputs in addition to the ones established by JDS.
+- JDC MAY add more non-zero-valued outputs in addition to the ones established by JDS. In doing so, the template revenue is not fully allocated to the designated pool payout output, so Pool MAY pay proportionally smaller rewards for this job.
 - JDC MAY arbitrarily reorder the outputs to something different from the original ordering of `AllocateMiningJobToken.Success.coinbase_tx_outputs`.
 - Under Full-Template mode, the order of the outputs under `DeclareMiningJob.coinbase_tx_suffix` and `SetCustomMiningJob.coinbase_tx_outputs` MUST remain the same, even if they differ from the original `AllocateMiningJobToken.Success.coinbase_tx_outputs`.
 
@@ -152,7 +152,7 @@ Here's a few examples for clarification:
 
 #### Example A
 
-Example A illustrates JDS and JDC adding arbitrary 0 valued outputs in addition to the pool payout output.
+Example A illustrates JDS and JDC adding arbitrary zero-valued outputs in addition to the pool payout output.
 
 Outputs in `AllocateMiningJobToken.Success.coinbase_tx_outputs`:
 | Script      | Amount (sats)    | Description                                                       |
@@ -205,7 +205,7 @@ A request sent by JDC that proposes a selected set of transactions to JDS.
 | wtxid_list               | SEQ0_64K[U256] | List of wtxids of the transaction set contained in the template. JDS checks the list against its mempool and requests missing txs via `ProvideMissingTransactions`. Does not include the coinbase transaction (as there is no corresponding full data for it yet).                                                                                                                                                          |
 | excess_data                 | B0_64K                | Extra data which the Pool may require to validate the work (as defined in the Template Distribution Protocol)                                                                                                                                                                                                                                                                                                                |
 
-\*Differently from `NewExtendedMiningJob`, if the original coinbase is a SegWit transaction, `coinbase_tx_prefix` and `coinbase_tx_suffix` MUST NOT be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
+Differently from `NewExtendedMiningJob`, if the original coinbase is a SegWit transaction, `coinbase_tx_prefix` and `coinbase_tx_suffix` MUST NOT be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
 
 
 ### 6.4.5 `DeclareMiningJob.Success` (Server -> Client)
@@ -227,7 +227,7 @@ Since JDS could be third party (not necessarily integrated to Pool), `DeclareMin
 
 A response sent by JDS rejecting some Custom Job declaration.
 
-This should be a trigger for fallback into some other Pool+JDS or solo mining.
+This SHOULD be a trigger for fallback into some other Pool+JDS or solo mining.
 
 | Field Name    | Data Type | Description                                            |
 | ------------- | --------- | ------------------------------------------------------ |
@@ -241,12 +241,12 @@ This should be a trigger for fallback into some other Pool+JDS or solo mining.
 
 Only used in Full-Template mode.
 
-If `DeclareMiningJob` includes some transactions that JDS's mempool has not yet seen, then JDS needs to request that JDC provides those missing ones.
+If `DeclareMiningJob` includes some transactions that JDS's mempool has not yet seen, then JDS MUST request that JDC provides those missing ones.
 
 | Field Name               | Data Type     | Description                                                                                                                                                                                                                              |
 | ------------------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | request_id               | U32           | Identifier of the original DeclareMiningJob request                                                                                                                                                                                |
-| unknown_tx_position_list | SEQ0_64K[U16] | A list of unrecognized transactions that need to be supplied by the Job Declarator in full. They are specified by their position in the original DeclareMiningJob message, 0-indexed not including the coinbase transaction transaction. |
+| unknown_tx_position_list | SEQ0_64K[U16] | A list of unrecognized transactions that need to be supplied by the Job Declarator in full. They are specified by their position in the original DeclareMiningJob message, 0-indexed not including the coinbase transaction. |
 
 ### 6.4.8 `ProvideMissingTransactions.Success` (Client->Server)
 This is a message to push transactions that the server did not recognize and requested them to be supplied in `ProvideMissingTransactions`.
@@ -264,9 +264,9 @@ Sent by JDC as soon as a valid block is found, so that it can be propagated also
 
 `PushSolution` is only guaranteed to be valid for the most recent `DeclareMiningJob.Success` that JDS has sent on the same connection.
 
-When receiving `PushSolution`, JDS MUST attempt to reconstruct and propagate the block using the template data associated with its most recently sent `DeclareMiningJob.Success`.
+When receiving `PushSolution`, JDS MUST attempt to reconstruct and propagate the block using the job data associated with its most recently sent `DeclareMiningJob.Success`.
 
-JDS MAY try to reconstruct and propagate the block using template data associated with other recently sent `DeclareMiningJob.Success`, but if the solution does not correspond to the last declared job, JDS is not expected to propagate it.
+JDS MAY try to reconstruct and propagate the block using job data associated with other recently sent `DeclareMiningJob.Success`, but if the solution does not correspond to the last declared job, JDS is not expected to propagate it.
 
 Regardless of JDS-side propagation, the block is always transmitted to the network by JDC through the `SubmitSolution` message in the Template Distribution Protocol.
 
