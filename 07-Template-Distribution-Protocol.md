@@ -50,7 +50,7 @@ So a Template Provider MUST also reserve:
 
 But ultimately, the Pool (or JDC, in case of Job Declaration) is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size and sigops when selecting transactions for inclusion in a block.
 
-Thus, the `CoinbaseOutputConstraints` message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the Pool or JDC use (while always assuming the entirety of available coinbase space and sigops will be used).
+Thus, the `CoinbaseOutputConstraints` message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the Client use (while always assuming the entirety of available coinbase space and sigops will be used).
 
 Client MUST discover the maximum serialized size of the additional outputs and sigops which will be added by the Pool(s) it intends to use this work with (in case of Job Declaration, discovered via `AllocateMiningJobToken.Success`). It then MUST communicate it to the Template Provider via `CoinbaseOutputConstraints`.
 
