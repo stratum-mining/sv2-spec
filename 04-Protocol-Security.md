@@ -1,8 +1,8 @@
 # 4 Protocol Security
 
 Stratum V2 employs a type of encryption scheme called AEAD (authenticated encryption with associated data) to address the security aspects of all communication that occurs between clients and servers.
-This provides both confidentiality and integrity for the ciphertexts (i.e. encrypted data) being transferred, as well as providing integrity for associated data which is not encrypted.
-Prior to opening any Stratum V2 channels for mining, clients MUST first initiate the cryptographic session state that is used to encrypt all messages sent between themselves and servers.
+This provides both confidentiality and integrity for the messages being transferred as encrypted data, as well as providing integrity for associated data which is not encrypted.
+Prior to opening any Stratum V2 Connections, clients MUST first initiate the cryptographic session state that is used to encrypt all messages sent between themselves and servers.
 Thus, the cryptographic session state is independent of V2 messaging conventions.
 
 At the same time, this specification proposes optional use of a particular handshake protocol based on the **Noise Protocol framework**<sup>[8](#reference-8)</sup>.
@@ -13,7 +13,7 @@ However, it is **mandatory** for remote access to the upstream nodes, whether th
 
 ## 4.1 Motivation for Authenticated Encryption with Associated Data
 
-Data transferred by the mining protocol MUST not provide an adversary with information that they can use to estimate the performance of any particular miner. Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username. This is unacceptable privacy leakage that needs to be addressed.
+Data transferred by the mining protocol MUST NOT provide an adversary with information that they can use to estimate the performance of any particular miner. Any intelligence about submitted shares can be directly converted to estimations of a miner’s earnings and can be associated with a particular username. This is unacceptable privacy leakage that needs to be addressed.
 
 ## 4.2 Motivation for Using the Noise Protocol Framework
 
@@ -66,7 +66,7 @@ To perform X-only ECDH we use ellswift_ecdh_xonly(ellswift_theirs, d) as describ
 
 No assumption is made about the parity of Y-coordinate. For the purpose of signing
 (e.g. certificate) and ECDH (handshake) it is _not_ necessary to "grind"
-the private key. The choosen algoritms take care of this by implicitly negating
+the private key. The chosen algorithms take care of this by implicitly negating
 the key, as if its public key had an even Y-coordinate.
 
 For more information refer to BIP340<sup>[3](#reference-3)</sup> and BIP324<sup>[7](#reference-7)</sup>.
