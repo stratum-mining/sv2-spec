@@ -8,7 +8,7 @@ Like the Job Declaration protocol, all Template Distribution messages have the `
 After the initial common handshake, the client MUST immediately send a `CoinbaseOutputConstraints` message to indicate the space it requires for coinbase output addition, to which the server MUST immediately reply with the current best block template it has available to the client.
 Thereafter, the server SHOULD push new block templates to the client whenever the total fee in the current block template increases materially, and MUST send updated block templates whenever it learns of a new block.
 
-Template Providers MUST attempt to broadcast blocks which are mined using work they provided, and thus MUST track the work which they provided to clients.
+Template Providers MUST attempt to broadcast blocks which are mined using templates they provided, and thus MUST track the work which they provided to clients.
 
 When crafting a template, in order to avoid creating an invalid, oversized block, the Template Provider MUST reserve appropriate blockspace and sigops for:
 - the block header: 80 bytes, or 320 weight units
