@@ -391,7 +391,7 @@ The illustration below also assumes a mining server that acknowledges every 10 s
 
 The server provides an updated mining job to the client through a standard channel. This MUST be the first message after the channel has been successfully opened. This first message MUST have `min_ntime` unset (a future job).
 
-If the `min_ntime` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime.
+If the `min_ntime` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime. When set, `min_ntime` MUST NOT be lower than the `min_ntime` of the most recent `SetNewPrevHash` applicable to the channel, since the job is mined against that message's `prev_hash`.
 
 The server MUST NOT assign a `job_id` that is already in use by another currently valid job on the same channel.
 
@@ -409,7 +409,7 @@ The server MUST NOT assign a `job_id` that is already in use by another currentl
 
 For an **extended channel**:
 The whole search space of the job is owned by the specified channel.
-If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message.
+If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message. When set, `min_ntime` MUST NOT be lower than the `min_ntime` of the most recent `SetNewPrevHash` applicable to the channel, since the job is mined against that message's `prev_hash`.
 This MUST be the first message after an extended channel has been successfully opened. This first message MUST have `min_ntime` unset (future job).
 
 For a **group channel**:
@@ -471,6 +471,7 @@ Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
 The remaining jobs already queued by the client have to be made invalid.
 The server MUST NOT send this message referencing a `job_id` that was not previously sent as a future job (i.e. with `min_ntime` unset) on the corresponding channel.
+The server MUST ensure that `min_ntime` is a consensus-valid nTime for the block following `prev_hash` (in particular, greater than that chain's median-time-past).
 
 Note: There is no need for block height in this message.
 
