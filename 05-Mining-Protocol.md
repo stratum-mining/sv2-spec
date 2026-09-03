@@ -491,6 +491,8 @@ Can be sent only on extended or group channel. If the group channel contains sta
 
 This message signals that JDC expects to be rewarded for working on a Custom Job.
 
+Since a Custom Job carries its own `prev_hash`, its `min_ntime` is not bound by any `SetNewPrevHash` sent by the server. Instead, the server MUST validate that `min_ntime` is a consensus-valid nTime for the block following `prev_hash` (in particular, greater than that chain's median-time-past), responding with `SetCustomMiningJob.Error` otherwise.
+
 | Field Name                  | Data Type      | Description                                                                                                                                                           |
 | --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | channel_id                  | U32            | Extended or Group Channel identifier                                                                                                                                  |
