@@ -249,8 +249,8 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 | Field Name         | Data Type | Description                                                                                                                 |
 |--------------------|-----------|-----------------------------------------------------------------------------------------------------------------------------|
 | protocol           | U8        | 0 = Mining Protocol <br>1 = Job Declaration <br>2 = Template Distribution Protocol                                          |
-| min_version        | U16       | The minimum protocol version the client supports (currently must be 2)                                                      |
-| max_version        | U16       | The maximum protocol version the client supports (currently must be 2)                                                      |
+| min_version        | U16       | The minimum protocol version the client supports (currently MUST be 2)                                                      |
+| max_version        | U16       | The maximum protocol version the client supports (currently MUST be 2)                                                      |
 | flags              | U32       | Flags indicating optional protocol features the client supports. Each protocol from protocol field as its own values/flags. |
 | endpoint_host      | STRO_255  | ASCII text indicating the hostname or IP address                                                                            |
 | endpoint_port      | U16       | Connecting port value                                                                                                       |
@@ -260,6 +260,9 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 | firmware           | STR0_255  | E.g. "braiins-os-2018-09-22-1-hash"                                                                                         |
 | device_id          | STR0_255  | Unique identifier of the device as defined by the vendor                                                                    |
 
+Currently, `min_version` and `max_version` MUST be 2. That's because spec versioning has not started yet. Once versioning starts, new spec versions will be incremented from 2.
+
+Nevertheless, the protocol will always be called Stratum v2. New versions will be referred to as "Stratum v2 spec version N".
 
 ### 3.6.2 `SetupConnection.Success` (Server -> Client)
 
