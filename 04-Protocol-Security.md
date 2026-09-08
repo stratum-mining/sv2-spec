@@ -5,7 +5,7 @@ This provides both confidentiality and integrity for the ciphertexts (i.e. encry
 Prior to opening any Stratum V2 channels for mining, clients MUST first initiate the cryptographic session state that is used to encrypt all messages sent between themselves and servers.
 Thus, the cryptographic session state is independent of V2 messaging conventions.
 
-At the same time, this specification proposes optional use of a particular handshake protocol based on the **[Noise Protocol framework](https://noiseprotocol.org/noise.html)**.
+At the same time, this specification proposes optional use of a particular handshake protocol based on the **Noise Protocol framework**<sup>[8](#reference-8)</sup>.
 The client and server establish secure communication using Diffie-Hellman (DH) key agreement, as described in greater detail in the Authenticated Key Agreement Handshake section below.
 
 Using the handshake protocol to establish secured communication is **optional** on the local network (e.g. local mining devices talking to a local mining proxy).
@@ -424,3 +424,4 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 5. <a id="reference-5" href="https://www.ietf.org/rfc/rfc2104.txt">https://www.ietf.org/rfc/rfc2104.txt</a>
 6. <a id="reference-6" href="https://tools.ietf.org/html/rfc5869">https://tools.ietf.org/html/rfc5869</a>
 7. <a id="reference-7" href="https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki">https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki</a>
+8. <a id="reference-8" href="https://noiseprotocol.org/noise.html">https://noiseprotocol.org/noise.html</a> (revision 34)
