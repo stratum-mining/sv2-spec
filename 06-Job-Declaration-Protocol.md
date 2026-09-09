@@ -253,7 +253,7 @@ This is a message to push transactions that the server did not recognize and req
 
 | Field Name       | Data Type        | Description                                                                                                                          |
 | ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| request_id       | U32              | Identifier of the original DeclareMiningJob request                                                                           ""|
+| request_id       | U32              | Identifier of the original DeclareMiningJob request                                                                             |
 | transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
 
 ### 6.4.9 `PushSolution` (Client -> Server)
