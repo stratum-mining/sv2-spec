@@ -237,7 +237,7 @@ Responder provides its ephemeral, encrypted static public keys and encrypted `SI
 
 | Field Name      | Data Type | Description                                                    |
 | --------------- | --------- | -------------------------------------------------------------- |
-| version         | U16       | Version of the certificate format                              |
+| version         | U16       | Version of the certificate format (currently MUST be 0)        |
 | valid_from      | U32       | Validity start time (unix timestamp)                           |
 | not_valid_after | U32       | Signature is invalid after this point in time (unix timestamp) |
 | signature       | SIGNATURE | Certificate signature                                          |
@@ -291,11 +291,13 @@ Message length: 234 bytes
 
 During the handshake, initiator receives `SIGNATURE_NOISE_MESSAGE` and **server's static public key**. These parts make up a `CERTIFICATE` signed by an authority whose public key is generally known (for example from pool's website). Initiator confirms the identity of the server by verifying the signature in the certificate.
 
+Currently, `version` MUST be 0. Initiator MUST reject a certificate whose `version` it does not support.
+
 ##### CERTIFICATE
 
 | Field Name           | Data Type | Description                                                    | Signed field |
 | -------------------- | --------- | -------------------------------------------------------------- | ------------ |
-| version              | U16       | Version of the certificate format                              | YES          |
+| version              | U16       | Version of the certificate format (currently MUST be 0)        | YES          |
 | valid_from           | U32       | Validity start time (unix timestamp)                           | YES          |
 | not_valid_after      | U32       | Signature is invalid after this point in time (unix timestamp) | YES          |
 | server_public_key    | PUBKEY    | Server's static public key that was used during NX handshake   | YES          |
@@ -397,6 +399,8 @@ Authority Public key is [base58-check](https://en.bitcoin.it/wiki/Base58Check_en
 | [1, 0] | 2 bytes prefix |
 | ------ | -------------- |
 | PUBKEY | 32 bytes authority public key |
+
+This prefix versions the key encoding only and is unrelated to the certificate `version` field.
 
 URL example:
 
