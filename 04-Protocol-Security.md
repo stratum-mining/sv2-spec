@@ -400,6 +400,8 @@ Authority Public key is [base58-check](https://en.bitcoin.it/wiki/Base58Check_en
 | ------ | -------------- |
 | PUBKEY | 32 bytes authority public key |
 
+This prefix versions the key encoding only and is unrelated to the certificate `version` field.
+
 URL example:
 
 ```
