@@ -5,7 +5,7 @@ This provides both confidentiality and integrity for the ciphertexts (i.e. encry
 Prior to opening any Stratum V2 channels for mining, clients MUST first initiate the cryptographic session state that is used to encrypt all messages sent between themselves and servers.
 Thus, the cryptographic session state is independent of V2 messaging conventions.
 
-At the same time, this specification proposes optional use of a particular handshake protocol based on the **[Noise Protocol framework](https://noiseprotocol.org/noise.html)**.
+At the same time, this specification proposes optional use of a particular handshake protocol based on the **Noise Protocol framework**<sup>[8](#reference-8)</sup>.
 The client and server establish secure communication using Diffie-Hellman (DH) key agreement, as described in greater detail in the Authenticated Key Agreement Handshake section below.
 
 Using the handshake protocol to establish secured communication is **optional** on the local network (e.g. local mining devices talking to a local mining proxy).
@@ -182,15 +182,17 @@ The following functions will also be referenced:
 
 The handshake chosen for the authenticated key exchange is an **`Noise_NX`** augmented by server authentication with simple 2 level public key infrastructure.
 
-The complete authenticated key agreement (`Noise NX`) is performed in three distinct steps (acts).
+The complete authenticated key agreement (`Noise NX`) is performed in three distinct steps. The first two exchange one handshake message each. The third step does not send a message.
 
 1. NX-handshake part 1: `-> e`
-2. NX-handshake part 2: `<- e, ee, s, es, SIGNATURE_NOISE_MESSAGE`
-3. Server authentication: Initiator validates authenticity of server using from `SIGNATURE_NOISE_MESSAGE`
+2. NX-handshake part 2: `<- e, ee, s, es`
+3. Server authentication: Initiator validates authenticity of server using `SIGNATURE_NOISE_MESSAGE`
+
+The handshake pattern notation is defined in section 7.1 of the Noise Protocol Framework<sup>[8](#reference-8)</sup>. A payload is implicit at the end of each message pattern (section 3). It is empty for the first handshake message. `SIGNATURE_NOISE_MESSAGE` is sent as the payload of the second handshake message.
 
 Should the decryption (i.e. authentication code validation) fail at any point, the session must be terminated.
 
-### 4.5.1 Handshake Act 1: NX-handshake part 1 `-> e`
+### 4.5.1 NX-handshake part 1 `-> e`
 
 Prior to starting first round of NX-handshake, both initiator and responder initializes handshake variables `h` (hash output), `ck` (chaining key) and `k` (encryption key):
 
@@ -227,11 +229,11 @@ Message length: 64 bytes
 1. receives ephemeral public key message (64 bytes plaintext EllSwift encoded public key)
 2. parses received public key as `re.public_key`
 3. calls `MixHash(re.public_key)`
-4. calls `DecryptAndHash()` on remaining bytes (i.e. on empty data with empty _k_, thus effectively only calls `MixHash()` on empty data)
+4. calls `DecryptAndHash()` on the remaining bytes, which is the empty payload (note that _k_ is empty at this point, so this effectively reduces down to `MixHash()` on empty data)
 
-### 4.5.2 Handshake Act 2: NX-handshake part 2 `<- e, ee, s, es, SIGNATURE_NOISE_MESSAGE`
+### 4.5.2 NX-handshake part 2 `<- e, ee, s, es`
 
-Responder provides its ephemeral, encrypted static public keys and encrypted `SIGNATURE_NOISE_MESSAGE` to the initiator, performs Elliptic-Curve Diffie-Hellman operations.
+Responder provides its ephemeral, encrypted static public keys and, as the payload, encrypted `SIGNATURE_NOISE_MESSAGE` to the initiator, performs Elliptic-Curve Diffie-Hellman operations.
 
 ##### SIGNATURE_NOISE_MESSAGE
 
@@ -428,3 +430,4 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 5. <a id="reference-5" href="https://www.ietf.org/rfc/rfc2104.txt">https://www.ietf.org/rfc/rfc2104.txt</a>
 6. <a id="reference-6" href="https://tools.ietf.org/html/rfc5869">https://tools.ietf.org/html/rfc5869</a>
 7. <a id="reference-7" href="https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki">https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki</a>
+8. <a id="reference-8" href="https://noiseprotocol.org/noise.html">https://noiseprotocol.org/noise.html</a> (revision 34)
