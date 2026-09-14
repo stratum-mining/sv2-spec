@@ -172,7 +172,7 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 
 ## 7.8 `SubmitSolution` (Client -> Server)
 
-Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or below `SetNewPrevHash::target`, the client MUST immediately send this message, and the server MUST then immediately construct the corresponding full block and attempt to propagate it to the Bitcoin network.
+Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or below `SetNewPrevHash.target`, the client MUST immediately send this message, and the server MUST then immediately construct the corresponding full block and attempt to propagate it to the Bitcoin network.
 
 | Field Name       | Data Type | Description                                                                                                                                                                                                                                    |
 | ---------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

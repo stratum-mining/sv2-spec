@@ -192,7 +192,7 @@ All channels under the same Group Channel (Extended and Standard) MUST have the 
 
 ### 5.3.1 `SetupConnection` Flags for Mining Protocol
 
-Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`, where bit 0 is the least significant bit of the u32 type:
+Flags usable in `SetupConnection.flags` and `SetupConnection.Error.flags`, where bit 0 is the least significant bit of the u32 type:
 
 | Flag Name                | Bit | Description                                                                         |
 |--------------------------| --- | ----------------------------------------------------------------------------------- |
@@ -206,7 +206,7 @@ Flags usable in `SetupConnection.Success.flags`:
 | Flag Name | Bit | Description |
 |----------------------------|-----|-----------------------------------------------------------------------------------|
 | REQUIRES_FIXED_VERSION | 0 | Upstream node will not accept any changes to the version field. Note that if |
-| | | REQUIRES_VERSION_ROLLING was set in the SetupConnection::flags field, this bit |
+| | | REQUIRES_VERSION_ROLLING was set in the SetupConnection.flags field, this bit |
 | | | MUST NOT be set. Further, if this bit is set, extended jobs MUST NOT indicate |
 | | | support for version rolling. |
 | REQUIRES_EXTENDED_CHANNELS | 1 | Upstream node will not accept opening of a standard channel |

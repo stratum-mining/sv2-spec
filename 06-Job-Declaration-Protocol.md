@@ -106,7 +106,7 @@ The table below shows a comparison between the two Sv2 Job Declaration Modes:
 
 ### 6.4.1 `SetupConnection` Flags for Job Declaration Protocol
 
-Flags usable in `SetupConnection.flags` and `SetupConnection.Error::flags`:
+Flags usable in `SetupConnection.flags` and `SetupConnection.Error.flags`:
 
 | Field Name                | Bit | Description                                                                                                                                                                                                                                                                                                                                                          |
 | ------------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
