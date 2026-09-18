@@ -20,7 +20,12 @@ There are technically three distinct (sub)protocols needed in order to fully use
    A protocol that shares the same message framing (see §3.2) as the other sub-protocols, used for getting information about the next block from a Template Provider.
    Designed to replace `getblocktemplate` with something much more efficient and easy to implement for those implementing other parts of Stratum v2.
 
-Meanwhile, there are five possible roles (types of software/hardware) for communicating with these protocols.
+All three protocols follow a client-server model. Accordingly, the following protocol roles are defined:
+- Mining Protocol Server and Client
+- Job Declaration Server and Client
+- Template Distribution Server and Client
+
+Additionally, there are five possible high-level roles (types of software/hardware) for communicating with these protocols.
 
 1. **Mining Device**  
    The actual device computing the hashes. This can be further divided into header-only mining devices and extranonce-rolling mining devices, though most devices will likely support both modes.
@@ -29,7 +34,7 @@ Meanwhile, there are five possible roles (types of software/hardware) for commun
    Also referred to as Pool Server, or just Pool. Produces jobs (for those not declaring jobs via the Job Declaration Protocol), validates shares, and ensures blocks found by clients are propagated through the network (though clients which have full block templates MUST also propagate blocks into the Bitcoin P2P network).
 
 3. **Mining Proxy (optional)**  
-   Sits in between Mining Device(s) and Pool Server, aggregating connections for efficiency.
+   Sits in between Mining Device(s) and a Mining Protocol Server, aggregating connections for efficiency.
    May optionally provide additional monitoring, receive work from a Job Declarator and use custom work with a pool, or provide other services for a farm.
 
 4. **Job Declarator (optional)**  
@@ -40,7 +45,7 @@ Meanwhile, there are five possible roles (types of software/hardware) for commun
    Generates custom block templates to be passed to the Job Declarator for eventual mining.
    This is usually just a Bitcoin Core full node (or possibly some other node implementation).
 
-The Mining Protocol is used for communication between a Mining Device and Pool Server, Mining Device and Mining Proxy, Mining Proxy and Mining Proxy, or Mining Proxy and Pool Server.
+The Mining Protocol is used for communication between a Mining Protocol Client and a Mining Protocol Server.
 
 The Job Declaration Protocol is used for communication between a Job Declarator Client and a Job Declarator Server (which is typically Pool side).
 
