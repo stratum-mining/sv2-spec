@@ -115,9 +115,9 @@ Please also note that in case the block contains SegWit transactions (and option
 
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
 
-Prior to that, the server MUST send at least one, but potentially multiple `NewTemplate` messages with `future_template` flag set. The client SHOULD keep track of all of them, and convert them into `NewMiningJob` and `NewExtendedMiningJob` messages (with empty `min_ntime`) in case it's also acting as a server under the Mining Protocol.
+Prior to that, the server MUST send at least one, but potentially multiple `NewTemplate` messages with `future_template` flag set. The client SHOULD keep track of all of them, and convert them into `NewMiningJob` and `NewExtendedMiningJob` messages (with empty `ntime_start`) in case it's also acting as a server under the Mining Protocol.
 
-If a `NewMiningJob` or `NewExtendedMiningJob` message has previously been sent with an empty `min_ntime`, and it is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be matched to the corresponding `NewTemplate` message that generated the `NewMiningJob` or `NewExtendedMiningJob`, and a Mining Protocol `SetNewPrevHash` message SHOULD be sent indicating the client MUST begin mining on that job as soon as possible.
+If a `NewMiningJob` or `NewExtendedMiningJob` message has previously been sent with an empty `ntime_start`, and it is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be matched to the corresponding `NewTemplate` message that generated the `NewMiningJob` or `NewExtendedMiningJob`, and a Mining Protocol `SetNewPrevHash` message SHOULD be sent indicating the client MUST begin mining on that job as soon as possible.
 
 After that, the future templates that were being kept in memory can be discarded, leaving room for future templates relative to the next `SetNewPrevHash`.
 
