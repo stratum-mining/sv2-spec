@@ -125,7 +125,7 @@ After that, the future templates that were being kept in memory can be discarded
 | ---------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | template_id      | U64       | template_id referenced in a previous NewTemplate message                                                                                                                                               |
 | prev_hash        | U256      | Previous block’s hash, as it must appear in the next block's header                                                                                                                                    |
-| ntime_start      | U32       | The nTime field in the block header at which the client should start (usually current time). This is NOT the minimum valid nTime value.                                                                |
+| ntime_start      | U32       | The nTime field in the block header at which hashing starts, usually the current time when this message was produced. This is not the consensus minimum.                                                                |
 | nBits            | U32       | Block header field                                                                                                                                                                                     |
 | target           | U256      | The maximum double-SHA256 hash value which would represent a valid block. Note that this may be lower than the target implied by nBits in several cases, including weak-block based block propagation. |
 
