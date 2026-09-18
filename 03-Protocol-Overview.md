@@ -25,11 +25,11 @@ Meanwhile, there are five possible roles (types of software/hardware) for commun
 1. **Mining Device**  
    The actual device computing the hashes. This can be further divided into header-only mining devices and extranonce-rolling mining devices, though most devices will likely support both modes.
 
-2. **Pool Service**  
-   Produces jobs (for those not declaring jobs via the Job Declaration Protocol), validates shares, and ensures blocks found by clients are propagated through the network (though clients which have full block templates MUST also propagate blocks into the Bitcoin P2P network).
+2. **Mining Pool Server**  
+   Also referred to as Pool Server, or just Pool. Produces jobs (for those not declaring jobs via the Job Declaration Protocol), validates shares, and ensures blocks found by clients are propagated through the network (though clients which have full block templates MUST also propagate blocks into the Bitcoin P2P network).
 
 3. **Mining Proxy (optional)**  
-   Sits in between Mining Device(s) and Pool Service, aggregating connections for efficiency.
+   Sits in between Mining Device(s) and Pool Server, aggregating connections for efficiency.
    May optionally provide additional monitoring, receive work from a Job Declarator and use custom work with a pool, or provide other services for a farm.
 
 4. **Job Declarator (optional)**  
@@ -40,11 +40,11 @@ Meanwhile, there are five possible roles (types of software/hardware) for commun
    Generates custom block templates to be passed to the Job Declarator for eventual mining.
    This is usually just a Bitcoin Core full node (or possibly some other node implementation).
 
-The Mining Protocol is used for communication between a Mining Device and Pool Service, Mining Device and Mining Proxy, Mining Proxy and Mining Proxy, or Mining Proxy and Pool Service.
+The Mining Protocol is used for communication between a Mining Device and Pool Server, Mining Device and Mining Proxy, Mining Proxy and Mining Proxy, or Mining Proxy and Pool Server.
 
 The Job Declaration Protocol is used for communication between a Job Declarator Client and a Job Declarator Server (which is typically Pool side).
 
-The Template Distribution Protocol is used for communication either between a Job Declarator Client and a Template Provider or between a Pool Service and Template Provider.
+The Template Distribution Protocol is used for communication either between a Job Declarator Client and a Template Provider or between a Pool Server and Template Provider.
 
 
 One type of software/hardware can fulfill more than one role (e.g. a Mining Proxy is often both a Mining Proxy and a Job Declarator and may occasionally further contain a Template Provider in the form of a full node on the same device).
