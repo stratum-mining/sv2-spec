@@ -46,7 +46,7 @@ This repository contains the Stratum V2 protocol specification.
     - [4.5.3. Server authentication](./04-Protocol-Security.md#453-server-authentication)
       - [4.5.3.1. Signature structure](./04-Protocol-Security.md#4531-signature-structure)
   - [4.6. Encrypted stratum message framing](./04-Protocol-Security.md#46-encrypted-stratum-message-framing)
-  - [4.7. URL Scheme and Pool Authority Key](./04-Protocol-Security.md#47-url-scheme-and-pool-authority-key)
+  - [4.7. URL Scheme and Authority Key](./04-Protocol-Security.md#47-url-scheme-and-authority-key)
     - [4.7.1. Test vector:](./04-Protocol-Security.md#471-test-vector)
   - [4.8. References](./04-Protocol-Security.md#48-references)
  - [5. Mining Protocol](./05-Mining-Protocol.md#5-mining-protocol)

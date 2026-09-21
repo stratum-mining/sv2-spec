@@ -389,9 +389,9 @@ Serialized stratum-v2 body (payload) is split into 65519-byte chunks and encrypt
 where `ct_pld_N` is the N-th ciphertext block of payload and `pt_pld_N` is the N-th plaintext block of payload.
 ```
 
-## 4.7 URL Scheme and Pool Authority Key
+## 4.7 URL Scheme and Authority Key
 
-Downstream nodes that want to use the above outlined security scheme need to have configured the **Pool Authority Public Key** of the pool that they intend to connect to. It is provided by the target pool and communicated to its users via a trusted channel.
+Downstream nodes that want to use the above outlined security scheme need to have configured the **Authority Public Key** of the server that they intend to connect to. It is provided by the operator of that server and communicated to its users via a trusted channel.
 At least, it can be published on the pool's public website.
 
 The key can be embedded into the mining URL as part of the path.
