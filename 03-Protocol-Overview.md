@@ -4,7 +4,7 @@ There are technically three distinct (sub)protocols needed in order to fully use
 
 1. **Mining Protocol**  
    The main protocol used for mining and the direct successor of Stratum v1.
-   A mining device uses it to communicate with its upstream node, pool, or a proxy.
+   A mining device uses it to communicate with its upstream role: a pool or a proxy.
    A proxy uses it to communicate with a pool (or another proxy).
    This protocol needs to be implemented in all scenarios.
    For cases in which a miner or pool does not support transaction selection, this is the only protocol used.
@@ -13,17 +13,17 @@ There are technically three distinct (sub)protocols needed in order to fully use
    Used by a miner (a whole mining farm) to declare a block template with a pool.
    Results of this declaration can be re-used for all mining connections to the pool to reduce computational intensity.
    In other words, a single declaration can be used by an entire mining farm or even multiple farms with hundreds of thousands of devices, making it far more efficient.
-   This is separate to allow pools to terminate such connections on separate infrastructure from mining protocol connections (i.e. share submissions).
+   This is a separate protocol so that pools can handle job-declaration connections on separate infrastructure from Mining Protocol connections (i.e. share submissions).
    Further, such connections have very different concerns from share submissions - work declaration likely requires, at a minimum, some spot-checking of work validity, as well as potentially substantial rate-limiting (without the inherent rate-limiting of share difficulty).
 
 3. **Template Distribution Protocol**  
-   A similarly-framed protocol for getting information about the next block out of Bitcoin Core.
+   A protocol that shares the same message framing (see §3.2) as the other sub-protocols, used for getting information about the next block from a Template Provider.
    Designed to replace `getblocktemplate` with something much more efficient and easy to implement for those implementing other parts of Stratum v2.
 
 Meanwhile, there are five possible roles (types of software/hardware) for communicating with these protocols.
 
 1. **Mining Device**  
-   The actual device computing the hashes. This can be further divided into header-only mining devices and standard mining devices, though most devices will likely support both modes.
+   The actual device computing the hashes. This can be further divided into header-only mining devices and extranonce-rolling mining devices, though most devices will likely support both modes.
 
 2. **Pool Service**  
    Produces jobs (for those not declaring jobs via the Job Declaration Protocol), validates shares, and ensures blocks found by clients are propagated through the network (though clients which have full block templates MUST also propagate blocks into the Bitcoin P2P network).
@@ -74,14 +74,14 @@ Multibyte data types are always serialized as little-endian.
 | B0_255        | 1 + LENGTH                                                                                   | Byte array with 8-bit length prefix L. Unsigned integer, followed by a sequence of L bytes. Allowed range of length is 0 to 255.                                                                                                                                                                                                                                 |
 | B0_64K        | 2 + LENGTH                                                                                   | Byte array with 16-bit length prefix L. Unsigned little-endian integer followed by a sequence of L bytes. Allowed range of length is 0 to 65535.                                                                                                                                                                                                                 |
 | B0_16M        | 3 + LENGTH                                                                                   | Byte array with 24-bit length prefix L. Unsigned integer encoded as U24 above, followed by a sequence of L bytes. Allowed range of length is 0 to 2^24-1.                                                                                                                                                                                                        |
-| BYTES         | LENGTH                                                                                       | Arbitrary sequence of LENGTH bytes. See description for how to calculate LENGTH.                                                                                                                                                                                                                                                                                 |
+| BYTES         | LENGTH                                                                                       | Arbitrary sequence of LENGTH bytes, without any length prefix. LENGTH is derived from the definition of the field using this type.                                                                                                                                                                                                                                                                                 |
 | MAC           | 16                                                                                           | Message Authentication Code produced with AE algorithm                                                                                                                                                                                                                                                                                                           |
 | PUBKEY        | 32                                                                                           | X coordinate of Secp256k1 public key (see BIP 340)                                                                                                                                                                                                                                                                                                               |
 | ELLSWIFT_PUBKEY | 64 | ElligatorSwift encoded X coordinate of Secp256k1 public key (see BIP 324) |
 | SIGNATURE     | 64                                                                                           | Schnorr signature on Secp256k1 (see BIP 340)                                                                                                                                                                                                                                                                                                                     |
 | OPTION[T]     | 1 + (occupied ? size(T) : 0)                                                                 | Alias for SEQ0_1[T]. Identical representation to SEQ0_255 but enforces the maximum size of 1                                                                                                                                                                                                                                                                     |
-| SEQ0_255[T]   | Fixed size T: `1 + LENGTH * size(T) Variable length T: 1 + seq.map(\|x\| x.length).sum()`    | 1-byte length L, unsigned integer 8-bits, followed by a sequence of L elements of type T. Allowed range of length is 0 to 255.                                                                                                                                                                                                                                   |
-| SEQ0_64K[T]   | Fixed size T: `2 + LENGTH * size(T)Variable length T: 2 + seq.map(\|x\| x.length).sum()`     | 2-byte length L, unsigned little-endian integer 16-bits, followed by a sequence of L elements of type T. Allowed range of length is 0 to 65535.                                                                                                                                                                                                                  |
+| SEQ0_255[T]   | Fixed-size T: `1 + L * size(T)`. Variable-size T: 1 + the sum of each element's own serialized byte length (elements may differ in length).    | 1-byte length L, unsigned integer 8-bits, followed by a sequence of L elements of type T. Allowed range of length is 0 to 255.                                                                                                                                                                                                                                   |
+| SEQ0_64K[T]   | Fixed-size T: `2 + L * size(T)`. Variable-size T: 2 + the sum of each element's own serialized byte length (elements may differ in length).     | 2-byte length L, unsigned little-endian integer 16-bits, followed by a sequence of L elements of type T. Allowed range of length is 0 to 65535.                                                                                                                                                                                                                  |
  
 
 ## 3.2 Framing
@@ -97,11 +97,19 @@ The message framing is outlined below:
 | msg_length     | U24         | Length of the protocol message, not including this header                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | payload        | BYTES       | Message-specific payload of length msg_length. If the MSB in extension_type (the channel_msg bit) is set the first four bytes are defined as a U32 "channel_id", though this definition is repeated in the message definitions below and these 4 bytes are included in msg_length.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
+The layout of a frame on the wire is illustrated below:
+
+![](./img/sv2_frame.png)
+
+- Bytes are transmitted left to right: the first byte of `extension_type` is the first byte on the wire.
+- Multibyte header fields (`extension_type`, `msg_length`) are serialized as little-endian (see §3.1): their least significant byte is transmitted first.
+- Consequently, the `channel_msg` bit (bit 15 of `extension_type`, see §3.2.1) is carried in the most significant bit of the second byte of the frame.
+
 ### 3.2.1 Routing Frames over Channels
 
 Some bits of the `extension_type` field can also be repurposed for signaling on how the frame should be handled across channels.
 
-The least significant bit of `extension_type` (i.e., bit 15, 0-indexed, also known as `channel_msg`) indicates a message which is specific to a channel, whereas if the most significant bit is unset, the message is to be interpreted by the immediate receiving device. 
+The most significant bit of `extension_type` (i.e., bit 15, 0-indexed, also known as `channel_msg`), when set, indicates a message which is specific to a channel, whereas if it is unset, the message is to be interpreted by the immediate receiving device. 
 
 Note that the `channel_msg` bit is ignored in the extension lookup, i.e., an `extension_type` of `0x8ABC` is for the same "extension" as `0x0ABC`. 
 
@@ -120,9 +128,9 @@ After receiving a request to reconnect, the downstream node MUST run the handsha
 
 Protocol extensions may be defined by using a non-0 `extension_type` field in the message header (not including the `channel_msg` bit).
 The value used MUST either be in the range `0x4000` - `0x7fff` (inclusive, i.e. have the second-to-most-significant-bit set) denoting an "experimental" extension and not be present in production equipment, or have been allocated for the purpose at [http://stratumprotocol.org](http://stratumprotocol.org).
-While extensions SHOULD have BIPs written describing their full functionality, `extension_type` allocations MAY also be requested for vendor-specific proprietary extensions to be used in production hardware.
+While extensions SHOULD have a specification written describing their full functionality, `extension_type` allocations MAY also be requested for vendor-specific proprietary extensions to be used in production hardware.
 This is done by sending an email with a brief description of the intended use case to the Bitcoin Protocol Development List and extensions@stratumprotocol.org.
-(Note that these contacts may change in the future, please check the latest version of this BIP prior to sending such a request.)
+(Note that these contacts may change in the future, please check the latest version of this document prior to sending such a request.)
 
 ### 3.4.1 Extension Type Field Usage
 
@@ -148,7 +156,7 @@ The `extension_type` field in the message frame header indicates which extension
 
 5. If later, another extension `0x0004` wanted to add TLV fields to `CustomNewMessageType` from example 4, those messages would still have `extension_type = 0x0003` in their frame header, as that's the extension that defined the message's base structure.
 
-Extensions are left largely undefined in this BIP, however, there are some basic requirements that all extensions must comply with/be aware of.
+Extensions are left largely undefined in this document, however, there are some basic requirements that all extensions must comply with/be aware of.
 For unknown `extension_type`'s, the `channel_msg` bit in the `extension_type` field determines which device the message is intended to be processed on: if set, the channel endpoint (i.e. either an end mining device, or a pool server) is the final recipient of the message, whereas if unset, the final recipient is the endpoint of the connection on which the message is sent.
 Note that in cases where channels are aggregated across multiple devices, the proxy which is aggregating multiple devices into one channel forms the channel’s "endpoint" and processes channel messages.
 Thus, any proxy devices which receive a message with the `channel_msg` bit set and an unknown `extension_type` value MUST forward that message to the downstream/upstream device which corresponds with the `channel_id` specified in the first four bytes of the message payload.
@@ -216,7 +224,7 @@ A device processing `SubmitSharesExtended` **MUST scan for TLV fields** matching
 ## 3.5 Error Codes
 
 The protocol uses string error codes.
-Implementations MAY use error codes for automated actions. The list of error codes can differ between implementations, and therefore implementations MUST do a logging no-op for unknown error codes.
+Implementations MAY use error codes for automated actions. The list of error codes can differ between implementations, and therefore implementations MUST log unknown error codes and otherwise ignore them.
 
 Fallback or recovery behavior MUST be based on the overall protocol state, even when a peer sends an unknown, different, or unexpected error code.
 
@@ -228,7 +236,7 @@ These character restrictions apply equally to other human-readable string codes,
 
 ## 3.6 Common Protocol Messages
 
-The following protocol messages are common across all of the protocols described in this BIP.
+The following protocol messages are common across all of the protocols described in this document.
 
 ### 3.6.1 `SetupConnection` (Client -> Server)
 

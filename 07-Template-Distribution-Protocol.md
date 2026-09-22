@@ -4,11 +4,11 @@ The Template Distribution protocol is used to receive updates of the block templ
 It effectively replaces [BIP 22](https://github.com/bitcoin/bips/blob/master/bip-0022.mediawiki) and [BIP 23](https://github.com/bitcoin/bips/blob/master/bip-0023.mediawiki) (`getblocktemplate`) and provides a much more efficient API which allows Bitcoin Core (or some other full node software) to push template updates at more appropriate times as well as provide a template which may be mined on quickly for the block-after-next.
 While not recommended, the template update protocol can be a remote server, and is thus authenticated and signed in the same way as all other protocols (using the same SetupConnection handshake).
 
-Like the Job Declaration and Job Distribution protocols, all Template Distribution messages have the `channel_msg` bit unset, and there is no concept of channels.
+Like the Job Declaration protocol, all Template Distribution messages have the `channel_msg` bit unset, and there is no concept of channels.
 After the initial common handshake, the client MUST immediately send a `CoinbaseOutputConstraints` message to indicate the space it requires for coinbase output addition, to which the server MUST immediately reply with the current best block template it has available to the client.
 Thereafter, the server SHOULD push new block templates to the client whenever the total fee in the current block template increases materially, and MUST send updated block templates whenever it learns of a new block.
 
-Template Providers MUST attempt to broadcast blocks which are mined using work they provided, and thus MUST track the work which they provided to clients.
+Template Providers MUST attempt to broadcast blocks which are mined using templates they provided, and thus MUST track the work which they provided to clients.
 
 When crafting a template, in order to avoid creating an invalid, oversized block, the Template Provider MUST reserve appropriate blockspace and sigops for:
 - the block header: 80 bytes, or 320 weight units
@@ -48,15 +48,15 @@ So a Template Provider MUST also reserve:
 - the worst-case 12 weight units for `output count` field
 - 188 weight units for witness commitment output (if SegWit)
 
-But ultimately, the Pool (or JDC, in case of Job Declaration) is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size, and sigops when selecting transactions for inclusion in a block.
+But ultimately, the Pool (or JDC, in case of Job Declaration) is responsible for adding coinbase transaction outputs for payouts and other uses, and thus the Template Provider will need to consider this additional block size and sigops when selecting transactions for inclusion in a block.
 
-Thus, the `CoinbaseOutputConstraints` message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the Pool or JDC use (while always assuming the entirety of available coinbase space and sigops will be used).
+Thus, the `CoinbaseOutputConstraints` message is used to indicate that some additional space and sigops in the block/coinbase transaction be reserved for the Client use (while always assuming the entirety of available coinbase space and sigops will be used).
 
-JDC MUST discover the maximum serialized size of the additional outputs and sigops which will be added by the Pool(s) it intends to use this work with (via `AllocateMiningJobToken.Success`). It then MUST communicate it to the Template Provider via `CoinbaseOutputConstraints`.
+Client MUST discover the maximum serialized size of the additional outputs and sigops which will be added by the Pool(s) it intends to use this work with (in case of Job Declaration, discovered via `AllocateMiningJobToken.Success`). It then MUST communicate it to the Template Provider via `CoinbaseOutputConstraints`.
 
 The Template Provider MUST NOT provide `NewTemplate` messages which would represent consensus-invalid blocks once this additional size and sigops — along with a maximally-sized (100 byte) coinbase script field — is added.
 
-Current sigops limit per block in bitcoin is `80_000`. We are not aware of any use cases where a coinbase transaction has more than `65_535` so `coinbase_output_max_sigops` is an `U16`. Note that taproot outputs consume `0` sigops.
+Current sigops limit per block in bitcoin is `80_000` (as defined in BIP141). We are not aware of any use cases where a coinbase transaction has more than `65_535` sigops, so `coinbase_output_max_additional_sigops` is an `U16`. Note that taproot outputs consume `0` sigops.
 
 | Field Name                            | Data Type | Description                                                                                     |
 | ------------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
@@ -91,12 +91,12 @@ Please note that Bitcoin Core establishes a floor value of 2000 weight units.
 
 ## 7.2 `NewTemplate` (Server -> Client)
 
-The primary template-providing function. Note that the `coinbase_tx_outputs` bytes will appear as is at the end of the coinbase transaction.
+The primary template-providing message. Note that the `coinbase_tx_outputs` bytes will appear as is at the end of the coinbase transaction.
 
 | Field Name                  | Data Type      | Description                                                                                                                                                                                                                                                                        |
 | --------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | template_id                 | U64            | Server’s identification of the template. Strictly increasing, the current UNIX time may be used in place of an ID                                                                                                                                                                  |
-| future_template             | BOOL           | True if the template is intended for future SetNewPrevHash message sent on the channel. If False, the job relates to the last sent SetNewPrevHash message on the channel and the miner should start to work on the job immediately.                                                |
+| future_template             | BOOL           | True if the template is intended for a future `SetNewPrevHash` message. If False, the template relates to the most recently received `SetNewPrevHash` message, and the client SHOULD begin working on it immediately.                                                                                                                       |
 | version                     | U32            | Valid header version field that reflects the current network consensus. The general purpose bits (as specified in BIP323) can be freely manipulated by the downstream node. The downstream node MUST NOT rely on the upstream node to set the BIP323 bits to any particular value. |
 | coinbase_tx_version         | U32            | The coinbase transaction nVersion field                                                                                                                                                                                                                                            |
 | coinbase_prefix             | B0_255         | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction                                                                                                                                            |
