@@ -395,6 +395,7 @@ Downstream nodes that want to use the above outlined security scheme need to hav
 At least, it can be published on the pool's public website.
 
 The key can be embedded into the mining URL as part of the path.
+A client that accepts more than one authority key (4.8.2) takes them from the same path, separated by commas; a client that accepts only one uses the first.
 
 Authority Public key is [base58-check](https://en.bitcoin.it/wiki/Base58Check_encoding) encoded 32-byte secp256k1 public key (with implicit Y coordinate) prefixed with a LE u16 version prefix, currently `[1, 0]`:
 
@@ -404,11 +405,12 @@ Authority Public key is [base58-check](https://en.bitcoin.it/wiki/Base58Check_en
 
 This prefix versions the key encoding only and is unrelated to the certificate `version` field.
 
-URL example:
+URL examples, with one and with two authority keys:
 
 ```
 
 stratum2+tcp://thepool.com:34254/9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh
+stratum2+tcp://thepool.com:34254/9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh,9auqWEzQDVyd2oe1JVGFLMLHZtCo2FFqZwtKA5gd9xbuEu7PH72
 
 ```
 
@@ -421,7 +423,64 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 
 ```
 
-## 4.8 References
+## 4.8 Key Management and Rotation
+
+A client is configured with the authority key of whichever server it connects to, which may be a pool mining service, a job declaration or template distribution server, or a local proxy.
+
+|                                | Authority key                                                                       | Server static key                                                               |
+| ------------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Private half held by           | the server operator                                                                 | the individual server                                                           |
+| Public half reaches the client | out of band, through a trusted channel, optionally embedded in the mining URL (4.7) | in band, encrypted, in the second handshake message (4.5.2)                     |
+| Client trusts it because       | it was configured before the connection                                             | it is covered by a `CERTIFICATE` signed by the configured authority key (4.5.3) |
+| Expected lifetime              | long-lived                                                                          | short-lived, at the discretion of the server operator                           |
+| Cost of rotation               | every client has to be reconfigured out of band (4.8.2)                             | none, clients are unaffected (4.8.1)                                            |
+
+An active attacker on the path can run the handshake with its own keys and sign a certificate with an authority key of its own, so a client that accepted whatever authority key a server presented would have confidentiality without authentication.
+No message in this specification therefore carries an authority key: the client assembles the `CERTIFICATE` of 4.5.3 from the handshake and the key it was configured with.
+
+### 4.8.1 Private key custody
+
+Whoever holds the authority private key can sign a certificate over any static key and impersonate a legitimate server to every client configured with that authority, provided they also reach the client: by controlling a server it is pointed at, by redirecting it with a `Reconnect` (3.6.5) from a compromised server, or by intercepting its traffic.
+Sessions with a legitimate server stay confidential, before and after the leak, thanks to the ephemeral exchange of 4.5.2.
+
+The authority private key SHOULD therefore be kept off internet-facing servers, whether offline, in a hardware security module, or behind an internal signing service.
+It is an ordinary secp256k1 key (4.3.1), so an operator MAY derive it from a BIP32<sup>[9](#reference-9)</sup> hierarchy it already keeps secure, under a derivation path kept apart from any path used for coins.
+
+An internet-facing server holds only its static key and a certificate over it, issued where the authority private key is kept and loaded by the server.
+"Static" is the Noise framework's name for the key a party holds going into a handshake, as opposed to the ephemeral keypair generated fresh inside every handshake (4.4.2); it is trusted only through its certificate, so a server can replace it at any time without any action from clients.
+Outside development and testing, a server SHOULD NOT sign certificates at handshake time, nor generate a new static key for every connection, since such a key cannot be certified in advance.
+
+### 4.8.2 Rotating the authority key
+
+A new authority key reaches clients the same way the first one did, out of band through the trusted channel of 4.7.
+
+A client MAY be configured with more than one authority public key for the same endpoint, accepting a certificate that verifies against any of them, at the cost of one additional signature verification per key per handshake.
+The server still presents one certificate signed by one authority.
+An operator can then publish its next authority key, or a backup key kept offline, before any server presents a certificate signed by it.
+Clients add it at their own pace, and the switch needs no coordination: servers start presenting certificates signed by the new key, and established sessions are unaffected (4.8.3).
+
+A certificate signed by a leaked key keeps verifying for as long as a client holds that key.
+After a compromise the operator therefore switches to a successor as soon as one is in place, and the announcement names both the key to add and the key to stop trusting.
+
+### 4.8.3 Certificate validity
+
+There is no certificate revocation mechanism, so a leaked static key remains usable until its certificate expires.
+Certificates SHOULD have short validity periods and be renewed automatically, each renewal certifying a new static key rather than extending the old one.
+
+`valid_from` and `not_valid_after` are absolute unix timestamps, evaluated against the initiator's clock when the certificate is received during the handshake:
+
+- Initiators SHOULD tolerate a small amount of clock skew at both ends of the window, and issuers MAY set `valid_from` slightly in the past for the same reason.
+- An established session need not be terminated once `not_valid_after` passes.
+- A device without a reliable clock SHOULD obtain the current time from a network time source such as NTP before the handshake, and proceeds without enforcing the window if none is reachable.
+
+### 4.8.4 Failed certificate verification
+
+A client whose certificate verification fails (4.5.3), or that finds the certificate outside its validity window (4.8.3), SHOULD terminate the connection and fall back to its next configured server, or retry the same server with a backoff when it has none.
+
+To the client, a server whose authority key was rotated without its knowledge and an active attacker who substituted their own key are indistinguishable.
+An implementation that offers a way to continue regardless SHOULD NOT enable it by default, and SHOULD present it to the operator as choosing unauthenticated operation.
+
+## 4.9 References
 
 1. <a id="reference-1" href="https://web.cs.ucdavis.edu/~rogaway/papers/ad.pdf">https://web.cs.ucdavis.edu/~rogaway/papers/ad.pdf</a>
 2. <a id="reference-2" href="https://www.secg.org/sec2-v2.pdf">https://www.secg.org/sec2-v2.pdf</a>
@@ -431,3 +490,4 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 6. <a id="reference-6" href="https://tools.ietf.org/html/rfc5869">https://tools.ietf.org/html/rfc5869</a>
 7. <a id="reference-7" href="https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki">https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki</a>
 8. <a id="reference-8" href="https://noiseprotocol.org/noise.html">https://noiseprotocol.org/noise.html</a> (revision 34)
+9. <a id="reference-9" href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki</a>

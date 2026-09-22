@@ -311,7 +311,7 @@ This message allows clients to be redirected to a new upstream node.
 This message is connection-related so that it should not be propagated downstream by intermediate proxies.
 Upon receiving the message, the client re-initiates the Noise handshake and uses the authority public key configured for its present server to verify that the certificate presented by the new server has a valid signature.
 
-For security reasons, it is not possible to reconnect to a server with a certificate signed by a different authority key.
+For security reasons, it is not possible to reconnect to a server with a certificate signed by a different authority key (see 4.8).
 The message intentionally does not contain an **authority public key** and thus cannot be used to reconnect to a server under a different authority.
 This ensures that an attacker will not be able to redirect the client to an arbitrary server should its present server get compromised and instructed to send reconnects to a new location.
 
