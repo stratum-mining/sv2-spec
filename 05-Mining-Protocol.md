@@ -332,7 +332,7 @@ Client sends result of its hashing work to the server.
 | sequence_number | U32       | Unique sequential identifier of the submit within the channel                                                                                                                                                                                  |
 | job_id          | U32       | Identifier of the job as provided by NewMiningJob or NewExtendedMiningJob message                                                                                                                                                              |
 | nonce           | U32       | Nonce leading to the hash being submitted                                                                                                                                                                                                      |
-| ntime           | U32       | The nTime field in the block header. This MUST be greater than or equal to the header_timestamp field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
+| ntime           | U32       | The nTime field in the block header. This MUST be greater than or equal to the `min_ntime` of the referenced job. No protocol-level upper bound is imposed: network rules already reject a block header nTime too far in the future, and servers MAY enforce a tighter tolerance as local policy. The job's `min_ntime` is the nTime the server chose as the starting point for hashing, normally its own current time when it produced the job. It has to be consensus-valid for the next block, but it is not the consensus minimum. For a future job, the `min_ntime` is supplied by the `SetNewPrevHash` that activated it. For an immediately active job, the `min_ntime` is the value in the `NewMiningJob` message or, when work is distributed through a Group Channel, the `NewExtendedMiningJob` message. |
 | version         | U32       | Full nVersion field                                                                                                                                                                                                                            |
 
 ### 5.3.12 `SubmitSharesExtended` (Client -> Server)
@@ -344,6 +344,10 @@ The message is the same as `SubmitSharesStandard`, with the following additional
 |-----------------------------------------| --------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `<SubmitSharesStandard message fields>` |
 | extranonce                              | B0_32     | Extranonce bytes which need to be added to coinbase to form a fully valid submission (full coinbase = coinbase_tx_prefix + extranonce_prefix + extranonce + coinbase_tx_suffix). The size of the provided extranonce MUST be equal to the negotiated extranonce size from channel opening. |
+
+For extended channels, the `ntime` constraint from `SubmitSharesStandard` also applies, with the `min_ntime` potentially supplied by `NewExtendedMiningJob` (for immediately active jobs) or `SetCustomMiningJob`. For a Custom Job, `min_ntime` is chosen by the Client rather than the Server, and the Server validates it as described in Section 5.3.18.
+
+When submitting work for a custom job, `job_id` MUST be the identifier returned by `SetCustomMiningJob.Success`.
 
 ### 5.3.13 `SubmitShares.Success` (Server -> Client)
 
@@ -385,9 +389,9 @@ The illustration below also assumes a mining server that acknowledges every 10 s
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
 
-The server provides an updated mining job to the client through a standard channel. This MUST be the first message after the channel has been successfully opened. This first message will have min_ntime unset (future job).
+The server provides an updated mining job to the client through a standard channel. This MUST be the first message after the channel has been successfully opened. This first message MUST have `min_ntime` unset (a future job).
 
-If the `min_ntime` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime.
+If the `min_ntime` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime. When set, `min_ntime` MUST NOT be lower than the `min_ntime` of the most recent `SetNewPrevHash` applicable to the channel, since the job is mined against that message's `prev_hash`.
 
 The server MUST NOT assign a `job_id` that is already in use by another currently valid job on the same channel.
 
@@ -405,7 +409,8 @@ The server MUST NOT assign a `job_id` that is already in use by another currentl
 
 For an **extended channel**:
 The whole search space of the job is owned by the specified channel.
-If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message.
+If the `min_ntime` field is set to some nTime, the client MUST start to mine on the new job as soon as possible after receiving this message. When set, `min_ntime` MUST NOT be lower than the `min_ntime` of the most recent `SetNewPrevHash` applicable to the channel, since the job is mined against that message's `prev_hash`.
+This MUST be the first message after an extended channel has been successfully opened. This first message MUST have `min_ntime` unset (future job).
 
 For a **group channel**:
 This acts as a broadcast message that distributes work to all channels under the same group with one single message, instead of one per channel.
@@ -466,6 +471,7 @@ Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
 The remaining jobs already queued by the client have to be made invalid.
 The server MUST NOT send this message referencing a `job_id` that was not previously sent as a future job (i.e. with `min_ntime` unset) on the corresponding channel.
+The server MUST ensure that `min_ntime` is a consensus-valid nTime for the block following `prev_hash` (in particular, greater than that chain's median-time-past).
 
 Note: There is no need for block height in this message.
 
@@ -484,6 +490,8 @@ Can be sent only on extended or group channel. If the group channel contains sta
 `SetupConnection.flags` MUST contain `REQUIRES_WORK_SELECTION` flag (work selection feature successfully declared).
 
 This message signals that JDC expects to be rewarded for working on a Custom Job.
+
+Since a Custom Job carries its own `prev_hash`, its `min_ntime` is not bound by any `SetNewPrevHash` sent by the server. Instead, the server MUST validate that `min_ntime` is a consensus-valid nTime for the block following `prev_hash` (in particular, greater than that chain's median-time-past), responding with `SetCustomMiningJob.Error` otherwise.
 
 | Field Name                  | Data Type      | Description                                                                                                                                                           |
 | --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
