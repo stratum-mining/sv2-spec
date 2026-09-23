@@ -99,7 +99,7 @@ The primary template-providing message. Note that the `coinbase_tx_outputs` byte
 | future_template             | BOOL           | True if the template is intended for a future `SetNewPrevHash` message. If False, the template relates to the most recently received `SetNewPrevHash` message, and the client SHOULD begin working on it immediately.                                                                                                                       |
 | version                     | U32            | Valid header version field that reflects the current network consensus. The general purpose bits (as specified in BIP323) can be freely manipulated by the downstream node. The downstream node MUST NOT rely on the upstream node to set the BIP323 bits to any particular value. |
 | coinbase_tx_version         | U32            | The coinbase transaction nVersion field                                                                                                                                                                                                                                            |
-| coinbase_prefix             | B0_255         | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction                                                                                                                                            |
+| coinbase_prefix             | B0_255         | The leading bytes of the coinbase transaction's scriptSig, placed before the extranonce. It MUST begin with the block height push required by BIP34. The sender MUST NOT send a `coinbase_prefix` longer than 8 bytes, excluding the `B0_255` length prefix.                                                                                                                                            |
 | coinbase_tx_input_sequence  | U32            | The coinbase transaction input's nSequence field                                                                                                                                                                                                                                   |
 | coinbase_tx_value_remaining | U64            | The value, in satoshis, available for spending in coinbase outputs added by the client. Includes both transaction fees and block subsidy.                                                                                                                                          |
 | coinbase_tx_outputs_count   | U32            | The number of transaction outputs included in coinbase_tx_outputs                                                                                                                                                                                                                  |
@@ -109,7 +109,7 @@ The primary template-providing message. Note that the `coinbase_tx_outputs` byte
 
 Please note that differently from `SetCustomMiningJob.coinbase_tx_outputs` and `AllocateMiningJobToken.Success.coinbase_tx_outputs`, `NewTemplate.coinbase_tx_outputs` MUST NOT be serialized as a CompactSize-prefixed array. This field must simply carry the ordered sequence of consensus‑serialized outputs, but the number of outputs MUST be inferred from `NewTemplate.coinbase_tx_outputs_count`. This is the equivalent of taking a CompactSize-prefixed array and dropping its (outer) prefix. 
 
-Please also note that in case the block contains SegWit transactions (and optionally blocks that don't as well), `NewTemplate.coinbase_tx_outputs` MUST carry the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+Please also note that if the block contains any SegWit transactions, `NewTemplate.coinbase_tx_outputs` MUST carry the `OP_RETURN` output with the witness commitment. For blocks without SegWit transactions, the witness commitment output MAY still be included. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
 
 ## 7.3 `SetNewPrevHash` (Server -> Client)
 
@@ -117,7 +117,7 @@ Upon successful validation of a new best block, the server MUST immediately prov
 
 Prior to that, the server MUST send at least one, but potentially multiple `NewTemplate` messages with `future_template` flag set. The client SHOULD keep track of all of them, and convert them into `NewMiningJob` and `NewExtendedMiningJob` messages (with empty `min_ntime`) in case it's also acting as a server under the Mining Protocol.
 
-If a `NewMiningJob` or `NewExtendedMiningJob` message has previously been sent with an empty `min_ntime`, and it is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be matched to the corresponding `NewTemplate` message that generated the `NewMiningJob` or `NewExtendedMiningJob`, and a Mining Protocol `SetNewPrevHash` message SHOULD be sent indicating the client MUST begin mining on that job as soon as possible.
+If a `NewMiningJob` or `NewExtendedMiningJob` message has previously been sent with an empty `min_ntime`, and it is valid work based on the `prev_hash` contained in this message, the `template_id` field MUST be matched to the corresponding `NewTemplate` message that generated the `NewMiningJob` or `NewExtendedMiningJob`, and a Mining Protocol `SetNewPrevHash` message MUST be sent indicating the client MUST begin mining on that job as soon as possible.
 
 After that, the future templates that were being kept in memory can be discarded, leaving room for future templates relative to the next `SetNewPrevHash`.
 
@@ -126,7 +126,7 @@ After that, the future templates that were being kept in memory can be discarded
 | template_id      | U64       | template_id referenced in a previous NewTemplate message                                                                                                                                               |
 | prev_hash        | U256      | Previous block’s hash, as it must appear in the next block's header                                                                                                                                    |
 | header_timestamp | U32       | The nTime field in the block header at which the client should start (usually current time). This is NOT the minimum valid nTime value.                                                                |
-| nBits            | U32       | Block header field                                                                                                                                                                                     |
+| nBits            | U32       | The nBits field as it must appear in the candidate block's header. Across a difficulty adjustment, this differs from the previous block's nBits.                                                                                                                                                                                     |
 | target           | U256      | The maximum double-SHA256 hash value which would represent a valid block. Note that this may be lower than the target implied by nBits in several cases, including weak-block based block propagation. |
 
 ## 7.4 `RequestTransactionData` (Client -> Server)
@@ -157,7 +157,7 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 | ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | template_id      | U64              | The template_id corresponding to a NewTemplate/RequestTransactionData message                                                        |
 | excess_data      | B0_64K           | Extra data which the Pool may require to validate the work                                                                           |
-| transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
+| transaction_list | SEQ0_64K[B0_16M] | Full transactions from the referenced template, excluding the coinbase transaction, in block order. |
 
 ## 7.6 `RequestTransactionData.Error` (Server->Client)
 

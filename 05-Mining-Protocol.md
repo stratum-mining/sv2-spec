@@ -175,7 +175,7 @@ An Extended Channel carries the following properties:
 
 Upstream servers which accept connections and provide work MUST support Extended Channels.
 Clients, on the other hand, do not have to support Extended Channels, as they MAY be implemented more simply with only Standard Channels at the end-device level.
-Thus, upstream servers providing work MUST also support Standard Channels.
+Upstream servers providing work MUST also accept Standard Channels unless they set `REQUIRES_EXTENDED_CHANNELS` for the connection as specified in §5.3.1.
 
 The size of search space for an Extended Channel is `2^(nonce_bits + version_rolling_bits + extranonce_size*8)` per `nTime` value.
 
@@ -211,6 +211,10 @@ Flags usable in `SetupConnection.Success.flags`:
 | | | support for version rolling. |
 | REQUIRES_EXTENDED_CHANNELS | 1 | Upstream node will not accept opening of a standard channel |
 
+A server MAY require Extended Channels on a connection by setting `REQUIRES_EXTENDED_CHANNELS`, as anticipated by §5.2.2. A client receiving this flag MUST NOT request a Standard Channel on that connection. If it does, the server MUST respond with `OpenMiningChannel.Error`.
+
+`REQUIRES_EXTENDED_CHANNELS` cannot be honored for a client that set `REQUIRES_STANDARD_JOBS` in `SetupConnection.flags`, as such a client cannot work on Extended Channels. A server that does not serve Standard Channels MUST instead reject that client's `SetupConnection` with `SetupConnection.Error`, with `REQUIRES_STANDARD_JOBS` set in the error's `flags` field, consistent with the unsupported-flags reporting rule in §3.6.3.
+
 ### 5.3.2 `OpenStandardMiningChannel` (Client -> Server)
 
 This message requests to open a standard channel to the upstream node.
@@ -237,7 +241,7 @@ Sent as a response for opening a standard channel, if successful.
 | ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | request_id        | U32       | Client-specified request ID from OpenStandardMiningChannel message, so that the client can pair responses with open channel requests                                           |
 | channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the connection, e.g. it is used for broadcasting new jobs by NewExtendedMiningJob                   |
-| target            | U256      | Initial target for the mining channel                                                                                                                                          |
+| target            | U256      | Initial target for the mining channel. MUST NOT exceed `OpenStandardMiningChannel.max_target`; a server that cannot satisfy this MUST respond with `OpenMiningChannel.Error` instead. |
 | extranonce_prefix | B0_32     | Bytes used as implicit first part of extranonce for the scenario when extended job is served by the upstream node for a set of standard channels that belong to the same group |
 | group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.                                                                                             |
 
@@ -248,7 +252,7 @@ Similar to [5.3.2 `OpenStandardMiningChannel`](#532-openstandardminingchannel-cl
 | Field Name                                    | Data Type | Description                                           |
 | --------------------------------------------- | --------- | ----------------------------------------------------- |
 | `<All fields from OpenStandardMiningChannel>` |
-| min_extranonce_size                           | U16       | Minimum size of extranonce needed by the device/node. |
+| min_extranonce_size                           | U16       | Minimum size of extranonce needed by the device/node. Server MUST satisfy the `min_extranonce_size` or respond with `OpenMiningChannel.Error`. The resulting `extranonce_size` MUST be at most 32 bytes. |
 
 ### 5.3.5 `OpenExtendedMiningChannel.Success` (Server -> Client)
 
@@ -258,8 +262,8 @@ Sent as a response for opening an extended channel.
 | ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | request_id        | U32       | Client-specified request ID from OpenExtendedMiningChannel message, so that the client can pair responses with open channel requests                         |
 | channel_id        | U32       | Newly assigned identifier of the channel, stable for the whole lifetime of the connection, e.g. it is used for broadcasting new jobs by NewExtendedMiningJob |
-| target            | U256      | Initial target for the mining channel                                                                                                                        |
-| extranonce_size   | U16       | Extranonce size (in bytes) set for the channel                                                                                                               |
+| target            | U256      | Initial target for the mining channel. MUST NOT exceed `OpenExtendedMiningChannel.max_target`; a server that cannot satisfy this MUST respond with `OpenMiningChannel.Error` instead. |
+| extranonce_size   | U16       | Extranonce size (in bytes) set for the channel. MUST be at least `OpenExtendedMiningChannel.min_extranonce_size` (and at most 32 bytes); a server that cannot satisfy this MUST respond with `OpenMiningChannel.Error` instead.                                                                                                               |
 | extranonce_prefix | B0_32     | Bytes used as implicit first part of extranonce                                                                                                              |
 | group_channel_id  | U32       | Group channel into which the new channel belongs. See SetGroupChannel for details.                                                                           |
 
@@ -304,7 +308,7 @@ A proxy MUST send this message on behalf of all opened channels from a downstrea
 | channel_id  | U32       | Channel identification         |
 | reason_code | STR0_255  | Reason for closing the channel |
 
-The `reason_code` field is subject to the same character restrictions as error codes (see Section 3.5): it MUST NOT include control characters and SHOULD use printable ASCII where possible.
+The `reason_code` field is subject to the same character restrictions as error codes (see Section 3.5).
 
 If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it MUST send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
 In general, proxy servers MUST keep the upstream node notified about the real state of the downstream channels.
@@ -316,6 +320,7 @@ If `channel_id` is addressing a group channel, all channels belonging to such gr
 Changes channel’s extranonce prefix.
 It is applicable for all jobs sent after this message on a given channel (both jobs provided by the upstream or jobs introduced by `SetCustomMiningJob` message).
 This message is applicable only for explicitly opened extended channels or standard channels (not group channels).
+A client receiving `SetExtranoncePrefix` addressed to a group channel MUST ignore it.
 
 | Field Name        | Data Type | Description                                     |
 | ----------------- | --------- | ----------------------------------------------- |
@@ -355,7 +360,7 @@ A server MAY aggregate acknowledgements for multiple successful share-submission
 | channel_id                 | U32       | Channel identification                              |
 | last_sequence_number       | U32       | Most recent sequence number with a correct result   |
 | new_submits_accepted_count | U32       | Count of new submits acknowledged within this batch |
-| new_shares_sum             | U64       | Sum of difficulty of shares acknowledged within this batch        |
+| new_shares_sum             | U64       | Sum, over the shares acknowledged within this batch, of the difficulty of the job each share was submitted against |
 
 The server does not have to double check that the sequence numbers sent by a client are actually increasing.
 It can simply use the last one received when sending a response.
@@ -465,6 +470,7 @@ This message MAY be shared by all downstream nodes (sent only once to each group
 Clients MUST immediately start to mine on the provided prevhash.
 When a client receives this message, only the job referenced by Job ID is valid.
 The remaining jobs already queued by the client have to be made invalid.
+Shares submitted for jobs invalidated by a previous `SetNewPrevHash` (stale shares) SHOULD be rejected by the server.
 The server MUST NOT send this message referencing a `job_id` that was not previously sent as a future job (i.e. with `min_ntime` unset) on the corresponding channel.
 
 Note: There is no need for block height in this message.
@@ -475,7 +481,7 @@ Note: There is no need for block height in this message.
 | job_id     | U32       | ID of a job that is to be used for mining with this prevhash. A pool may have provided multiple jobs for the next block height (e.g. an empty block or a block with transactions that are complementary to the set of transactions present in the current block template). |
 | prev_hash  | U256      | Previous block’s hash, block header field                                                                                                                                                                                                                                  |
 | min_ntime  | U32       | Smallest nTime value available for hashing                                                                                                                                                                                                                                 |
-| nbits      | U32       | Block header field                                                                                                                                                                                                                                                         |
+| nbits      | U32       | The nBits field as it must appear in the candidate block's header. Across a difficulty adjustment, this differs from the previous block's nBits.                                                                                                                                                                                                                                                         |
 
 ### 5.3.18 `SetCustomMiningJob` (Client -> Server)
 
@@ -493,9 +499,9 @@ This message signals that JDC expects to be rewarded for working on a Custom Job
 | version                     | U32            | Valid version field that reflects the current network consensus. The general purpose bits (as specified in BIP323) can be freely manipulated by the downstream node.  |
 | prev_hash                   | U256           | Previous block’s hash, found in the block header field                                                                                                                |
 | min_ntime                   | U32            | Smallest nTime value available for hashing                                                                                                                            |
-| nbits                       | U32            | Block header field                                                                                                                                                    |
+| nbits                       | U32            | The nBits field as it must appear in the candidate block's header. Across a difficulty adjustment, this differs from the previous block's nBits.                                                                                                                                                    |
 | coinbase_tx_version         | U32            | The coinbase transaction nVersion field                                                                                                                               |
-| coinbase_prefix             | B0_255         | Up to 8 bytes (not including the length byte) which are to be placed at the beginning of the coinbase field in the coinbase transaction.                              |
+| coinbase_prefix             | B0_255         | The leading bytes of the coinbase transaction's scriptSig, placed before the extranonce. It MUST begin with the block height push required by BIP34, and MAY carry further bytes chosen by the Client, such as a pool or miner tag. Its length plus the full Extended Extranonce size of the channel (or of the channels in the group) MUST NOT exceed the 100-byte consensus limit on the coinbase scriptSig.                              |
 | coinbase_tx_input_nSequence | U32            | The coinbase transaction input's nSequence field                                                                                                                      |
 | coinbase_tx_outputs         | B0_64K         | Outputs of the coinbase transaction. CompactSize‑prefixed array of consensus‑serialized outputs.                                                                            |
 | coinbase_tx_locktime        | U32            | The locktime field in the coinbase transaction                                                                                                                        |

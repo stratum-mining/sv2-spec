@@ -67,6 +67,7 @@ Multibyte data types are always serialized as little-endian.
 | U16           | 2                                                                                            | Unsigned integer, 16-bit, little-endian                                                                                                                                                                                                                                                                                                                          |
 | U24           | 3                                                                                            | Unsigned integer, 24-bit, little-endian (commonly deserialized as a 32-bit little-endian integer with a trailing implicit most-significant 0-byte)                                                                                                                                                                                                               |
 | U32           | 4                                                                                            | Unsigned integer, 32-bit, little-endian                                                                                                                                                                                                                                                                                                                          |
+| F32           | 4                                                                                            | Floating point number, 32-bit, little-endian, IEEE 754 single-precision. A receiver MUST treat NaN, ±Infinity, and negative values (including -0.0) as protocol errors.                                                                                                                                                                                     |
 | U64           | 8                                                                                            | Unsigned integer, 64-bit, little-endian                                                                                                                                                                                                                                                                                                                          |
 | U256          | 32                                                                                           | Unsigned integer, 256-bit, little-endian. Often the raw byte output of SHA-256 interpreted as an unsigned integer.                                                                                                                                                                                                                                               |
 | STR0_255      | 1 + LENGTH                                                                                   | String with 8-bit length prefix L. Unsigned integer, followed by L bytes. Allowed range of length is 0 to 255. The string is not null-terminated.                                                                                                                                                                                                                |
@@ -228,11 +229,9 @@ Implementations MAY use error codes for automated actions. The list of error cod
 
 Fallback or recovery behavior MUST be based on the overall protocol state, even when a peer sends an unknown, different, or unexpected error code.
 
-Implementations/pools SHOULD provide documentation on the meaning of error codes and error codes SHOULD use printable ASCII where possible.
+Implementations/pools MUST provide documentation on the meaning of error codes. Error codes MUST consist only of printable ASCII characters.
 
-Furthermore, error codes MUST NOT include control characters.
-
-These character restrictions apply equally to other human-readable string codes, such as the `reason_code` field of `CloseChannel` (see Section 5.3.9).
+This character restriction applies equally to other human-readable string codes, such as the `reason_code` field of `CloseChannel` (see Section 5.3.9).
 
 ## 3.6 Common Protocol Messages
 
@@ -369,4 +368,4 @@ That's because the Template Distribution Server would not be able to propagate a
 On the Template Distribution Protocol's `NewTemplate` there is one field affected by BIP141:
 - `coinbase_tx_outputs`
 
-In case of blocks containing SegWit transactions (and optionally blocks that don't as well), this field carries the `OP_RETURN` output with the witness commitment. The `witness reserved value` (coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
+If the block contains any SegWit transactions, this field MUST carry the `OP_RETURN` output with the witness commitment. For blocks without SegWit transactions, the witness commitment output MAY still be included. The `witness reserved value` (coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
