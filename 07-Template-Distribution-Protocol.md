@@ -115,9 +115,9 @@ Please also note that in case the block contains SegWit transactions (and option
 
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
 
-Prior to that, the server MUST send at least one, but potentially multiple `NewTemplate` messages with `future_template` flag set. The client SHOULD keep track of all of them, and convert them into `NewMiningJob` and `NewExtendedMiningJob` messages (with empty `min_ntime`) in case it's also acting as a server under the Mining Protocol.
+Prior to that, the server MUST send at least one, but potentially multiple `NewTemplate` messages with `future_template` flag set. The client SHOULD keep track of all of them, and convert them into `NewMiningJob` and `NewExtendedMiningJob` messages (with empty `ntime_start`) in case it's also acting as a server under the Mining Protocol.
 
-If a `NewMiningJob` or `NewExtendedMiningJob` message has previously been sent with an empty `min_ntime`, and it is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be matched to the corresponding `NewTemplate` message that generated the `NewMiningJob` or `NewExtendedMiningJob`, and a Mining Protocol `SetNewPrevHash` message SHOULD be sent indicating the client MUST begin mining on that job as soon as possible.
+If a `NewMiningJob` or `NewExtendedMiningJob` message has previously been sent with an empty `ntime_start`, and it is valid work based on the `prev_hash` contained in this message, the `template_id` field SHOULD be matched to the corresponding `NewTemplate` message that generated the `NewMiningJob` or `NewExtendedMiningJob`, and a Mining Protocol `SetNewPrevHash` message SHOULD be sent indicating the client MUST begin mining on that job as soon as possible.
 
 After that, the future templates that were being kept in memory can be discarded, leaving room for future templates relative to the next `SetNewPrevHash`.
 
@@ -125,7 +125,7 @@ After that, the future templates that were being kept in memory can be discarded
 | ---------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | template_id      | U64       | template_id referenced in a previous NewTemplate message                                                                                                                                               |
 | prev_hash        | U256      | Previous block’s hash, as it must appear in the next block's header                                                                                                                                    |
-| header_timestamp | U32       | The nTime field in the block header at which the client should start (usually current time). This is NOT the minimum valid nTime value.                                                                |
+| ntime_start      | U32       | The nTime field in the block header at which hashing starts, usually the current time when this message was produced. This is not the consensus minimum.                                                                |
 | nBits            | U32       | Block header field                                                                                                                                                                                     |
 | target           | U256      | The maximum double-SHA256 hash value which would represent a valid block. Note that this may be lower than the target implied by nBits in several cases, including weak-block based block propagation. |
 
@@ -174,7 +174,7 @@ Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or 
 | ---------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | template_id      | U64       | The template_id field as it appeared in NewTemplate                                                                                                                                                                                            |
 | version          | U32       | The version field in the block header. Bits not defined by BIP323 as additional nonce MUST be the same as they appear in the NewTemplate message, other bits may be set to any value.                                                              |
-| header_timestamp | U32       | The nTime field in the block header. This MUST be greater than or equal to the header_timestamp field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
+| header_timestamp | U32       | The nTime field in the block header. This MUST be greater than or equal to the ntime_start field in the latest SetNewPrevHash message and lower than or equal to that value plus the number of seconds since the receipt of that message. |
 | header_nonce     | U32       | The nonce field in the header                                                                                                                                                                                                                  |
 | coinbase_tx      | B0_64K    | The full serialized coinbase transaction, meeting all the requirements of the NewTemplate message, above                                                                                                                                           |
 
