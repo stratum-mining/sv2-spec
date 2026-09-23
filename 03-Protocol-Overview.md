@@ -242,7 +242,11 @@ The following protocol messages are common across all of the protocols described
 
 Initiates the connection.
 This MUST be the first message sent by the client on the newly opened connection.
+The server MUST NOT send any message before its `SetupConnection` response.
 Server MUST respond with either a `SetupConnection.Success` or `SetupConnection.Error` message.
+If the server does not support the requested `protocol`, it MUST respond with `SetupConnection.Error`.
+If the server supports no protocol version between `min_version` and `max_version` inclusive, it MUST respond with `SetupConnection.Error`.
+The feature set in effect for a connection is the combination of both sides' declared requirements: by responding with `SetupConnection.Success` the server commits to satisfying the client's flags, and by proceeding on the connection the client commits to the server's.
 Clients that are not configured to provide telemetry data to the upstream node SHOULD set `device_id` to 0-length strings.
 However, they MUST always set vendor to a string describing the manufacturer/developer and firmware version and SHOULD always set `hardware_version` to a string describing, at least, the particular hardware/software package in use.
 
@@ -251,8 +255,8 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 | protocol           | U8        | 0 = Mining Protocol <br>1 = Job Declaration <br>2 = Template Distribution Protocol                                          |
 | min_version        | U16       | The minimum protocol version the client supports (currently must be 2)                                                      |
 | max_version        | U16       | The maximum protocol version the client supports (currently must be 2)                                                      |
-| flags              | U32       | Flags indicating optional protocol features the client supports. Each protocol from protocol field as its own values/flags. |
-| endpoint_host      | STRO_255  | ASCII text indicating the hostname or IP address                                                                            |
+| flags              | U32       | Flags indicating optional protocol features the client requires for this connection. Each protocol from protocol field has its own values/flags. |
+| endpoint_host      | STR0_255  | ASCII text indicating the hostname or IP address                                                                            |
 | endpoint_port      | U16       | Connecting port value                                                                                                       |
 | Device Information |           |                                                                                                                             |
 | vendor             | STR0_255  | E.g. "Bitmain"                                                                                                              |
@@ -264,12 +268,12 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 ### 3.6.2 `SetupConnection.Success` (Server -> Client)
 
 Response to `SetupConnection` message if the server accepts the connection.
-The client is required to verify the set of feature flags that the server supports and act accordingly.
+The client is required to verify the set of feature flags set by the server and act accordingly.
 
 | Field Name   | Data Type | Description                                                                                                                                             |
 |--------------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | used_version | U16       | Selected version proposed by the connecting node that the upstream node supports. This version will be used on the connection for the rest of its life. |
-| flags        | U32       | Flags indicating optional protocol features the server supports. Each protocol from protocol field has its own values/flags.                            |
+| flags        | U32       | Flags indicating optional protocol features the server requires for this connection. Each protocol from protocol field has its own values/flags.                            |
 
 ### 3.6.3 `SetupConnection.Error` (Server -> Client)
 

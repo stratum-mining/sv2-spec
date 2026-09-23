@@ -13,9 +13,13 @@ Template Providers MUST attempt to broadcast blocks which are mined using templa
 When crafting a template, in order to avoid creating an invalid, oversized block, the Template Provider MUST reserve appropriate blockspace and sigops for:
 - the block header: 80 bytes, or 320 weight units
 - the block transaction count: 3 bytes (which in terms of `CompactSize` is worst case for minimally sized transactions in a block), or 12 weight units
-- the serialized coinbase transaction: which has fixed-sized and variable-sized fields, see definition of [`CoinbaseOutputConstraints`](#71-coinbaseoutputconstraints-client---server) below
+- the serialized coinbase transaction: which has fixed-sized and variable-sized fields, see definition of [`CoinbaseOutputConstraints`](#72-coinbaseoutputconstraints-client---server) below
 
-## 7.1 `CoinbaseOutputConstraints` (Client -> Server)
+## 7.1 `SetupConnection` Flags for Template Distribution Protocol
+
+No flags are yet defined for use in `SetupConnection.flags` and `SetupConnection.Error.flags`, nor in `SetupConnection.Success.flags`.
+
+## 7.2 `CoinbaseOutputConstraints` (Client -> Server)
 
 Here's a table with all fields of a Coinbase Transaction that have fixed size:
 
@@ -89,7 +93,7 @@ total: 944 + 4*`coinbase_output_max_additional_size` weight units
 
 Please note that Bitcoin Core establishes a floor value of 2000 weight units.
 
-## 7.2 `NewTemplate` (Server -> Client)
+## 7.3 `NewTemplate` (Server -> Client)
 
 The primary template-providing message. Note that the `coinbase_tx_outputs` bytes will appear as is at the end of the coinbase transaction.
 
@@ -111,7 +115,7 @@ Please note that differently from `SetCustomMiningJob.coinbase_tx_outputs` and `
 
 Please also note that in case the block contains SegWit transactions (and optionally blocks that don't as well), `NewTemplate.coinbase_tx_outputs` MUST carry the witness commitment. The `witness reserved value` (Coinbase witness) used for calculating this witness commitment is assumed to be 32 bytes of `0x00`, as it currently holds no consensus-critical meaning. This [may change in future soft-forks](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#extensible-commitment-structure).
 
-## 7.3 `SetNewPrevHash` (Server -> Client)
+## 7.4 `SetNewPrevHash` (Server -> Client)
 
 Upon successful validation of a new best block, the server MUST immediately provide a `SetNewPrevHash` message.
 
@@ -129,7 +133,7 @@ After that, the future templates that were being kept in memory can be discarded
 | nBits            | U32       | Block header field                                                                                                                                                                                     |
 | target           | U256      | The maximum double-SHA256 hash value which would represent a valid block. Note that this may be lower than the target implied by nBits in several cases, including weak-block based block propagation. |
 
-## 7.4 `RequestTransactionData` (Client -> Server)
+## 7.5 `RequestTransactionData` (Client -> Server)
 
 A request sent by the Job Declarator to the Template Provider which requests the set of transaction data for all transactions (excluding the coinbase transaction) included in a block, as well as any additional data which may be required by the Pool to validate the work.
 
@@ -137,7 +141,7 @@ A request sent by the Job Declarator to the Template Provider which requests the
 | ----------- | --------- | ------------------------------------------------------ |
 | template_id | U64       | The template_id corresponding to a NewTemplate message |
 
-## 7.5 `RequestTransactionData.Success` (Server->Client)
+## 7.6 `RequestTransactionData.Success` (Server->Client)
 
 A response to `RequestTransactionData` which contains the set of full transaction data and excess data required for validation.
 For practical purposes, the excess data is usually the SegWit commitment, however the Job Declarator MUST NOT parse or interpret the excess data in any way.
@@ -159,16 +163,16 @@ To work around the limitation of not being able to negotiate e.g. a transaction 
 | excess_data      | B0_64K           | Extra data which the Pool may require to validate the work                                                                           |
 | transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
 
-## 7.6 `RequestTransactionData.Error` (Server->Client)
+## 7.7 `RequestTransactionData.Error` (Server->Client)
 
 | Field Name  | Data Type | Description                                                                   |
 | ----------- | --------- | ----------------------------------------------------------------------------- |
 | template_id | U64       | The template_id corresponding to a NewTemplate/RequestTransactionData message |
 | error_code  | STR0_255  | Reason why no transaction data has been provided                              |
 
-## 7.7 `SubmitSolution` (Client -> Server)
+## 7.8 `SubmitSolution` (Client -> Server)
 
-Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or below `SetNewPrevHash::target`, the client MUST immediately send this message, and the server MUST then immediately construct the corresponding full block and attempt to propagate it to the Bitcoin network.
+Upon finding a coinbase transaction/nonce pair which double-SHA256 hashes at or below `SetNewPrevHash.target`, the client MUST immediately send this message, and the server MUST then immediately construct the corresponding full block and attempt to propagate it to the Bitcoin network.
 
 | Field Name       | Data Type | Description                                                                                                                                                                                                                                    |
 | ---------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
