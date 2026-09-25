@@ -20,31 +20,48 @@ There are technically three distinct (sub)protocols needed in order to fully use
    A protocol that shares the same message framing (see §3.2) as the other sub-protocols, used for getting information about the next block from a Template Provider.
    Designed to replace `getblocktemplate` with something much more efficient and easy to implement for those implementing other parts of Stratum v2.
 
-Meanwhile, there are five possible roles (types of software/hardware) for communicating with these protocols.
+All three protocols follow a client-server model. Accordingly, the following protocol roles are defined:
+- Mining Protocol Server and Client
+- Job Declaration Server and Client
+- Template Distribution Server and Client
+
+Additionally, there are five possible high-level roles (types of software/hardware) for communicating with these protocols.
 
 1. **Mining Device**  
    The actual device computing the hashes. This can be further divided into header-only mining devices and extranonce-rolling mining devices, though most devices will likely support both modes.
 
-2. **Pool Service**  
-   Produces jobs (for those not declaring jobs via the Job Declaration Protocol), validates shares, and ensures blocks found by clients are propagated through the network (though clients which have full block templates MUST also propagate blocks into the Bitcoin P2P network).
+   A Mining Device MUST be a Mining Protocol Client.
+
+2. **Mining Pool Server**  
+   Also referred to as Pool Server, or just Pool. Produces jobs (for those not declaring jobs via the Job Declaration Protocol), validates shares, and ensures blocks found by clients are propagated through the network (though clients which have full block templates MUST also propagate blocks into the Bitcoin P2P network).
+
+   A Mining Pool Server MUST be a Mining Protocol Server. It MAY also be a Job Declaration Server.
 
 3. **Mining Proxy (optional)**  
-   Sits in between Mining Device(s) and Pool Service, aggregating connections for efficiency.
-   May optionally provide additional monitoring, receive work from a Job Declarator and use custom work with a pool, or provide other services for a farm.
+   Sits in between Mining Device(s) and a Mining Protocol Server, aggregating connections for efficiency.
+   May optionally provide additional monitoring, or provide other services for a farm.
+
+   A Mining Proxy MUST be a Mining Protocol Client and a Mining Protocol Server.
 
 4. **Job Declarator (optional)**  
    It is further divided into a Job Declarator Client and a Job Declarator Server.
    The Job Declarator Client receives custom block templates from a Template Provider and declares use of them with the Job Declarator Server (which is typically Pool side) using the Job Declaration Protocol.
 
+   A Job Declarator Client MUST be a Template Distribution Client, a Mining Protocol Client, and a Mining Protocol Server. It MAY also be a Mining Proxy.
+
+   A Job Declarator Server MAY also be a Mining Protocol Server, when operated by a Mining Pool Server.
+
 5. **Template Provider**  
    Generates custom block templates to be passed to the Job Declarator for eventual mining.
    This is usually just a Bitcoin Core full node (or possibly some other node implementation).
 
-The Mining Protocol is used for communication between a Mining Device and Pool Service, Mining Device and Mining Proxy, Mining Proxy and Mining Proxy, or Mining Proxy and Pool Service.
+   A Template Provider MUST be a Template Distribution Server.
+
+The Mining Protocol is used for communication between a Mining Protocol Client and a Mining Protocol Server.
 
 The Job Declaration Protocol is used for communication between a Job Declarator Client and a Job Declarator Server (which is typically Pool side).
 
-The Template Distribution Protocol is used for communication either between a Job Declarator Client and a Template Provider or between a Pool Service and Template Provider.
+The Template Distribution Protocol is used for communication either between a Job Declarator Client and a Template Provider or between a Pool Server and Template Provider.
 
 
 One type of software/hardware can fulfill more than one role (e.g. a Mining Proxy is often both a Mining Proxy and a Job Declarator and may occasionally further contain a Template Provider in the form of a full node on the same device).
