@@ -303,10 +303,11 @@ This message allows clients to be redirected to a new upstream node.
 | new_port   | U16       | When 0, downstream node attempts to reconnect to its present port     |
 
 This message is connection-related so that it should not be propagated downstream by intermediate proxies.
-Upon receiving the message, the client re-initiates the Noise handshake and uses the pool’s authority public key to verify that the certificate presented by the new server has a valid signature.
+Upon receiving the message, the client re-initiates the Noise handshake and uses the authority public key configured for its present server to verify that the certificate presented by the new server has a valid signature.
 
-For security reasons, it is not possible to reconnect to a server with a certificate signed by a different pool authority key.
-The message intentionally does not contain a **pool public key** and thus cannot be used to reconnect to a different pool.
+The configured authority key is the client's trust anchor: every server the client connects to, including one it is redirected to, is authenticated against it (see §4.8).
+It is therefore not possible to reconnect to a server with a certificate signed by a different authority key.
+The message intentionally does not contain an **authority public key** and thus cannot be used to reconnect to a server under a different authority.
 This ensures that an attacker will not be able to redirect hashrate to an arbitrary server should the pool server get compromised and instructed to send reconnects to a new location.
 
 ## 3.7 BIP141
