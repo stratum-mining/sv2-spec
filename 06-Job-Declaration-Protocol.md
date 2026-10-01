@@ -275,7 +275,7 @@ In this way, the protocol encourages valid solutions to be immediately propagate
 | Field Name                              | Data Type | Description                                                                                                                                                                                                                                                                                |
 | --------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | extranonce                              | B0_32     | Extranonce bytes which need to be added to coinbase to form a fully valid submission.  (This is the full extranonce)                 |
-| prev hash                               | U256      | Hash of the last block                                                                                  |
+| prev_hash                               | U256      | Hash of the last block                                                                                  |
 | nonce                                   | U32       | Nonce leading to the hash being submitted                                                               |
 | ntime                                   | U32       | The nTime field in the block header.                                                                    |
 | nbits                                   | U32       | The nBits field in the block header.                                                                    |
