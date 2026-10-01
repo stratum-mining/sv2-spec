@@ -253,8 +253,8 @@ This is a message to push transactions that the server did not recognize and req
 
 | Field Name       | Data Type        | Description                                                                                                                          |
 | ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| request_id       | U32              | Identifier of the original DeclareMiningJob request                                                                           ""|
-| transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions |
+| request_id       | U32              | Identifier of the original DeclareMiningJob request                                                                             |
+| transaction_list | SEQ0_64K[B0_16M] | List of full transactions as requested by ProvideMissingTransactions, in the order they were requested in ProvideMissingTransactions. Each transaction MUST be relayed exactly as received from the Template Provider via `RequestTransactionData.Success` (see Section 7.5), without parsing or re-encoding; in practice this is the p2p network serialization, including witness data for SegWit transactions (BIP144). |
 
 ### 6.4.9 `PushSolution` (Client -> Server)
 
