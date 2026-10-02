@@ -556,9 +556,19 @@ The message is not applicable for already received jobs with `ntime_start=nTime`
 | Field Name     | Data Type | Description                                                                       |
 | -------------- | --------- | --------------------------------------------------------------------------------- |
 | channel_id     | U32       | Channel identifier                                                                |
-| target         | U256      | Maximum value of produced hash that will be accepted by a server to accept shares |
+| target         | U256      | Maximum value of produced hash that will be accepted by a server to accept shares. MUST NOT exceed the `max_target` of the most recent `UpdateChannel` the server accepted for the channel or, if there has been none, of the `OpenStandardMiningChannel` or `OpenExtendedMiningChannel` that opened it. |
 
-When `SetTarget` is sent to a group channel, the target is applicable to all channels in the group.
+When `SetTarget` is sent to a group channel, the target is applicable to all channels in the group, and the bound above applies to each of them.
+
+`UpdateChannel` and `SetTarget` can cross on the connection, since the client and the server send them independently of each other. A client that lowers `max_target` with an `UpdateChannel` can therefore still receive a `SetTarget` whose target is above the new value, sent before the server accepted that `UpdateChannel`. The bound above holds such a `SetTarget` to the previous `max_target`, the one the `UpdateChannel` replaces, not to the new value.
+
+When the server then accepts the `UpdateChannel`, §5.3.7 requires it to send a new `SetTarget` that respects the new `max_target`. A server that does not accept the `UpdateChannel` responds with `UpdateChannel.Error` instead, and the bound stays at the previous `max_target`.
+
+An accepted `UpdateChannel` has no response (§5.3.8), so a client cannot tell whether a `SetTarget` was sent before or after the server accepted it. A client that lowers `max_target` SHOULD allow the server a reasonable grace period to send the new `SetTarget` or the `UpdateChannel.Error` before treating a target above the new value as a violation of the bound (for instance: by falling back to a different server). The grace period ends when either message arrives, or when the time the client allowed for them runs out. The target of a `SetTarget` received during the grace period still applies until the next one, like any other.
+
+A target above the previous `max_target` violates the bound, regardless of whether the `SetTarget` was sent before or after the server accepted the `UpdateChannel`. The client does not need to allow the grace period for it.
+
+A client SHOULD NOT change `max_target` again before the grace period has passed. Otherwise it could not tell whether a `SetTarget` is bound by the `max_target` before the first change, by the first, or by the second.
 
 
 ### 5.3.22 `SetGroupChannel` (Server -> Client)
