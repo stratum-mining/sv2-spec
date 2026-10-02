@@ -389,12 +389,13 @@ Serialized stratum-v2 body (payload) is split into 65519-byte chunks and encrypt
 where `ct_pld_N` is the N-th ciphertext block of payload and `pt_pld_N` is the N-th plaintext block of payload.
 ```
 
-## 4.7 URL Scheme and Pool Authority Key
+## 4.7 URL Scheme and Authority Key
 
-Downstream nodes that want to use the above outlined security scheme need to have configured the **Pool Authority Public Key** of the pool that they intend to connect to. It is provided by the target pool and communicated to its users via a trusted channel.
+Downstream nodes that want to use the above outlined security scheme need to have configured the **Authority Public Key** of the server that they intend to connect to. It is provided by the operator of that server and communicated to its users via a trusted channel.
 At least, it can be published on the pool's public website.
 
 The key can be embedded into the mining URL as part of the path.
+This key is the Authority Public Key, not the server's static Noise key: the latter is received during the handshake and is never configured by the client (see 4.8).
 
 Authority Public key is [base58-check](https://en.bitcoin.it/wiki/Base58Check_encoding) encoded 32-byte secp256k1 public key (with implicit Y coordinate) prefixed with a LE u16 version prefix, currently `[1, 0]`:
 
@@ -421,7 +422,108 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 
 ```
 
-## 4.8 References
+## 4.8 Key Management and Rotation
+
+Server authentication involves two distinct keys, only one of which is a trust anchor.
+Telling them apart determines what an operator can rotate freely and what requires reaching every client.
+A client is configured with the authority key of whichever server it connects to, which may be a pool mining service, a job declaration or template distribution server, or a local proxy.
+
+|                                | Authority key                                                                       | Server static key                                                               |
+| ------------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Private half held by           | the server operator                                                                 | the individual server                                                           |
+| Public half reaches the client | out of band, through a trusted channel, optionally embedded in the mining URL (4.7) | in band, encrypted, in the second handshake message (4.5.2)                     |
+| Client trusts it because       | it was configured before the connection                                             | it is covered by a `CERTIFICATE` signed by the configured authority key (4.5.3) |
+| Expected lifetime              | long-lived                                                                          | short-lived, at the discretion of the server operator                           |
+| Cost of rotation               | every client has to be reconfigured out of band (4.8.4)                             | none, clients are unaffected (4.8.1)                                            |
+
+This asymmetry is deliberate.
+A client that accepted whatever key a server presented at connection time would have confidentiality without authentication: an active attacker on the path can run the handshake with its own keys and sign a certificate with an authority key it generated itself, and a client with nothing to compare it against would accept it.
+Server authentication therefore rests entirely on the client already knowing the authority key, which is why no message in this specification carries one (the `CERTIFICATE` of 4.5.3, which lists `authority_public_key`, is never sent).
+
+### 4.8.1 Static and ephemeral key rotation
+
+"Static" here is the Noise framework's name for the key a party holds going into a handshake, as opposed to the ephemeral keypair generated during it (4.4.2). It says nothing about how long that key lives across connections.
+
+The ephemeral key needs no rotation guidance: 4.5.1.1 and 4.5.2.1 generate a fresh ephemeral keypair inside every handshake, so it never persists between connections. Rotating the static key is the remaining case, and it is entirely a server-side decision.
+
+The static key is sent in every handshake and is only ever trusted through its certificate.
+A server MAY generate its static key once per deployment, once per process start or once per connection, and MAY replace it at any time.
+None of these require any action from clients, as long as every handshake carries a valid certificate over the presented static key, signed by the authority key the client is configured with.
+
+Certificates MAY be signed at handshake time or issued in advance and loaded by the server at startup.
+Issuing them in advance is what allows the authority private key to stay off the server.
+
+### 4.8.2 Custody of the authority private key
+
+Section 3.6.5 notes that `Reconnect` intentionally carries no authority public key, so that a compromised server cannot redirect hashrate to an arbitrary server.
+That property depends on compromising a server not also yielding the authority private key: whoever holds it can sign a certificate over any static key and impersonate a legitimate server to every client configured with that authority.
+
+The authority private key SHOULD therefore be kept off internet-facing servers, whether offline, in a hardware security module, or behind an internal signing service.
+Such a server holds only its static key and a certificate over it.
+
+The authority key is an ordinary secp256k1 key (4.3.1), so an operator MAY derive it from a BIP32<sup>[9](#reference-9)</sup> hierarchy it already keeps secure, under a derivation path dedicated to this purpose and kept apart from any path used for coins.
+
+### 4.8.3 Certificate validity
+
+There is no certificate revocation mechanism, so a leaked static key remains usable until its certificate expires and `not_valid_after` is the only bound on the damage.
+It is RECOMMENDED to issue certificates with short validity periods and renew them automatically, rather than issuing certificates that stay valid for years.
+
+`valid_from` and `not_valid_after` are absolute unix timestamps, and are therefore evaluated against the initiator's clock:
+
+- Initiators SHOULD tolerate a small amount of clock skew when checking the validity window.
+- Issuers MAY set `valid_from` slightly in the past for the same reason.
+- Devices without a reliable clock cannot enforce the window at all. Such a device SHOULD attempt to obtain the current time from a network time source such as NTP before the handshake, and fall back to not enforcing the window only if none is reachable. Implementers targeting such devices should be aware that those devices still get the binding between static key and authority key, but not its expiry.
+
+A client that checks the validity window does so when the certificate is received during the handshake.
+A certificate already outside its window at that point is treated as a failed verification, handled as in 4.8.6: the client rejects it and does not proceed with the connection.
+An already established session need not be terminated once `not_valid_after` passes.
+
+### 4.8.4 Rotating the authority key
+
+Rotating the authority key is expected to be rare.
+In the 2 level public key infrastructure of 4.5 it is the long-lived level and the static key the short-lived one: the authority key signs certificates and never takes part in a session, so its exposure is limited to the signing operation, which 4.8.2 keeps off the servers.
+Rotation answers a compromise or a policy, not a schedule.
+There is no in-band mechanism for it: as described in 3.6.5, `Reconnect` deliberately cannot point a client at a different authority.
+A new authority key reaches clients the same way the first one did, out of band, through the trusted channel described in 4.7.
+
+The recommended procedure is to serve the new authority key on a new endpoint, in parallel with the old one:
+
+1. Bring up a new host or port whose servers present certificates signed by the new authority key. This can be an additional listening port or hostname on the same servers, fronting the same backend, so the cost is one extra listener and a second certificate rather than a second deployment.
+2. Publish the new URL through the trusted channel of 4.7. Clients MAY be configured with it in advance as a failover target, so that no device needs to be touched at cutover time.
+3. Retire the old endpoint once the hashrate has moved.
+
+Where clients support multiple authority keys (4.8.5), the same rotation is possible on a single endpoint.
+
+A suspected compromise of the authority private key is the exception.
+While the old key stays configured on clients, whoever holds it can impersonate a legitimate server, so the overlap period is itself the exposure and an immediate cutover is preferable to a gradual migration.
+
+### 4.8.5 Multiple authority keys
+
+A client MAY be configured with more than one authority public key for the same endpoint, accepting a server's certificate if it verifies against any of them.
+This is entirely a client-side matter: the server still presents one certificate signed by one authority, however many keys any client holds, and nothing on the wire changes.
+The cost to a client is at most one additional signature verification per configured key, per handshake.
+
+Trusting a set rather than a single key separates distributing an authority key from starting to use it.
+An operator can publish its next authority key, or a backup key whose private half never leaves offline storage, long before any server presents a certificate signed by it.
+Clients pick it up at their own pace and the operator switches over at a date announced in advance, so rotating on a single endpoint needs no flag day, and a leaked authority key can be replaced without every client having to react within a deadline.
+
+Removing a key remains time-sensitive.
+After a compromise, a client stays exposed for as long as the leaked key is still in its set, because a certificate signed by that key keeps verifying.
+A rotation distributed through the trusted channel of 4.7 therefore covers both halves: the key to add, and the key to stop trusting.
+
+### 4.8.6 Failed certificate verification
+
+Two failure modes already have rules in this chapter: "Should the decryption (i.e. authentication code validation) fail at any point, the session must be terminated" (4.5), and an initiator "MUST reject a certificate whose `version` it does not support" (4.5.3).
+Certificate verification is the remaining case.
+As used here, verification fails when the signature does not verify against any authority key the client is configured with, or when a client that checks the validity window (4.8.3) finds the certificate outside it.
+
+A client configured with an authority key SHOULD terminate the connection when verification fails, and fall back to its next configured server.
+Continuing anyway is equivalent to running without server authentication: a server whose authority key was rotated without the client learning of it, and an active attacker who substituted their own key, are indistinguishable to the client, because both produce a certificate that does not verify.
+
+Where an implementation offers a way to continue regardless, it is RECOMMENDED that this be an explicit operator opt-in rather than a default, and that it be presented as choosing unauthenticated operation.
+Logging the failure and continuing is not a mitigation, as the session is established with an unauthenticated peer either way.
+
+## 4.9 References
 
 1. <a id="reference-1" href="https://web.cs.ucdavis.edu/~rogaway/papers/ad.pdf">https://web.cs.ucdavis.edu/~rogaway/papers/ad.pdf</a>
 2. <a id="reference-2" href="https://www.secg.org/sec2-v2.pdf">https://www.secg.org/sec2-v2.pdf</a>
@@ -431,3 +533,4 @@ prefixed_base58check = "9bXiEd8boQVhq7WddEcERUL5tyyJVFYdU8th3HfbNXK3Yw6GRXh"
 6. <a id="reference-6" href="https://tools.ietf.org/html/rfc5869">https://tools.ietf.org/html/rfc5869</a>
 7. <a id="reference-7" href="https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki">https://github.com/bitcoin/bips/blob/master/bip-0324.mediawiki</a>
 8. <a id="reference-8" href="https://noiseprotocol.org/noise.html">https://noiseprotocol.org/noise.html</a> (revision 34)
+9. <a id="reference-9" href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki</a>
