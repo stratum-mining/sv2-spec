@@ -265,7 +265,22 @@ The server MUST NOT send any message before its `SetupConnection` response.
 Server MUST respond with either a `SetupConnection.Success` or `SetupConnection.Error` message.
 If the server does not support the requested `protocol`, it MUST respond with `SetupConnection.Error`.
 If the server supports no protocol version between `min_version` and `max_version` inclusive, it MUST respond with `SetupConnection.Error`.
-The feature set in effect for a connection is the combination of both sides' declared requirements: by responding with `SetupConnection.Success` the server commits to satisfying the client's flags defined for the requested protocol, and by proceeding on the connection the client commits to the server's.
+
+The `flags` field is divided into two ranges, where bit 0 is the least significant bit of the U32 value:
+
+- Bits 0–15 indicate required features.
+- Bits 16–31 indicate optional feature requests in `SetupConnection`, and acknowledgements of accepted requests in `SetupConnection.Success`.
+
+Each protocol defines its own flags. Required flags may differ between `SetupConnection` and `SetupConnection.Success`; optional flags have the same meaning in both messages.
+If the server does not support a required flag set by the client, including a required bit that is undefined for the requested protocol, it MUST respond with `SetupConnection.Error`.
+Unsupported or undefined optional flags MUST NOT cause the server to reject the connection.
+The server MUST NOT echo unsupported or undefined optional flags.
+In `SetupConnection.Success`, the server MUST echo every optional flag it accepts and MUST NOT set optional flags that the client did not request.
+
+The feature set in effect for a connection is the combination of both sides' declared requirements and the optional flags echoed by the server.
+By responding with `SetupConnection.Success`, the server commits to satisfying the client's required flags and the optional flags it echoes.
+By proceeding on the connection, the client commits to satisfying the server's required flags and the echoed optional flags.
+
 Clients that are not configured to provide telemetry data to the upstream node SHOULD set `device_id` to 0-length strings.
 However, they MUST always set vendor to a string describing the manufacturer/developer and firmware version and SHOULD always set `hardware_version` to a string describing, at least, the particular hardware/software package in use.
 
@@ -274,7 +289,7 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 | protocol           | U8        | 0 = Mining Protocol <br>1 = Job Declaration <br>2 = Template Distribution Protocol                                          |
 | min_version        | U16       | The minimum protocol version the client supports (currently MUST be 2)                                                      |
 | max_version        | U16       | The maximum protocol version the client supports (currently MUST be 2)                                                      |
-| flags              | U32       | Flags indicating optional protocol features the client requires for this connection. Each protocol from protocol field has its own values/flags. |
+| flags              | U32       | Flags indicating protocol features the client requires (bits 0–15) or optionally requests (bits 16–31). Each protocol has its own flags. |
 | endpoint_host      | STR0_255  | ASCII text indicating the hostname or IP address                                                                            |
 | endpoint_port      | U16       | Connecting port value                                                                                                       |
 | Device Information |           |                                                                                                                             |
@@ -290,24 +305,28 @@ Nevertheless, the protocol will always be called Stratum V2. New versions will b
 ### 3.6.2 `SetupConnection.Success` (Server -> Client)
 
 Response to `SetupConnection` message if the server accepts the connection.
-The client is required to verify the set of feature flags set by the server and act accordingly.
+The client MUST verify that it can satisfy the required flags set by the server before proceeding on the connection.
+Optional flags acknowledge the client's requests; an optional feature is enabled only if the server echoes its flag.
 
 | Field Name   | Data Type | Description                                                                                                                                             |
 |--------------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | used_version | U16       | Selected version proposed by the connecting node that the upstream node supports. This version will be used on the connection for the rest of its life. |
-| flags        | U32       | Flags indicating optional protocol features the server requires for this connection. Each protocol from protocol field has its own values/flags.                            |
+| flags        | U32       | Flags indicating protocol features the server requires (bits 0–15) and optional client requests it accepts (bits 16–31). Each protocol has its own flags. |
 
 ### 3.6.3 `SetupConnection.Error` (Server -> Client)
 
 When protocol version negotiation fails (or there is another reason why the upstream node cannot setup the connection) the server sends this message with a particular error code prior to closing the connection.
 
-In order to allow a client to determine the set of available features for a given server (e.g. for proxies which dynamically switch between different pools and need to be aware of supported options), clients SHOULD send a SetupConnection message with all flags set and examine the (potentially) resulting `SetupConnection.Error` message’s flags field.
-The Server MUST provide the full set of flags which it does not support in each `SetupConnection.Error` message and MUST consistently support the same set of flags across all servers on the same hostname and port number.
-If flags is 0, the error is a result of some condition aside from unsupported flags.
+In order to determine the set of available required features for a given server (e.g. for proxies which dynamically switch between different pools), clients SHOULD send a `SetupConnection` message with all defined required flags set and examine the (potentially) resulting `SetupConnection.Error.flags` field.
+Clients discover support for optional features through the flags echoed in `SetupConnection.Success`.
+The server MUST report all unsupported required bits set in the client's `SetupConnection.flags` in each `SetupConnection.Error` message, including undefined required bits.
+It MUST consistently support the same set of flags across all servers on the same hostname and port number.
+Optional flags MUST NOT be included in `SetupConnection.Error.flags`.
+If `flags` is 0, the error is a result of some condition aside from unsupported required flags.
 
 | Field Name | Data Type | Description                                                 |
 | ---------- | --------- | ----------------------------------------------------------- |
-| flags      | U32       | Flags indicating features causing an error                  |
+| flags      | U32       | Required flags from the client's request that the server does not support (bits 0–15). Bits 16–31 MUST be zero. |
 | error_code | STR0_255  | Human-readable error code(s) |
 
 ### 3.6.4 `ChannelEndpointChanged` (Server -> Client)
