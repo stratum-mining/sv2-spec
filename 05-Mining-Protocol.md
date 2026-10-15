@@ -398,7 +398,7 @@ The illustration below also assumes a mining server that acknowledges every 10 s
 
 ### 5.3.15 `NewMiningJob` (Server -> Client)
 
-The server provides an updated mining job to the client through a standard channel. This MUST be the first message after the channel has been successfully opened. This first message MUST have `ntime_start` unset (a future job).
+The server provides an updated mining job to the client through a standard channel. This MUST be the first message after the channel has been successfully opened, whether or not `REQUIRES_STANDARD_JOBS` is set. This first message MUST have `ntime_start` unset (a future job). Without `REQUIRES_STANDARD_JOBS`, the server MAY then serve the channel through its group channel with `NewExtendedMiningJob` (see §5.2.1).
 
 If the `ntime_start` field is set, the client MUST start to mine on the new job immediately after receiving this message, and use the value for the initial nTime. When set, `ntime_start` MUST NOT be lower than the `ntime_start` of the most recent `SetNewPrevHash` applicable to the channel, since the job is mined against that message's `prev_hash`.
 
