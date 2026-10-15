@@ -144,7 +144,8 @@ A request sent by the Job Declarator to the Template Provider which requests the
 ## 7.6 `RequestTransactionData.Success` (Server->Client)
 
 A response to `RequestTransactionData` which contains the set of full transaction data and excess data required for validation.
-For practical purposes, the excess data is usually the SegWit commitment, however the Job Declarator MUST NOT parse or interpret the excess data in any way.
+The `excess_data` field MUST NOT include the coinbase witness (witness reserved value). No excess data is currently defined, so Template Providers MUST send an empty `excess_data` field.
+The Job Declarator MUST relay `excess_data` unchanged in `DeclareMiningJob` and MUST NOT parse or interpret it in any way.
 Note that the transaction data MUST be treated as opaque blobs and MUST include any SegWit or other data which the Pool may require to verify the transaction.
 For practical purposes, the transaction data is likely the witness-encoded transaction today.
 However, to ensure backward compatibility, the transaction data MAY be encoded in a way that is different from the consensus serialization of Bitcoin transactions.
