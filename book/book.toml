@@ -1,0 +1,17 @@
+[book]
+title = "Stratum V2 Protocol Specification"
+authors = ["Pavel Moravec", "Jan Čapek", "Matt Corallo"]
+language = "en"
+# Staged from the repository root by scripts/build-book.sh
+src = "src"
+
+[build]
+build-dir = "build"
+create-missing = false
+
+[output.html]
+git-repository-url = "https://github.com/stratum-mining/sv2-spec"
+edit-url-template = "https://github.com/stratum-mining/sv2-spec/edit/main/{path}"
+
+[output.html.search]
+enable = true
