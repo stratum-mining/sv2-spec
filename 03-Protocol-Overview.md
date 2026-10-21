@@ -274,7 +274,7 @@ However, they MUST always set vendor to a string describing the manufacturer/dev
 | protocol           | U8        | 0 = Mining Protocol <br>1 = Job Declaration <br>2 = Template Distribution Protocol                                          |
 | min_version        | U16       | The minimum protocol version the client supports (currently MUST be 2)                                                      |
 | max_version        | U16       | The maximum protocol version the client supports (currently MUST be 2)                                                      |
-| flags              | U32       | Flags indicating optional protocol features the client requires for this connection. Each protocol from protocol field has its own values/flags. |
+| flags              | U32       | Flags indicating protocol features the client requires for this connection. Each protocol from protocol field has its own values/flags. |
 | endpoint_host      | STR0_255  | ASCII text indicating the hostname or IP address                                                                            |
 | endpoint_port      | U16       | Connecting port value                                                                                                       |
 | Device Information |           |                                                                                                                             |
@@ -295,7 +295,7 @@ The client is required to verify the set of feature flags set by the server and 
 | Field Name   | Data Type | Description                                                                                                                                             |
 |--------------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | used_version | U16       | Selected version proposed by the connecting node that the upstream node supports. This version will be used on the connection for the rest of its life. |
-| flags        | U32       | Flags indicating optional protocol features the server requires for this connection. Each protocol from protocol field has its own values/flags.                            |
+| flags        | U32       | Flags indicating protocol features the server requires for this connection. Each protocol from protocol field has its own values/flags.                            |
 
 ### 3.6.3 `SetupConnection.Error` (Server -> Client)
 
