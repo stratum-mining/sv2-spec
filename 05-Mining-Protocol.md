@@ -525,7 +525,7 @@ Response from the Pool when it accepts the custom mining job.
 
 Up until receiving this message (and after having all the necessary information to start hashing), the miner SHOULD start hashing and buffer the work optimistically.
 
-This message acts as a commitment from the Pool to rewarding this job. In case the Pool does not commit (either by timeout, or responding with `SetCustomMiningJob.Error`), the miner SHOULD fall back to a different Pool (or solo).
+This message acts as a commitment from the Pool to rewarding this job. In case the Pool does not commit (either by not responding within twice the response timeout (§3) of the miner sending `SetCustomMiningJob`, or by responding with `SetCustomMiningJob.Error`), the miner SHOULD fall back to a different Pool (or solo).
 
 After receiving it, the miner can start submitting shares for this job immediately (by using the `job_id` provided within this response).
 
