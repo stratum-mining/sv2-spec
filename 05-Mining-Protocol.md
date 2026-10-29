@@ -362,6 +362,10 @@ When submitting work for a custom job, `job_id` MUST be the identifier returned 
 
 Response to `SubmitSharesStandard` or `SubmitSharesExtended`, accepting results from the miner.
 A server MAY aggregate acknowledgements for multiple successful share-submission messages from the same channel into a single `SubmitShares.Success` response.
+A server MUST NOT hold the acknowledgement of a successful submission for longer than the liveness timeout (§3) after receiving it. A server that aggregates by count sends whatever it has batched when that time runs out.
+A client SHOULD NOT treat the server as unresponsive before the liveness timeout plus the response timeout have passed after sending a submission that has received neither a `SubmitShares.Success` covering it nor a `SubmitShares.Error`; a client that has submitted nothing is owed nothing. This bound is what lets a client that is submitting shares tell a slow server from a wedged one, since no message asks the server for a reply on demand and new Jobs arrive only when the server has one (§5.1); a dead host is left to the transport.
+
+Note: a client need not keep a send time for every outstanding submission. One timer suffices: it follows one submission from the moment it is sent, and when a `SubmitShares.Success` covers that submission or a `SubmitShares.Error` rejects it, the timer moves to the most recent outstanding submission and restarts. The server can then stop the timer only by acknowledging the whole backlog. Against a server that is alive but falling behind the client may wait up to about twice the bound; it never gives up early.
 
 | Field Name                 | Data Type | Description                                         |
 | -------------------------- | --------- | --------------------------------------------------- |
@@ -383,8 +387,6 @@ Please note that `new_submits_accepted_count` and `new_shares_sum` carry meaning
 ### 5.3.14 `SubmitShares.Error` (Server -> Client)
 
 An error is immediately submitted for every incorrect submit attempt.
-In case the server is not able to immediately validate the submission, the error is sent as soon as the result is known.
-This delayed validation can occur when a miner gets faster updates about a new prevhash than the server does (see `SetNewPrevHash` message for details).
 
 | Field Name      | Data Type | Description                                                 |
 | --------------- | --------- | ----------------------------------------------------------- |
