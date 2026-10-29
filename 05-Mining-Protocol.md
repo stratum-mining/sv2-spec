@@ -226,7 +226,7 @@ A server MAY require Extended Channels on a connection by setting `REQUIRES_EXTE
 This message requests to open a standard channel to the upstream node.
 
 After receiving a `SetupConnection.Success` message, the client SHOULD respond by opening channels on the connection.
-If no channels are opened within a reasonable period the server SHOULD close the connection for inactivity.
+If no channel is opened within the liveness timeout (§3) of `SetupConnection.Success`, the server MAY close the connection for inactivity; it SHOULD NOT close it for that reason sooner.
 
 Every client SHOULD start its communication with an upstream node by opening a channel, which is necessary for almost all later communication.
 The upstream node either passes opening the channel further or has enough local information to handle channel opening on its own (this is mainly intended for proxies that translate between Sv1 and Sv2 on behalf of Stratum v1 downstream devices).
