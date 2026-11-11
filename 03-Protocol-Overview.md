@@ -237,7 +237,7 @@ Encoded as:
 Where:
 - `00 02 01` → TLV Type (Extension `0x0002`, Field `0x01` — `user_identity`)
 - `00 0A` → Length = 10 bytes
-- `57 6F 72 6B 65 72 5F 30 30 31` → `"Worker_001"` (UTF-8 encoded)
+- `57 6F 72 6B 65 72 5F 30 30 31` → `"Worker_001"` (ASCII)
 
 A device processing `SubmitSharesExtended` **MUST scan for TLV fields** matching any negotiated extensions, allowing for future extensibility without breaking compatibility.
 

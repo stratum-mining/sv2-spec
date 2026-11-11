@@ -19,7 +19,7 @@ When this extension is enabled, the client MUST append the following TLV field t
 |------------------|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Type (U16 \| U8) | 3 bytes   | Unique identifier for the TLV field, structured as: <br> - **Extension Type (U16)**: `0x0002` (Worker-Specific Hashrate Tracking) <br> - **Field Type (U8)**: `0x01` (`user_identity`) |
 | Length (U16)     | 2 bytes   | Length of the value (max **32 bytes**)                                                                                                                                                 |
-| Value            | `N` bytes | UTF-8 encoded `user_identity` (worker name)                                                                                                                                            |
+| Value            | `N` bytes | `user_identity` (worker name). Subject to the same byte rule as `STR0_255` (see Section 3.1 of the Protocol Overview).                                                              |
 
 If `user_identity` is shorter than **32 bytes**, it MUST NOT be padded. The `Length` field MUST indicate the actual byte size.
 
@@ -37,7 +37,7 @@ If `user_identity` is shorter than **32 bytes**, it MUST NOT be padded. The `Len
     - `0x0002` (**U16 - Extension Type**) → Worker-Specific Hashrate Tracking
     - `0x01` (**U8 - Field Type**) → `user_identity`
 - `0x000A` → **Length** (10 bytes)
-- `"Worker_001"` → **Value** (UTF-8 encoded string)
+- `"Worker_001"` → **Value** (ASCII string)
 
 ### 1.2 Extension Activation (Negotiation Process)
 
@@ -94,7 +94,7 @@ Where:
 
 - `00 02 01 ` → TLV Type (U16 | U8) (`extension_type = 0x0002`, `field_type = 0x01`)
 - `00 0A` → Length (10 bytes)
-- `57 6F 72 6B 65 72 5F 30 30 31` → "Worker_001" (UTF-8 encoded)
+- `57 6F 72 6B 65 72 5F 30 30 31` → "Worker_001" (ASCII)
 
 ---
 
