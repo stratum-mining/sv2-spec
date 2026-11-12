@@ -90,7 +90,7 @@ Multibyte data types are always serialized as little-endian.
 | F32           | 4                                                                                            | Floating point number, 32-bit, little-endian, IEEE 754 single-precision. A receiver MUST treat NaN, ±Infinity, and negative values (including -0.0) as protocol errors.                                                                                                                                                                                     |
 | U64           | 8                                                                                            | Unsigned integer, 64-bit, little-endian                                                                                                                                                                                                                                                                                                                          |
 | U256          | 32                                                                                           | Unsigned integer, 256-bit, little-endian. Often the raw byte output of SHA-256 interpreted as an unsigned integer.                                                                                                                                                                                                                                               |
-| STR0_255      | 1 + LENGTH                                                                                   | String with 8-bit length prefix L. Unsigned integer, followed by L bytes. Allowed range of length is 0 to 255. The string is not null-terminated.                                                                                                                                                                                                                |
+| STR0_255      | 1 + LENGTH                                                                                   | String with 8-bit length prefix L. Unsigned integer, followed by L bytes. Allowed range of length is 0 to 255. The string is not null-terminated. Every byte MUST be a printable ASCII character (0x20 to 0x7E). A receiver MUST treat any other byte as a protocol error.                                                                                                                                                                                                                |
 | B0_32         | 1 + LENGTH                                                                                   | Byte array with 8-bit length prefix L. Unsigned integer, followed by a sequence of L bytes. Allowed range of length is 0 to 32.                                                                                                                                                                                                                                  |
 | B0_255        | 1 + LENGTH                                                                                   | Byte array with 8-bit length prefix L. Unsigned integer, followed by a sequence of L bytes. Allowed range of length is 0 to 255.                                                                                                                                                                                                                                 |
 | B0_64K        | 2 + LENGTH                                                                                   | Byte array with 16-bit length prefix L. Unsigned little-endian integer followed by a sequence of L bytes. Allowed range of length is 0 to 65535.                                                                                                                                                                                                                 |
@@ -237,7 +237,7 @@ Encoded as:
 Where:
 - `00 02 01` → TLV Type (Extension `0x0002`, Field `0x01` — `user_identity`)
 - `00 0A` → Length = 10 bytes
-- `57 6F 72 6B 65 72 5F 30 30 31` → `"Worker_001"` (UTF-8 encoded)
+- `57 6F 72 6B 65 72 5F 30 30 31` → `"Worker_001"` (ASCII)
 
 A device processing `SubmitSharesExtended` **MUST scan for TLV fields** matching any negotiated extensions, allowing for future extensibility without breaking compatibility.
 
@@ -249,9 +249,7 @@ Implementations MAY use error codes for automated actions. The list of error cod
 
 Fallback or recovery behavior MUST be based on the overall protocol state, even when a peer sends an unknown, different, or unexpected error code.
 
-Implementations/pools MUST provide documentation on the meaning of error codes. Error codes MUST consist only of printable ASCII characters.
-
-This character restriction applies equally to other human-readable string codes, such as the `reason_code` field of `CloseChannel` (see Section 5.3.9).
+Implementations/pools MUST provide documentation on the meaning of error codes.
 
 ## 3.6 Common Protocol Messages
 

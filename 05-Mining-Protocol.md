@@ -233,7 +233,7 @@ Clients must also communicate information about their hashing power in order to 
 | Field Name        | Data Type | Description                                                                                                                                                                                                                                                                                                                  |
 | ----------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | request_id        | U32       | Client-specified identifier for matching responses from upstream server. The value MUST be connection-wide unique and is not interpreted by the server.                                                                                                                                                                      |
-| user_identity     | STR0_255  | Opaque byte sequence used by the server to identify/authenticate the client, e.g. "username.worker1". Its content is not interpreted by the protocol; the server (e.g. a pool) MAY impose additional restrictions. UTF-8 encoding SHOULD be used.                                                                            |
+| user_identity     | STR0_255  | Opaque byte sequence used by the server to identify/authenticate the client, e.g. "username.worker1". Its content is not interpreted by the protocol; the server (e.g. a pool) MAY impose additional restrictions.                                                                            |
 | nominal_hash_rate | F32       | [h/s] Expected hashrate of the device (or cumulative hashrate on the channel if multiple devices are connected downstream) in h/s. Depending on server's target setting policy, this value can be used for setting a reasonable target for the channel. Proxy MUST send 0.0f when there are no mining devices connected yet. |
 | max_target        | U256      | Maximum target which can be accepted by the connected device or devices. Server MUST accept the target or respond by sending OpenMiningChannel.Error message.                                                                                                                                                                |
 
@@ -311,8 +311,6 @@ A proxy MUST send this message on behalf of all opened channels from a downstrea
 | ----------- | --------- | ------------------------------ |
 | channel_id  | U32       | Channel identification         |
 | reason_code | STR0_255  | Reason for closing the channel |
-
-The `reason_code` field is subject to the same character restrictions as error codes (see Section 3.5).
 
 If a proxy is operating in channel aggregating mode (translating downstream channels into aggregated extended upstream channels), it MUST send an `UpdateChannel` message when it receives `CloseChannel` or connection closure from a downstream connection.
 In general, proxy servers MUST keep the upstream node notified about the real state of the downstream channels.
