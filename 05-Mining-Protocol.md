@@ -31,6 +31,8 @@ Mining servers MUST assign a unique subset of the search space to each mining de
 
 This protocol explicitly expects that upstream server software is able to manage the size of the hashing space correctly for its clients and can provide new and unique Jobs quickly enough, based on the hashpower of each client.
 
+That is the only rate at which Jobs are promised. A server sends a new Job when it has one (a new `prev_hash`, or a more profitable set of transactions), not on a schedule, and a quiet network can leave a Channel without a new Job for the whole interval between blocks. A client that holds a Job MUST NOT treat a period without new Jobs as a sign that the server is unresponsive; the response and liveness timeouts of §3 are the signs of life the protocol provides. A server MUST send a channel's first Job, and the `SetNewPrevHash` that activates it (§5.3.17), within the response timeout (§3) of receiving the `Open*MiningChannel`, like the `.Success`.
+
 The protocol defines two main types of Jobs: **Standard Job** and **Extended Job**.
 
 This separation vastly simplifies the protocol implementation for clients that don’t support Extended Job, as they only need to implement the subset of protocol messages related to Standard Job (see Mining Protocol Messages for details).
@@ -224,7 +226,7 @@ A server MAY require Extended Channels on a connection by setting `REQUIRES_EXTE
 This message requests to open a standard channel to the upstream node.
 
 After receiving a `SetupConnection.Success` message, the client SHOULD respond by opening channels on the connection.
-If no channels are opened within a reasonable period the server SHOULD close the connection for inactivity.
+If no channel is opened within the liveness timeout (§3) of `SetupConnection.Success`, the server MAY close the connection for inactivity; it SHOULD NOT close it for that reason sooner.
 
 Every client SHOULD start its communication with an upstream node by opening a channel, which is necessary for almost all later communication.
 The upstream node either passes opening the channel further or has enough local information to handle channel opening on its own (this is mainly intended for proxies that translate between Sv1 and Sv2 on behalf of Stratum v1 downstream devices).
@@ -288,7 +290,7 @@ This update can be debounced so that it is not sent more often than once in a se
 | ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | channel_id        | U32       | Channel identification                                                                                                                                                                                                                |
 | nominal_hash_rate | F32       | See Open\*Channel for details                                                                                                                                                                                                         |
-| max_target        | U256      | The channel target is changed by the server by sending SetTarget. This field is understood as device's request. There can be some delay between UpdateChannel and corresponding SetTarget messages, based on new job readiness on the server. |
+| max_target        | U256      | The channel target is changed by the server by sending SetTarget. This field is understood as device's request. There can be some delay between UpdateChannel and the corresponding SetTarget message; §5.3.21 bounds it. |
 
 When `max_target` is smaller than the channel’s current target, the upstream node MUST reflect the client’s request (and send an appropriate `SetTarget` message).
 
@@ -360,6 +362,10 @@ When submitting work for a custom job, `job_id` MUST be the identifier returned 
 
 Response to `SubmitSharesStandard` or `SubmitSharesExtended`, accepting results from the miner.
 A server MAY aggregate acknowledgements for multiple successful share-submission messages from the same channel into a single `SubmitShares.Success` response.
+A server MUST NOT hold the acknowledgement of a successful submission for longer than the liveness timeout (§3) after receiving it. A server that aggregates by count sends whatever it has batched when that time runs out.
+A client SHOULD NOT treat the server as unresponsive before the liveness timeout plus the response timeout have passed after sending a submission that has received neither a `SubmitShares.Success` covering it nor a `SubmitShares.Error`; a client that has submitted nothing is owed nothing. This bound is what lets a client that is submitting shares tell a slow server from a wedged one, since no message asks the server for a reply on demand and new Jobs arrive only when the server has one (§5.1); a dead host is left to the transport.
+
+Note: a client need not keep a send time for every outstanding submission. One timer suffices: it follows one submission from the moment it is sent, and when a `SubmitShares.Success` covers that submission or a `SubmitShares.Error` rejects it, the timer moves to the most recent outstanding submission and restarts. The server can then stop the timer only by acknowledging the whole backlog. Against a server that is alive but falling behind the client may wait up to about twice the bound; it never gives up early.
 
 | Field Name                 | Data Type | Description                                         |
 | -------------------------- | --------- | --------------------------------------------------- |
@@ -381,8 +387,6 @@ Please note that `new_submits_accepted_count` and `new_shares_sum` carry meaning
 ### 5.3.14 `SubmitShares.Error` (Server -> Client)
 
 An error is immediately submitted for every incorrect submit attempt.
-In case the server is not able to immediately validate the submission, the error is sent as soon as the result is known.
-This delayed validation can occur when a miner gets faster updates about a new prevhash than the server does (see `SetNewPrevHash` message for details).
 
 | Field Name      | Data Type | Description                                                 |
 | --------------- | --------- | ----------------------------------------------------------- |
@@ -523,7 +527,7 @@ Response from the Pool when it accepts the custom mining job.
 
 Up until receiving this message (and after having all the necessary information to start hashing), the miner SHOULD start hashing and buffer the work optimistically.
 
-This message acts as a commitment from the Pool to rewarding this job. In case the Pool does not commit (either by timeout, or responding with `SetCustomMiningJob.Error`), the miner SHOULD fall back to a different Pool (or solo).
+This message acts as a commitment from the Pool to rewarding this job. In case the Pool does not commit (either by not responding within twice the response timeout (§3) of the miner sending `SetCustomMiningJob`, or by responding with `SetCustomMiningJob.Error`), the miner SHOULD fall back to a different Pool (or solo).
 
 After receiving it, the miner can start submitting shares for this job immediately (by using the `job_id` provided within this response).
 
@@ -564,9 +568,9 @@ When `SetTarget` is sent to a group channel, the target is applicable to all cha
 
 `UpdateChannel` and `SetTarget` can cross on the connection, since the client and the server send them independently of each other. A client that lowers `max_target` with an `UpdateChannel` can therefore still receive a `SetTarget` whose target is above the new value, sent before the server accepted that `UpdateChannel`. The bound above holds such a `SetTarget` to the previous `max_target`, the one the `UpdateChannel` replaces, not to the new value.
 
-When the server then accepts the `UpdateChannel`, §5.3.7 requires it to send a new `SetTarget` that respects the new `max_target`. A server that does not accept the `UpdateChannel` responds with `UpdateChannel.Error` instead, and the bound stays at the previous `max_target`.
+When the server then accepts the `UpdateChannel`, §5.3.7 requires it to send a new `SetTarget` that respects the new `max_target`, and the server MUST send it within the response timeout (§3) of receiving the `UpdateChannel`. A server that does not accept the `UpdateChannel` responds with `UpdateChannel.Error` instead, and the bound stays at the previous `max_target`.
 
-An accepted `UpdateChannel` has no response (§5.3.8), so a client cannot tell whether a `SetTarget` was sent before or after the server accepted it. A client that lowers `max_target` SHOULD allow the server a reasonable grace period to send the new `SetTarget` or the `UpdateChannel.Error` before treating a target above the new value as a violation of the bound (for instance: by falling back to a different server). The grace period ends when the `UpdateChannel.Error` arrives, or when the time the client allowed runs out. A `SetTarget` within the new `max_target` does not end it, since it may have been sent before the server accepted the `UpdateChannel`. The target of a `SetTarget` received during the grace period still applies until the next one, like any other.
+An accepted `UpdateChannel` has no response (§5.3.8), so a client cannot tell whether a `SetTarget` was sent before or after the server accepted it. A client that lowers `max_target` SHOULD allow the server twice the response timeout as a grace period to send the new `SetTarget` or the `UpdateChannel.Error` before treating a target above the new value as a violation of the bound (for instance: by falling back to a different server). The grace period ends when the `UpdateChannel.Error` arrives, or when the time the client allowed runs out. A `SetTarget` within the new `max_target` does not end it, since it may have been sent before the server accepted the `UpdateChannel`. The target of a `SetTarget` received during the grace period still applies until the next one, like any other.
 
 A target above the previous `max_target` violates the bound, regardless of whether the `SetTarget` was sent before or after the server accepted the `UpdateChannel`. The client does not need to allow the grace period for it.
 

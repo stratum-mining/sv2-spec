@@ -74,6 +74,13 @@ In specific use cases, it may make sense to operate the protocol over a connecti
 However, that is outside of the scope of this document.
 The minimum requirement of the transport layer is to guarantee ordered delivery of the protocol messages.
 
+A request is any message that has a `.Success` or `.Error` counterpart, or whose section requires a particular reply to it.
+The receiver of a request MUST reply within 30 seconds of receiving it, the **response timeout**, unless its section says otherwise: an accepted `UpdateChannel` gets no response (§5.3.8), only a `SetTarget` when the new `max_target` is below the channel's current target (§5.3.7, §5.3.21), and a `DeclareMiningJob` may be answered first by `ProvideMissingTransactions` (§6.4.5).
+A node SHOULD NOT treat the peer as unresponsive until twice the response timeout has passed since it sent the request, unless the request's section gives the requester a different wait (as extension 0x0001 does for `RequestExtensions`). The second half of that time covers transit, timer granularity and transport retransmission.
+Where a section lets a reply be held, as the aggregation of `SubmitShares.Success` does (§5.3.13), the hold is bounded by the **liveness timeout**, 60 seconds.
+Both timeouts apply to the node that produces the reply: a node that relays a request to its own upstream node instead of answering it, as a proxy passing an `OpenStandardMiningChannel` further does (§5.3.2), forwards the request and relays the reply without delay.
+A node that gives up on a peer under these timeouts and reconnects SHOULD delay each reconnect attempt after the first by a randomized backoff (for example, exponential with jitter), so that nodes that lost the same server do not reconnect in lockstep.
+
 ## 3.1 Data Types Mapping
 
 Message definitions use common data types described here for convenience.

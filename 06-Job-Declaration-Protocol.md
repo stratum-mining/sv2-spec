@@ -34,7 +34,7 @@ It is responsible for:
 - Publishing valid blocks found by downstream Mining Devices (both to Template Provider (TP) and JDS).
 
 Additionally, if:
-- JDS fails to respond with an `AllocateMiningJobToken.Success` in a reasonable time;
+- JDS fails to respond with an `AllocateMiningJobToken.Success` within twice the response timeout (§3) of JDC sending the `AllocateMiningJobToken`;
 - or JDS rejects some Custom Job declaration via `DeclareMiningJob.Error`;
 - or Pool rejects valid shares under a Custom Job that was previously acknowledged via `SetCustomMiningJob.Success` and/or `DeclareMiningJob.Success`;
 
@@ -213,6 +213,8 @@ Differently from `NewExtendedMiningJob`, if the original coinbase is a SegWit tr
 A response sent by JDS acknowledging some Custom Job declaration.
 
 JDS MAY request txdata via `ProvideMissingTransactions` before making this commitment.
+
+A `ProvideMissingTransactions` sent within the response timeout (§3) of receiving the `DeclareMiningJob` counts as the reply to it. `DeclareMiningJob.Success` or `DeclareMiningJob.Error` is then due within the response timeout of receiving `ProvideMissingTransactions.Success`.
 
 Since JDS could be third party (not necessarily integrated to Pool), `DeclareMiningJob.Success.new_mining_job_token` MAY carry a cryptographic commitment from JDS where:
 - JDS acknowledges that the template declared under `DeclareMiningJob.mining_job_token` is valid
