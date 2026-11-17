@@ -445,6 +445,8 @@ The server MUST NOT assign a `job_id` that is already in use by another currentl
 
 \*If the original coinbase is a SegWit transaction, `coinbase_tx_prefix` and `coinbase_tx_suffix` MUST be stripped of BIP141 fields (marker, flag, witness count, witness length and witness reserved value).
 
+A server that accepts `SetCustomMiningJob`, and every other server whose accepted shares are accounted together with its own (e.g. the servers of one pool), MUST build the coinbase so that the full Extended Extranonce is the last push of its scriptSig: the scriptSig bytes in `coinbase_tx_prefix` consist of complete script operations followed by the opcode that pushes exactly as many bytes as the full Extended Extranonce size of the channel (or of the channels in the group), the same structure that Section 5.3.18 requires of `coinbase_prefix`, and `coinbase_tx_suffix` begins with the input's `nSequence`. A client could otherwise copy a job built by the server into a `SetCustomMiningJob` on a second channel with a smaller full Extended Extranonce size, cut at a different place, and have each share accepted once on each channel.
+
 The merkle root is then calculated as follows:
 
 ```
@@ -500,6 +502,8 @@ Can be sent only on extended or group channel. If the group channel contains sta
 This message signals that JDC expects to be rewarded for working on a Custom Job.
 
 Since a Custom Job carries its own `prev_hash`, its `ntime_start` is not bound by any `SetNewPrevHash` sent by the server. Instead, the server MUST validate that `ntime_start` is a consensus-valid nTime for the block following `prev_hash` (in particular, greater than that chain's median-time-past), responding with `SetCustomMiningJob.Error` otherwise.
+
+`coinbase_prefix` MUST consist of complete script operations followed by one final byte. That byte MUST be the opcode that pushes exactly as many bytes as the full Extended Extranonce size of the channel (or of the channels in the group), so that the full Extended Extranonce is the last push of the coinbase scriptSig. That opcode is the single byte whose value is the size, since the full Extended Extranonce is at most 64 bytes (`extranonce_prefix` is `B0_32` and `extranonce_size` is at most 32). The server MUST respond with `SetCustomMiningJob.Error` to a `coinbase_prefix` that does not have this structure. A client holding two channels with different full Extended Extranonce sizes could otherwise build the same coinbase scriptSig on both, and have each share accepted once on each channel.
 
 | Field Name                  | Data Type      | Description                                                                                                                                                           |
 | --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
