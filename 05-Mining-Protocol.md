@@ -29,6 +29,12 @@ In other words, any rules imposed on transaction selection/ordering by miners no
 
 Mining servers MUST assign a unique subset of the search space to each mining device, otherwise the mining devices will waste energy with overlapping search.
 
+A server MUST NOT accept shares on the same `prev_hash` from two channels that were assigned the same `extranonce_prefix`, or values of different lengths where the longer one begins with the shorter one (e.g. `AA BB` and `AA BB 00`), since an Extended Channel that holds the shorter one can produce the longer one with its `extranonce`. This applies to a `prev_hash` the client chose in `SetCustomMiningJob` as well as to the server's own, to values assigned with `OpenStandardMiningChannel.Success`, `OpenExtendedMiningChannel.Success` and `SetExtranoncePrefix`, and to channels on any Connection, open or closed, of this server and of every other server whose accepted shares are accounted together with its own (e.g. the servers of one pool). Otherwise the later channel can repeat the search already done on the earlier one, and its client can resubmit the shares that were accepted there.
+
+A server that only accepts work on its own current `prev_hash` meets this by never assigning a value twice while that `prev_hash` does not change. A server that also accepts work on other `prev_hash` values keeps a value reserved for as long as it accepts shares on any `prev_hash` that a channel holding the value worked on.
+
+A server SHOULD choose `extranonce_prefix` values at random, so that it is unlikely to repeat one after a restart in which it loses track of the values it has assigned.
+
 This protocol explicitly expects that upstream server software is able to manage the size of the hashing space correctly for its clients and can provide new and unique Jobs quickly enough, based on the hashpower of each client.
 
 The protocol defines two main types of Jobs: **Standard Job** and **Extended Job**.
@@ -383,6 +389,8 @@ Please note that `new_submits_accepted_count` and `new_shares_sum` carry meaning
 An error is immediately submitted for every incorrect submit attempt.
 In case the server is not able to immediately validate the submission, the error is sent as soon as the result is known.
 This delayed validation can occur when a miner gets faster updates about a new prevhash than the server does (see `SetNewPrevHash` message for details).
+
+A server MUST respond with `SubmitShares.Error` to a share that results in the same block header as a share it has already accepted.
 
 | Field Name      | Data Type | Description                                                 |
 | --------------- | --------- | ----------------------------------------------------------- |
