@@ -100,21 +100,8 @@ Clients MUST NOT use any features from extensions that are not confirmed as supp
 
 - **Client Behavior**:
    - Clients MUST NOT send any further extension-specific messages until they receive a `RequestExtensions.Success` or `RequestExtensions.Error` response.
-   - Clients MAY implement the following timeout and reconnection strategy:
-     1. After sending `RequestExtensions`, wait for a timeout of 2x the initial connection time
-     2. If no response is received within this timeout:
-        - Reconnect to the same server
-        - Attempt the extension negotiation again
-     3. If still no response after 5x the initial connection time:
-        - Reconnect one final time
-        - Proceed without any extensions
-     4. If the total connection time exceeds approximately 1 second:
-        - Consider switching to a fallback pool
-   - This strategy ensures that:
-     - The first reconnection serves as a basic connectivity check
-     - The total connection time remains reasonable for mining operations
-     - Clients can gracefully fallback to non-extension operation
-     - Users can switch to alternative pools if connection times are too high
+   - A server that supports this extension MUST respond to `RequestExtensions` within 5 seconds of receiving it.
+   - A client that receives no response within 10 seconds of sending `RequestExtensions` SHOULD treat the server as not supporting this extension: it reconnects and proceeds without sending `RequestExtensions`.
 
 This ensures clients can handle servers that do not implement extensions negotiation gracefully while maintaining reasonable connection times for mining operations.
 
