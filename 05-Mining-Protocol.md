@@ -350,7 +350,7 @@ When submitting work for a custom job, `job_id` MUST be the identifier returned 
 ### 5.3.13 `SubmitShares.Success` (Server -> Client)
 
 Response to `SubmitSharesStandard` or `SubmitSharesExtended`, accepting results from the miner.
-A server MAY aggregate acknowledgements for multiple successful share-submission messages from the same channel into a single `SubmitShares.Success` response.
+A server MAY aggregate acknowledgements for multiple successful share-submission messages from the same channel into a single `SubmitShares.Success` response, but the server MUST acknowledge each successful submission within 60 seconds of receiving that submission.
 
 | Field Name                 | Data Type | Description                                         |
 | -------------------------- | --------- | --------------------------------------------------- |
