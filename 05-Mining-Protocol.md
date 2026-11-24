@@ -31,6 +31,8 @@ Mining servers MUST assign a unique subset of the search space to each mining de
 
 This protocol explicitly expects that upstream server software is able to manage the size of the hashing space correctly for its clients and can provide new and unique Jobs quickly enough, based on the hashpower of each client.
 
+A server MUST send a channel's first Job, and the `SetNewPrevHash` that activates it (§5.3.17), within the response timeout (§3) of receiving the `Open*MiningChannel`, like the `.Success`.
+
 The protocol defines two main types of Jobs: **Standard Job** and **Extended Job**.
 
 This separation vastly simplifies the protocol implementation for clients that don’t support Extended Job, as they only need to implement the subset of protocol messages related to Standard Job (see Mining Protocol Messages for details).
