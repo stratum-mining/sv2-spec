@@ -31,6 +31,8 @@ Mining servers MUST assign a unique subset of the search space to each mining de
 
 This protocol explicitly expects that upstream server software is able to manage the size of the hashing space correctly for its clients and can provide new and unique Jobs quickly enough, based on the hashpower of each client.
 
+A server MUST NOT let 60 seconds pass on a Channel without sending it a Job, counted from the `Open*MiningChannel.Success` and from each Job; a Job sent to a Group Channel counts for every Channel in the group. A Job sent to meet this bound MAY carry the same template as the Job before it, under a new `job_id` (§5.3.15, §5.3.16). A server that cannot produce a Job from a current template, because its template source is unavailable, MUST NOT send one to meet the bound.
+
 The protocol defines two main types of Jobs: **Standard Job** and **Extended Job**.
 
 This separation vastly simplifies the protocol implementation for clients that don’t support Extended Job, as they only need to implement the subset of protocol messages related to Standard Job (see Mining Protocol Messages for details).
